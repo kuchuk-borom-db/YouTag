@@ -1,4 +1,4 @@
-package dev.kuku.youtagserver.auth.services;
+package dev.kuku.youtagserver.auth.internal.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

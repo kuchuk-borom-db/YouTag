@@ -12,3 +12,10 @@ public class YouTagServerApplication {
 
 }
 //TODO Read Google client.json for secret stuff
+
+/*
+ *
+ * Spring modulith is awesome!
+ * It allows you to build modular monolith application with few inter module dependencies
+ * The next best thing is it's persistent event system that allows you to handle event driven application without having to run a separate messaging server
+ */

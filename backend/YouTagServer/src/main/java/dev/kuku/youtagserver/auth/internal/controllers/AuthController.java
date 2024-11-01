@@ -1,7 +1,7 @@
-package dev.kuku.youtagserver.auth.controller;
+package dev.kuku.youtagserver.auth.internal.controllers;
 
-import dev.kuku.youtagserver.auth.exceptions.InvalidOAuthRedirect;
-import dev.kuku.youtagserver.auth.services.GoogleService;
+import dev.kuku.youtagserver.auth.internal.exceptions.InvalidOAuthRedirect;
+import dev.kuku.youtagserver.auth.internal.services.GoogleService;
 import dev.kuku.youtagserver.common.models.ResponseModel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +35,7 @@ class AuthController {
 
         OAuth2AccessToken accessToken = googleService.getAccessToken(code, state);
         var user = googleService.getUserFromToken(accessToken);
+        //TODO Fire event so that user service can store the user in database. Persistent event using db with the help of modulith
         return ResponseEntity.ok(new ResponseModel<>(user.getAttributes(), "Success"));
     }
 }
