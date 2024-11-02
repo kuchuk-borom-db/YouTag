@@ -1,4 +1,4 @@
-package dev.kuku.youtagserver.common.exceptions;
+package dev.kuku.youtagserver.common.domain.exceptions;
 
 import org.springframework.http.HttpStatusCode;
 

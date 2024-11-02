@@ -1,6 +1,6 @@
-package dev.kuku.youtagserver.auth.internal.exceptions;
+package dev.kuku.youtagserver.auth.domain.exceptions;
 
-import dev.kuku.youtagserver.common.exceptions.ResponseException;
+import dev.kuku.youtagserver.common.domain.exceptions.ResponseException;
 import org.springframework.http.HttpStatus;
 
 public class InvalidOAuthRedirect extends ResponseException {

@@ -1,7 +1,11 @@
-package dev.kuku.youtagserver.auth.internal.services;
+package dev.kuku.youtagserver.auth.domain.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.kuku.youtagserver.auth.api.events.GotUserFromTokenEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -15,15 +19,21 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponse;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional
 public class GoogleService {
     final ClientRegistrationRepository registeredClientRepo;
     final DefaultOAuth2UserService oAuth2UserService = new DefaultOAuth2UserService();
+    final ApplicationEventPublisher eventPublisher;
+    final ObjectMapper objectMapper;
 
     public OAuth2AuthorizationRequest getAuthorizationRequest() {
         ClientRegistration googleClient = registeredClientRepo.findByRegistrationId("google");
@@ -59,9 +69,16 @@ public class GoogleService {
         return auth2AccessTokenResponse.getAccessToken();
     }
 
-    public OAuth2User getUserFromToken(OAuth2AccessToken accessToken) {
+    public OAuth2User getUserFromToken(OAuth2AccessToken accessToken) throws JsonProcessingException {
         ClientRegistration google = registeredClientRepo.findByRegistrationId("google");
         OAuth2UserRequest userRequest = new OAuth2UserRequest(google, accessToken);
-        return oAuth2UserService.loadUser(userRequest);
+        OAuth2User user = oAuth2UserService.loadUser(userRequest);
+        Map<String, String> userMap = new HashMap<>();
+        userMap.put("email", user.getAttribute("email"));
+        userMap.put("name", user.getAttribute("name"));
+        userMap.put("picture", user.getAttribute("picture"));
+        //Fire an event
+        eventPublisher.publishEvent(new GotUserFromTokenEvent(userMap));
+        return user;
     }
 }

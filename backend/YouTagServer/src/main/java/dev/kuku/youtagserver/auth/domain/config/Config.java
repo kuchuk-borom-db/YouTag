@@ -1,4 +1,4 @@
-package dev.kuku.youtagserver.auth.internal.config;
+package dev.kuku.youtagserver.auth.domain.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

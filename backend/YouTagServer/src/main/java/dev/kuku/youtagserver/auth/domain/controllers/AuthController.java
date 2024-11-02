@@ -1,8 +1,9 @@
-package dev.kuku.youtagserver.auth.internal.controllers;
+package dev.kuku.youtagserver.auth.domain.controllers;
 
-import dev.kuku.youtagserver.auth.internal.exceptions.InvalidOAuthRedirect;
-import dev.kuku.youtagserver.auth.internal.services.GoogleService;
-import dev.kuku.youtagserver.common.models.ResponseModel;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import dev.kuku.youtagserver.auth.domain.exceptions.InvalidOAuthRedirect;
+import dev.kuku.youtagserver.auth.domain.services.GoogleService;
+import dev.kuku.youtagserver.common.domain.models.ResponseModel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
@@ -27,7 +28,7 @@ class AuthController {
     @GetMapping("/redirect/google")
     ResponseEntity<ResponseModel<Map<String, Object>>> googleRedirectEndpoint(
             @RequestParam(required = false) String code,
-            @RequestParam(required = false) String state) throws InvalidOAuthRedirect {
+            @RequestParam(required = false) String state) throws InvalidOAuthRedirect, JsonProcessingException {
 
         if (code == null || state == null) {
             throw new InvalidOAuthRedirect("Invalid Google OAuth redirect because code and/or state is null");
@@ -35,7 +36,6 @@ class AuthController {
 
         OAuth2AccessToken accessToken = googleService.getAccessToken(code, state);
         var user = googleService.getUserFromToken(accessToken);
-        //TODO Fire event so that user service can store the user in database. Persistent event using db with the help of modulith
         return ResponseEntity.ok(new ResponseModel<>(user.getAttributes(), "Success"));
     }
 }

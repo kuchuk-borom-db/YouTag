@@ -1,4 +1,4 @@
-package dev.kuku.youtagserver.user.entity;
+package dev.kuku.youtagserver.user.domain.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 public class User {
     @Id
     String email;
-    String name;
+    String username;
     String pic;
 }
 
