@@ -12,7 +12,7 @@ public class YouTagServerApplication {
 
 }
 //TODO Read Google client.json for secret stuff
-
+//TODO Move service to exposed domain and dependencies between objects should be resolved using common DTO
 /*
  *
  * Spring modulith is awesome!
