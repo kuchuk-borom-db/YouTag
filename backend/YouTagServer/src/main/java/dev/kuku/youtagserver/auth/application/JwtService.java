@@ -1,4 +1,4 @@
-package dev.kuku.youtagserver.auth.api.services;
+package dev.kuku.youtagserver.auth.application;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.JWTClaimsSet;

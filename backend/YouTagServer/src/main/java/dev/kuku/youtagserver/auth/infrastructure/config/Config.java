@@ -1,6 +1,6 @@
 package dev.kuku.youtagserver.auth.infrastructure.config;
 
-import dev.kuku.youtagserver.auth.api.services.JwtService;
+import dev.kuku.youtagserver.auth.application.JwtService;
 import dev.kuku.youtagserver.auth.infrastructure.JwtAuthenticationFilter;
 import dev.kuku.youtagserver.auth.infrastructure.JwtAuthenticationProvider;
 import org.springframework.context.annotation.Bean;

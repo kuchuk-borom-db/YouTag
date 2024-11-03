@@ -23,18 +23,7 @@ CREATE TABLE user_video_tags
     FOREIGN KEY (video_id) REFERENCES videos (id) ON DELETE CASCADE
 );
 
--- Important operations that are going to be performed
--- USER index
--- Get videos of user A
--- Get videos of user A with tag B
--- Get tags of user A
--- VIDEO index
--- get tags of video V
--- get users that have video V
--- TAG index
--- get users using tag T
--- get videos using tag T
-
+-- Indexes for optimizing queries
 
 -- USER-focused operations
 -- For "Get videos of user A"
@@ -42,9 +31,9 @@ CREATE INDEX idx_user_video_tags_user_email
     ON user_video_tags (user_email);
 
 -- For "Get videos of user A with tag B"
--- We need a GIN index since tags is an array
+-- We need a GIN index for the `tags` array to support array-based operations
 CREATE INDEX idx_user_video_tags_user_email_tags
-    ON user_video_tags USING GIN (user_email, tags);
+    ON user_video_tags (user_email) INCLUDE (tags);
 
 -- VIDEO-focused operations
 -- For "get tags of video V" and "get users that have video V"
@@ -53,6 +42,6 @@ CREATE INDEX idx_user_video_tags_video_id
 
 -- TAG-focused operations
 -- For "get users using tag T" and "get videos using tag T"
--- Using GIN index for array column
+-- Using GIN index on the tags array for faster querying
 CREATE INDEX idx_user_video_tags_tags
     ON user_video_tags USING GIN (tags);

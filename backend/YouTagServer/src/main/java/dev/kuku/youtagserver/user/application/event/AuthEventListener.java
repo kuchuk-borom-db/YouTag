@@ -1,8 +1,8 @@
 package dev.kuku.youtagserver.user.application.event;
 
 import dev.kuku.youtagserver.auth.api.events.GotUserFromTokenEvent;
-import dev.kuku.youtagserver.user.api.services.UserService;
-import dev.kuku.youtagserver.user.domain.entity.User;
+import dev.kuku.youtagserver.user.api.dto.UserDTO;
+import dev.kuku.youtagserver.user.application.services.UserServiceInternal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -13,7 +13,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 @RequiredArgsConstructor
 class AuthEventListener {
-    final UserService userService;
+    final UserServiceInternal userService;
 
     @Async
     @TransactionalEventListener
@@ -23,7 +23,7 @@ class AuthEventListener {
         String email = event.userMap().get("email");
         String name = event.userMap().get("name");
         String pic = event.userMap().get("picture");
-        User tokenUser = new User(email, name, pic);
+        UserDTO tokenUser = new UserDTO(email, name, pic);
         //if user already then attempt to update it
         if (!userService.addUser(tokenUser)) {
             if (userService.updateUser(tokenUser)) {

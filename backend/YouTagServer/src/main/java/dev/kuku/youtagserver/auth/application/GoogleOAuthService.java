@@ -1,4 +1,4 @@
-package dev.kuku.youtagserver.auth.api.services;
+package dev.kuku.youtagserver.auth.application;
 
 import dev.kuku.youtagserver.auth.domain.models.GoogleUser;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;

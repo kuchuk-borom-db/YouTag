@@ -2,7 +2,7 @@ package dev.kuku.youtagserver.auth.infrastructure;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.JWTClaimsSet;
-import dev.kuku.youtagserver.auth.api.services.JwtService;
+import dev.kuku.youtagserver.auth.application.JwtService;
 import dev.kuku.youtagserver.auth.domain.exceptions.JWTVerificationFailed;
 import dev.kuku.youtagserver.auth.domain.exceptions.JwtTokenExpired;
 import dev.kuku.youtagserver.auth.domain.models.AuthenticatedUser;

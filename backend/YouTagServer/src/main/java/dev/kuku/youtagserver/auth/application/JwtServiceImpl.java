@@ -5,7 +5,6 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import dev.kuku.youtagserver.auth.api.services.JwtService;
 import dev.kuku.youtagserver.auth.domain.exceptions.JWTVerificationFailed;
 import dev.kuku.youtagserver.auth.domain.exceptions.JwtTokenExpired;
 import lombok.extern.slf4j.Slf4j;

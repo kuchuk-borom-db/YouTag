@@ -1,13 +1,8 @@
 package dev.kuku.youtagserver.user.api.services;
 
-import dev.kuku.youtagserver.user.domain.entity.User;
+import dev.kuku.youtagserver.user.api.dto.UserDTO;
+import dev.kuku.youtagserver.user.domain.exception.InvalidEmailException;
 
 public interface UserService {
-    User getUser(String email);
-
-    boolean addUser(User user);
-
-    boolean updateUser(User user);
-
-    boolean isUserOutdated(User user);
+    UserDTO getUser(String email) throws InvalidEmailException;
 }

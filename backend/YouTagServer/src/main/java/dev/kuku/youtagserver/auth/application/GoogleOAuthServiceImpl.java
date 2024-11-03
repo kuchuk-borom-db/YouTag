@@ -1,7 +1,6 @@
 package dev.kuku.youtagserver.auth.application;
 
 import dev.kuku.youtagserver.auth.api.events.GotUserFromTokenEvent;
-import dev.kuku.youtagserver.auth.api.services.GoogleOAuthService;
 import dev.kuku.youtagserver.auth.domain.models.GoogleUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
