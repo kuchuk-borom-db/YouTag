@@ -38,13 +38,16 @@ public class UserServiceImpl implements UserServiceInternal {
             log.error("Invalid user");
             return false;
         }
-        if (getUser(user.getEmail()) != null) {
+        try {
+            getUser(user.getEmail());
             log.error("User already exists");
             return false;
+        } catch (InvalidEmailException e) {
+            User savedUser = userRepo.save(user);
+            eventPublisher.publishEvent(new UserAddedEvent(savedUser));
+            return true;
         }
-        User savedUser = userRepo.save(user);
-        eventPublisher.publishEvent(new UserAddedEvent(savedUser));
-        return true;
+
     }
 
     @Override

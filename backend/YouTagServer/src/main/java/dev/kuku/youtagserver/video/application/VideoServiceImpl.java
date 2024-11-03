@@ -1,6 +1,7 @@
 package dev.kuku.youtagserver.video.application;
 
 import dev.kuku.youtagserver.user.api.services.UserService;
+import dev.kuku.youtagserver.user.domain.exception.InvalidEmailException;
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
 import dev.kuku.youtagserver.video.api.events.VideoAddedEvent;
 import dev.kuku.youtagserver.video.domain.entity.Video;
@@ -25,8 +26,9 @@ public class VideoServiceImpl implements VideoServiceInternal {
         //Check if video exists
         var vidDto = getVideo(video);
         //Check if user is valid
-        var userDto = userService.getUser(userEmail);
-        if (userDto == null) {
+        try {
+            userService.getUser(userEmail);
+        } catch (InvalidEmailException e) {
             log.error("User Email is invalid {}", userEmail);
             return false;
         }
