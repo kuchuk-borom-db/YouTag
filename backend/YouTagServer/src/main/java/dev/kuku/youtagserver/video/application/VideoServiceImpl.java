@@ -45,8 +45,10 @@ public class VideoServiceImpl implements VideoServiceInternal {
     }
 
     private void addVideoToDb(String video) {
+        log.info("Adding video {} to database", video);
         videoRepo.save(new Video(video, "NA", "NA", "NA"));
         eventPublisher.publishEvent(new VideoAddedEvent(video));
+        //TODO: Listen to this event to get video info and update video data
     }
 
     private VideoDTO getVideo(String id) throws VideoNotFound {
