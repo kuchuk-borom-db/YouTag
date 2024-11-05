@@ -23,4 +23,10 @@ public class DbConst {
         public static final String UPDATED = "updated";
 
     }
+
+    public static class UserVideo {
+        public static final String TABLE_NAME = "user_video";
+        public static final String USER_ID = "user_id";
+        public static final String VIDEO_ID = "video_id";
+    }
 }
