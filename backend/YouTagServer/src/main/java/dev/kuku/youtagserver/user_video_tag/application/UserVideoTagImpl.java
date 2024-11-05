@@ -29,7 +29,7 @@ public class UserVideoTagImpl implements UserVideoTagService {
         } catch (UserVideoTagNotFound e) {
             log.info("Adding tag {} to video {} for user {}", tag, id, userId);
         }
-        repo.save(new UserVideoTag(id, userId, tag));
+        repo.save(new UserVideoTag(userId, id, tag));
     }
 
     @Override
@@ -58,6 +58,6 @@ public class UserVideoTagImpl implements UserVideoTagService {
     }
 
     private UserVideoTagDTO toDto(UserVideoTag userVideoTag) {
-        return new UserVideoTagDTO(userVideoTag.getUserId(), userVideoTag.getTag(), userVideoTag.getVideoId());
+        return new UserVideoTagDTO(userVideoTag.getUserId(), userVideoTag.getVideoId(), userVideoTag.getTag());
     }
 }

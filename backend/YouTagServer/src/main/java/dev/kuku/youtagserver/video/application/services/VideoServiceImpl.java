@@ -30,6 +30,7 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public VideoDTO getVideo(String id) throws VideoNotFound {
+        log.info("Getting video {}", id);
         Video video = (Video) cacheSystem.getObject("vid", id);
         if (video == null) {
             video = videoRepo.findById(id).orElse(null);
