@@ -1,18 +1,17 @@
 package dev.kuku.youtagserver.user.application.services;
 
+import dev.kuku.youtagserver.shared.helper.CacheSystem;
 import dev.kuku.youtagserver.user.api.dto.UserDTO;
 import dev.kuku.youtagserver.user.api.events.UserAddedEvent;
 import dev.kuku.youtagserver.user.api.events.UserUpdatedEvent;
-import dev.kuku.youtagserver.user.domain.entity.User;
 import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
+import dev.kuku.youtagserver.user.domain.entity.User;
 import dev.kuku.youtagserver.user.infrastructure.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -21,15 +20,20 @@ import java.util.Optional;
 public class UserServiceImpl implements UserServiceInternal {
     final UserRepo userRepo;
     final ApplicationEventPublisher eventPublisher;
+    final CacheSystem cacheSystem;
 
     @Override
     public UserDTO getUser(String email) throws EmailNotFound {
         log.info("Get user with email {}", email);
-        Optional<User> user = userRepo.findByEmail(email);
-        if (user.isPresent()) {
-            return toDTO(user.get());
+        User user = (User) cacheSystem.getObject("user", email);
+        if (user == null) {
+            user = userRepo.findByEmail(email).orElse(null);
+            cacheSystem.cache("user", email, user);
         }
-        throw new EmailNotFound(email);
+        if (user == null) {
+            throw new EmailNotFound(email);
+        }
+        return toDTO(user);
     }
 
     @Override
@@ -60,6 +64,7 @@ public class UserServiceImpl implements UserServiceInternal {
             log.error("User is not outdated");
             return false;
         }
+        cacheSystem.evict("user", userDTO.email());
         userRepo.save(user);
         eventPublisher.publishEvent(new UserUpdatedEvent(user));
         return true;

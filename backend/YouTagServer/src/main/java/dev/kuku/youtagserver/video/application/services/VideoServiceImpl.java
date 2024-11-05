@@ -1,5 +1,6 @@
 package dev.kuku.youtagserver.video.application.services;
 
+import dev.kuku.youtagserver.shared.helper.CacheSystem;
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
 import dev.kuku.youtagserver.video.api.events.VideoAddedEvent;
 import dev.kuku.youtagserver.video.api.exceptions.InvalidVideoIDException;
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -26,14 +26,19 @@ public class VideoServiceImpl implements VideoService {
     final VideoRepo videoRepo;
     final ApplicationEventPublisher eventPublisher;
     final YoutubeScrapperService youtubeScrapperService;
+    final CacheSystem cacheSystem;
 
     @Override
     public VideoDTO getVideo(String id) throws VideoNotFound {
-        Optional<Video> vid = videoRepo.findById(id);
-        if (vid.isEmpty()) {
+        Video video = (Video) cacheSystem.getObject("vid", id);
+        if (video == null) {
+            video = videoRepo.findById(id).orElse(null);
+            cacheSystem.cache("vid", id, video);
+        }
+        if (video == null) {
             throw new VideoNotFound(id);
         }
-        return toDTO(vid.get());
+        return toDTO(video);
     }
 
     @Override

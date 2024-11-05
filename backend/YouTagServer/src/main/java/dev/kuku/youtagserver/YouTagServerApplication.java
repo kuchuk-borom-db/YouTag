@@ -12,7 +12,7 @@ public class YouTagServerApplication {
 
 }
 //TODO Read Google client.json for secret stuff
-//TODO Have a table to store video info
+//TODO Read config file for web scrapping
 /*
  *
  * Spring modulith is awesome!

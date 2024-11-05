@@ -1,5 +1,6 @@
 package dev.kuku.youtagserver.video.application.eventListener;
 
+import dev.kuku.youtagserver.shared.helper.CacheSystem;
 import dev.kuku.youtagserver.video.api.events.VideoAddedEvent;
 import dev.kuku.youtagserver.video.domain.entity.Video;
 import dev.kuku.youtagserver.video.infrastructure.repo.VideoRepo;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 public class VideoEventListener {
     final YoutubeScrapperService scrapperService;
     final VideoRepo videoRepo;
+    final CacheSystem cacheSystem;
 
     @TransactionalEventListener
     @Async
@@ -26,6 +28,7 @@ public class VideoEventListener {
         String vidID = addedVideoID.getVideoId();
         var vidInfo = scrapperService.getYoutubeVideoInfo(vidID);
         log.info("Updating video info {}", vidInfo);
+        cacheSystem.evict("vid", vidID);
         videoRepo.save(new Video(vidID, vidInfo.title(), vidInfo.description(), vidInfo.thumbnail(), LocalDateTime.now()));
     }
 }
