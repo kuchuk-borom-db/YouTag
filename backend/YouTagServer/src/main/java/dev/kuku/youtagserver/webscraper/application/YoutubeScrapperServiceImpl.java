@@ -39,6 +39,18 @@ public class YoutubeScrapperServiceImpl implements YoutubeScrapperService {
         return null;
     }
 
+    @Override
+    public boolean validateVideo(String id) {
+        String url = "https://www.youtube.com/watch?v=" + id;
+        try {
+            Jsoup.connect(url).get();
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
 
     private String generateUrl(String videoId) {
         return "https://www.youtube.com/watch?v=" + videoId;

@@ -1,4 +1,4 @@
-package dev.kuku.youtagserver.video.domain.eventListener;
+package dev.kuku.youtagserver.video.application.eventListener;
 
 import dev.kuku.youtagserver.video.api.events.VideoAddedEvent;
 import dev.kuku.youtagserver.video.domain.entity.Video;
