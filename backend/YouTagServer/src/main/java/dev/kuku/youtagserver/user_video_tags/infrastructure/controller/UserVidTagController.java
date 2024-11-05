@@ -4,6 +4,7 @@ import dev.kuku.youtagserver.shared.helper.UserHelper;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
 import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
 import dev.kuku.youtagserver.user.api.services.UserService;
+import dev.kuku.youtagserver.user_video_tags.api.dto.UserVidTagDto;
 import dev.kuku.youtagserver.user_video_tags.api.exceptions.UserAndVideoAlreadyLinked;
 import dev.kuku.youtagserver.user_video_tags.api.exceptions.UserAndVideoLinkNotFound;
 import dev.kuku.youtagserver.user_video_tags.api.services.UserVidTagService;
@@ -17,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/authenticated/user-vid-tag")
@@ -27,6 +30,12 @@ class UserVidTagController {
     final VideoService videoService;
     final UserService userService;
 
+    /**
+     * Link video and user
+     *
+     * @param id videoID
+     * @return true if successful
+     */
     @PostMapping("/link/{id}")
     ResponseEntity<ResponseModel<Boolean>> linkVidToUser(@PathVariable String id) {
         //Get user data from security context and validate it
@@ -60,7 +69,14 @@ class UserVidTagController {
         return ResponseEntity.ok(new ResponseModel<>(true, ""));
     }
 
-    @PostMapping("/tag/")
+    /**
+     * add tags to video for user that is logged in(through token)
+     *
+     * @param tags tags to add
+     * @param id   video id
+     * @return true if successful
+     */
+    @PostMapping("/tag")
     ResponseEntity<ResponseModel<Boolean>> addTags(@RequestParam String tags, @RequestParam String id) {
         //Get user data from security context and validate it
         String userID = userHelper.getCurrentUserDTO().email();
@@ -77,4 +93,23 @@ class UserVidTagController {
         }
         return ResponseEntity.ok(new ResponseModel<>(true, ""));
     }
+
+    @GetMapping("/link")
+    ResponseEntity<ResponseModel<List<UserVidTagDto>>> getVideo(@RequestParam(required = false) String tags, @RequestParam(required = false, defaultValue = "0") int skip, @RequestParam(required = false, defaultValue = "100") int limit) {
+        String userID = userHelper.getCurrentUserDTO().email();
+        try {
+            userService.getUser(userID);
+        } catch (EmailNotFound e) {
+            return ResponseEntity.status(e.getCode()).body(new ResponseModel<>(List.of(), e.getMessage()));
+        }
+        if (tags == null || tags.isEmpty()) {
+            var dtos = userVidTagService.getUserAndVideoTagsByUser(userID);
+            return ResponseEntity.ok(new ResponseModel<>(dtos, ""));
+        } else {
+            var dtos = userVidTagService.getUserAndVideoTagsByUserAndTag(userID, tags);
+            return ResponseEntity.ok(new ResponseModel<>(dtos, ""));
+        }
+    }
+
+
 }
