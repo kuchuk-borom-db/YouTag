@@ -51,23 +51,11 @@ public class VideoServiceImpl implements VideoService {
         return toDTO(saved);
     }
 
-    @Override
-    public void updateVideoInfo(VideoDTO videoDTO) throws VideoNotFound {
-        var vidDto = getVideo(videoDTO.id());
-        var video = toEntity(vidDto);
-        log.info("Updating video {}", videoDTO);
-        videoRepo.save(video);
-    }
-
     private VideoDTO toDTO(Video video) {
         if (video == null) {
             return null;
         }
         return new VideoDTO(video.getId(), video.getTitle(), video.getDescription(), video.getThumbnail(), video.getUpdated());
-    }
-
-    private Video toEntity(VideoDTO videoDTO) {
-        return new Video(videoDTO.id(), videoDTO.title(), videoDTO.description(), videoDTO.thumbnail(), videoDTO.updated());
     }
 
 

@@ -44,7 +44,9 @@ public class UserVidTagServiceImpl implements UserVidTagService {
     @Override
     public UserVidTagDto getUserAndVideoTag(String user, String video) throws UserAndVideoLinkNotFound {
         log.info("Fetching link for user {} and video {}", user, video);
-        return toDto(repo.findUserVidTagByUserEmailAndVideoId(user, video));
+        var found = repo.findUserVidTagByUserEmailAndVideoId(user, video);
+        if (found == null) throw new UserAndVideoLinkNotFound(video, user);
+        return toDto(found);
     }
 
     private UserVidTagDto toDto(UserVidTag userVidTag) {
