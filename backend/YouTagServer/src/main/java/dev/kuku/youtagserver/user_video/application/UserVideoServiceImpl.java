@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -43,6 +44,12 @@ public class UserVideoServiceImpl implements UserVideoService {
     }
 
     @Override
+    public List<UserVideoDTO> getVideosByUserId(String userId) {
+        log.info("Getting videos of user {}", userId);
+        return repo.findByUserId(userId).stream().map(this::toDTO).toList();
+    }
+
+    @Override
     public boolean isVideoLinkedToUser(String email, String id) {
         try {
             getUserVideoByUserIdAndVideo(email, id);
@@ -52,7 +59,7 @@ public class UserVideoServiceImpl implements UserVideoService {
         }
     }
 
-    private UserVideoDTO toDTO(UserVideo userVideo) {
+    public UserVideoDTO toDTO(UserVideo userVideo) {
         return new UserVideoDTO(userVideo.getUserId(), userVideo.getVideoId(), userVideo.getCreated());
     }
 }

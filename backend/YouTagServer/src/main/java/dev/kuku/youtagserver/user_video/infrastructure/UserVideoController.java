@@ -7,17 +7,20 @@ import dev.kuku.youtagserver.shared.models.ResponseModel;
 import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
 import dev.kuku.youtagserver.user_video.api.exception.VideoAlreadyLinkedToUser;
 import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
+import dev.kuku.youtagserver.video.api.dto.VideoDTO;
 import dev.kuku.youtagserver.video.api.exceptions.InvalidVideoIDException;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
 import dev.kuku.youtagserver.video.api.services.VideoService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/authenticated/user_video")
 @RequiredArgsConstructor
@@ -57,5 +60,28 @@ class UserVideoController {
             return ResponseEntity.status(e.getCode()).body(new ResponseModel<>(false, e.getMessage()));
         }
         return ResponseEntity.ok(new ResponseModel<>(true, ""));
+    }
+
+    @GetMapping("/")
+    ResponseEntity<ResponseModel<List<VideoDTO>>> getVideosLinkedToUser() {
+        String currentUserId;
+        try {
+            currentUserId = userHelper.getCurrentUserDTO().email();
+        } catch (EmailNotFound | AuthenticatedUserNotFound e) {
+            return ResponseEntity.status(e.getCode()).body(new ResponseModel<>(List.of(), e.getMessage()));
+        }
+        var userVidDtos = userVideoService.getVideosByUserId(currentUserId);
+        List<VideoDTO> videoDTOS = new ArrayList<>();
+        for (var dto : userVidDtos) {
+            try {
+                var vid = videoService.getVideo(dto.videoId());
+                videoDTOS.add(vid);
+            } catch (VideoNotFound e) {
+                //TODO Remove link and tags
+                log.warn("Video not found in database.");
+            }
+
+        }
+        return ResponseEntity.ok(new ResponseModel<>(videoDTOS, ""));
     }
 }

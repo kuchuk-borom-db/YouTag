@@ -1,6 +1,7 @@
 package dev.kuku.youtagserver.user_video_tag.application;
 
 import dev.kuku.youtagserver.shared.helper.CacheSystem;
+import dev.kuku.youtagserver.user_video_tag.api.dto.UserVideoTagDTO;
 import dev.kuku.youtagserver.user_video_tag.api.exceptions.UserVideoTagAlreadyExists;
 import dev.kuku.youtagserver.user_video_tag.api.exceptions.UserVideoTagNotFound;
 import dev.kuku.youtagserver.user_video_tag.api.services.UserVideoTagService;
@@ -9,6 +10,9 @@ import dev.kuku.youtagserver.user_video_tag.infrastructure.UserVideoTagRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -29,7 +33,19 @@ public class UserVideoTagImpl implements UserVideoTagService {
     }
 
     @Override
-    public void get(String id, String userId, String tag) throws UserVideoTagNotFound {
+    public List<UserVideoTagDTO> getVideosOfUserWithTag(String userId, String tag) {
+        log.info("Getting videos with tag {} for user {}", tag, userId);
+        var vids = repo.findAllByUserIdAndTag(userId.trim(), tag);
+        log.info("Found : {}", vids);
+        List<UserVideoTagDTO> dtos = new ArrayList<>();
+        for (var v : vids) {
+            dtos.add(toDto(v));
+        }
+        return dtos;
+    }
+
+    @Override
+    public UserVideoTagDTO get(String id, String userId, String tag) throws UserVideoTagNotFound {
         UserVideoTag videoTag = (UserVideoTag) cacheSystem.getObject(this.getClass().toString(), String.format("%s%s%s", userId, id, tag));
         if (videoTag == null) {
             videoTag = repo.findByUserIdAndTagAndVideoId(userId, tag, id);
@@ -38,5 +54,10 @@ public class UserVideoTagImpl implements UserVideoTagService {
         if (videoTag == null) {
             throw new UserVideoTagNotFound(userId, id, tag);
         }
+        return toDto(videoTag);
+    }
+
+    private UserVideoTagDTO toDto(UserVideoTag userVideoTag) {
+        return new UserVideoTagDTO(userVideoTag.getUserId(), userVideoTag.getTag(), userVideoTag.getVideoId());
     }
 }
