@@ -12,7 +12,7 @@ public class YouTagServerApplication {
 
 }
 //TODO Read Google client.json for secret stuff
-//TODO Authentication service or per service internal function needs to check if is allowed function to check if user is allowed to do something
+//TODO Have a table to store video info
 /*
  *
  * Spring modulith is awesome!
