@@ -10,7 +10,8 @@ CREATE TABLE videos
     id          VARCHAR(50) PRIMARY KEY,
     title       VARCHAR(200) NOT NULL,
     description TEXT,
-    thumbnail   VARCHAR(250) NOT NULL
+    thumbnail   VARCHAR(250) NOT NULL,
+    updated     TIMESTAMP    NOT NULL
 );
 
 CREATE TABLE user_video_tags

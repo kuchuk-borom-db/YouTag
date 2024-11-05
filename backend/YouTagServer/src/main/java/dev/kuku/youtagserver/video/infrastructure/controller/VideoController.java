@@ -23,13 +23,13 @@ class VideoController {
      * Adds the video to database
      * Links the video to the user
      *
-     * @param link link to the video
+     * @param videoId link to the video
      * @return true if added successfully
      */
-    @PostMapping("/{link}")
-    ResponseEntity<ResponseModel<String>> addVideo(@PathVariable String link) {
+    @PostMapping("/{videoId}")
+    ResponseEntity<ResponseModel<String>> addVideo(@PathVariable String videoId) {
         try {
-            videoServiceInternal.addVideoForUser(link, userHelper.getCurrentUserDTO().email());
+            videoServiceInternal.addVideoForUser(videoId, userHelper.getCurrentUserDTO().email());
         } catch (UserAndVideoAlreadyLinked | InvalidVideoIDException e) {
             return ResponseEntity.status(e.getCode()).body(new ResponseModel<>("Failed to add video", e.getMessage()));
         }
