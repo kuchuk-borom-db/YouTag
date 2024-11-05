@@ -23,12 +23,8 @@ public class UserVideoServiceImpl implements UserVideoService {
     @Override
     public void linkVideoToUser(String videoId, String userId) throws VideoAlreadyLinkedToUser {
         log.info("Linking Video {} to user {}", videoId, userId);
-        try {
-            getUserVideoByUserIdAndVideo(userId, videoId);
+        if (isVideoLinkedToUser(videoId, userId)) {
             throw new VideoAlreadyLinkedToUser(userId, videoId);
-            //If video already exists then it will not throw an exception
-        } catch (UserVideoLinkNotFound e) {
-            //This means that this link doesn't exist and we can proceed
         }
         repo.save(new UserVideo(userId, videoId, LocalDateTime.now()));
     }
@@ -37,13 +33,23 @@ public class UserVideoServiceImpl implements UserVideoService {
     public UserVideoDTO getUserVideoByUserIdAndVideo(String userId, String videoId) throws UserVideoLinkNotFound {
         UserVideo userVideo = (UserVideo) cacheSystem.getObject(this.getClass().toString(), userId);
         if (userVideo == null) {
-            userVideo = repo.findUserVideoByUserIdAndVideoId(userId, videoId);
+            userVideo = repo.findByUserIdAndVideoId(userId, videoId);
             cacheSystem.cache(this.getClass().toString(), String.format("%s%s", userId, videoId), userVideo);
         }
         if (userVideo == null) {
             throw new UserVideoLinkNotFound(userId, videoId);
         }
         return toDTO(userVideo);
+    }
+
+    @Override
+    public boolean isVideoLinkedToUser(String email, String id) {
+        try {
+            getUserVideoByUserIdAndVideo(email, id);
+            return true;
+        } catch (UserVideoLinkNotFound e) {
+            return false;
+        }
     }
 
     private UserVideoDTO toDTO(UserVideo userVideo) {

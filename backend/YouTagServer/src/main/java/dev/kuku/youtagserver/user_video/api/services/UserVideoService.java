@@ -7,4 +7,6 @@ public interface UserVideoService {
     void linkVideoToUser(String videoId, String currentUserId) throws VideoAlreadyLinkedToUser;
 
     UserVideoDTO getUserVideoByUserIdAndVideo(String userId, String videoId) throws UserVideoLinkNotFound;
+
+    boolean isVideoLinkedToUser(String email, String id);
 }

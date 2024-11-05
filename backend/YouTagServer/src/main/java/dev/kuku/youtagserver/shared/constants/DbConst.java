@@ -29,4 +29,11 @@ public class DbConst {
         public static final String USER_ID = "user_id";
         public static final String VIDEO_ID = "video_id";
     }
+
+    public static class UserVideoTag{
+        public static final String TABLE_NAME = "user_video_tag";
+        public static final String USER_ID = "user_id";
+        public static final String VIDEO_ID = "video_id";
+        public static final String TAG = "tag";
+    }
 }
