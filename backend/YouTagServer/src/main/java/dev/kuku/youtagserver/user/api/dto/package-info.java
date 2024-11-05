@@ -1,2 +1,2 @@
-@org.springframework.modulith.NamedInterface("dto")
+@org.springframework.modulith.NamedInterface
 package dev.kuku.youtagserver.user.api.dto;

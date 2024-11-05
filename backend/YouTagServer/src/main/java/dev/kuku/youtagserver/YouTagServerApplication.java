@@ -12,7 +12,7 @@ public class YouTagServerApplication {
 
 }
 //TODO Read Google client.json for secret stuff
-//TODO Move service to exposed domain and dependencies between objects should be resolved using common DTO
+//TODO Authentication service or per service internal function needs to check if is allowed function to check if user is allowed to do something
 /*
  *
  * Spring modulith is awesome!

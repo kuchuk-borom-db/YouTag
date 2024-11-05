@@ -3,7 +3,7 @@ package dev.kuku.youtagserver.user.application.event;
 import dev.kuku.youtagserver.auth.api.events.GotUserFromTokenEvent;
 import dev.kuku.youtagserver.user.api.dto.UserDTO;
 import dev.kuku.youtagserver.user.application.services.UserServiceInternal;
-import dev.kuku.youtagserver.user.domain.exception.InvalidEmailException;
+import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -18,7 +18,7 @@ class AuthEventListener {
 
     @Async
     @TransactionalEventListener
-    void on(GotUserFromTokenEvent event) throws InvalidEmailException {
+    void on(GotUserFromTokenEvent event) throws EmailNotFound {
         log.info("Got userMap from token {}", event.userMap());
 
         String email = event.userMap().get("email");

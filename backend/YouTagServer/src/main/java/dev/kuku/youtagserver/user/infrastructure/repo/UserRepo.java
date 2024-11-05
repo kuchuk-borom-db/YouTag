@@ -1,4 +1,4 @@
-package dev.kuku.youtagserver.user.infrastructure.persistence;
+package dev.kuku.youtagserver.user.infrastructure.repo;
 
 import dev.kuku.youtagserver.user.domain.entity.User;
 import org.springframework.data.repository.CrudRepository;

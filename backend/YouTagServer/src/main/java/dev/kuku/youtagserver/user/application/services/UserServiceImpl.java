@@ -4,30 +4,32 @@ import dev.kuku.youtagserver.user.api.dto.UserDTO;
 import dev.kuku.youtagserver.user.api.events.UserAddedEvent;
 import dev.kuku.youtagserver.user.api.events.UserUpdatedEvent;
 import dev.kuku.youtagserver.user.domain.entity.User;
-import dev.kuku.youtagserver.user.domain.exception.InvalidEmailException;
-import dev.kuku.youtagserver.user.infrastructure.persistence.UserRepo;
+import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
+import dev.kuku.youtagserver.user.infrastructure.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserServiceImpl implements UserServiceInternal {
     final UserRepo userRepo;
     final ApplicationEventPublisher eventPublisher;
 
     @Override
-    public UserDTO getUser(String email) throws InvalidEmailException {
+    public UserDTO getUser(String email) throws EmailNotFound {
         log.info("Get user with email {}", email);
         Optional<User> user = userRepo.findByEmail(email);
         if (user.isPresent()) {
             return toDTO(user.get());
         }
-        throw new InvalidEmailException(email);
+        throw new EmailNotFound(email);
     }
 
     @Override
@@ -42,7 +44,7 @@ public class UserServiceImpl implements UserServiceInternal {
             getUser(user.getEmail());
             log.error("User already exists");
             return false;
-        } catch (InvalidEmailException e) {
+        } catch (EmailNotFound e) {
             User savedUser = userRepo.save(user);
             eventPublisher.publishEvent(new UserAddedEvent(savedUser));
             return true;

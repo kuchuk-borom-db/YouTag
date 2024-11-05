@@ -2,7 +2,7 @@ package dev.kuku.youtagserver.video.infrastructure.controller;
 
 import dev.kuku.youtagserver.shared.helper.UserHelper;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
-import dev.kuku.youtagserver.user.domain.exception.InvalidEmailException;
+import dev.kuku.youtagserver.user_video_tags.api.exceptions.UserAndVideoAlreadyLinked;
 import dev.kuku.youtagserver.video.application.VideoServiceInternal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,8 +26,12 @@ class VideoController {
      * @return true if added successfully
      */
     @PostMapping("/{link}")
-    ResponseEntity<ResponseModel<Boolean>> addVideo(@PathVariable String link) throws InvalidEmailException {
-        boolean success = videoServiceInternal.addVideoForUser(link, userHelper.getCurrentUserDTO().email());
-        return ResponseEntity.ok(new ResponseModel<>(success, ""));
+    ResponseEntity<ResponseModel<String>> addVideo(@PathVariable String link) {
+        try {
+            videoServiceInternal.addVideoForUser(link, userHelper.getCurrentUserDTO().email());
+        } catch (UserAndVideoAlreadyLinked e) {
+            return ResponseEntity.status(e.getCode()).body(new ResponseModel<>("Failed to add video", e.getMessage()));
+        }
+        return ResponseEntity.ok(new ResponseModel<>("Added Video", ""));
     }
 }
