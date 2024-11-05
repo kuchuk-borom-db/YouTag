@@ -13,6 +13,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -40,7 +42,7 @@ public class UserServiceImpl implements UserServiceInternal {
     public boolean addUser(UserDTO userDTO) {
         log.info("Add user {}", userDTO);
         User user = toEntity(userDTO);
-        if (user.getUsername() == null || user.getPic() == null || user.getEmail() == null) {
+        if (user.getUsername() == null || user.getThumbUrl() == null || user.getEmail() == null) {
             log.error("Invalid user");
             return false;
         }
@@ -65,6 +67,7 @@ public class UserServiceImpl implements UserServiceInternal {
             return false;
         }
         cacheSystem.evict("user", userDTO.email());
+        user.setUpdated(LocalDateTime.now());
         userRepo.save(user);
         eventPublisher.publishEvent(new UserUpdatedEvent(user));
         return true;
@@ -78,14 +81,14 @@ public class UserServiceImpl implements UserServiceInternal {
             log.error("User not found. Aborting update");
             return false;
         }
-        return !dbUser.getEmail().equals(userDTO.email()) || !dbUser.getUsername().equals(userDTO.name()) || !dbUser.getPic().equals(userDTO.pic());
+        return !dbUser.getEmail().equals(userDTO.email()) || !dbUser.getUsername().equals(userDTO.name()) || !dbUser.getThumbUrl().equals(userDTO.pic());
     }
 
     private UserDTO toDTO(User user) {
-        return new UserDTO(user.getEmail(), user.getUsername(), user.getPic());
+        return new UserDTO(user.getEmail(), user.getUsername(), user.getThumbUrl(), user.getUpdated());
     }
 
     private User toEntity(UserDTO userDTO) {
-        return new User(userDTO.email(), userDTO.name(), userDTO.pic());
+        return new User(userDTO.email(), userDTO.name(), userDTO.pic(), userDTO.created());
     }
 }
