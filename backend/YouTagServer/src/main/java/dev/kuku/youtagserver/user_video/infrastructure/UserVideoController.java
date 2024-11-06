@@ -20,7 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 class UserVideoController {
 
-    final UserVideoCommandHandler userVideoCommandHandler;
+    final UserVideoCommandHandler commandHandler;
 
     /**
      * Link a video to a user
@@ -33,7 +33,7 @@ class UserVideoController {
         if (videoId == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseModel<>(null, "id query parameter missing"));
         }
-        userVideoCommandHandler.linkVideoToUser(videoId);
+        commandHandler.linkVideoToUser(videoId);
         return ResponseEntity.ok(new ResponseModel<>(true, String.format("Linked Video %s", videoId)));
     }
 
@@ -42,7 +42,7 @@ class UserVideoController {
         if (videoId == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseModel<>(null, "id query parameter missing"));
         }
-        userVideoCommandHandler.unlinkVideoFromUser(videoId);
+        commandHandler.unlinkVideoFromUser(videoId);
         return ResponseEntity.ok(new ResponseModel<>(true, String.format("Unlinked Video %s", videoId)));
     }
 
@@ -50,9 +50,9 @@ class UserVideoController {
     ResponseEntity<ResponseModel<List<VideoTagDTO>>> getVideosOfUser(@RequestParam(value = "video_id", required = false) String videoId) throws ResponseException {
         List<VideoTagDTO> videoTagDTOS = new ArrayList<>();
         if (videoId != null) {
-            videoTagDTOS.add(userVideoCommandHandler.getVideoOfUser(videoId));
+            videoTagDTOS.add(commandHandler.getVideoOfUser(videoId));
         } else {
-            videoTagDTOS = userVideoCommandHandler.getVideosOfUser();
+            videoTagDTOS = commandHandler.getVideosOfUser();
         }
         return ResponseEntity.ok(new ResponseModel<>(videoTagDTOS, ""));
     }

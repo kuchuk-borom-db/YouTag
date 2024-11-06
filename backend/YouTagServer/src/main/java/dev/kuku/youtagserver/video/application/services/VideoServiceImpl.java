@@ -69,3 +69,11 @@ public class VideoServiceImpl implements VideoService {
 
 
 }
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+@Transactional
+class VideoEventListener {
+
+}

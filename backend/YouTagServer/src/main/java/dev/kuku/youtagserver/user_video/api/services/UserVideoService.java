@@ -10,7 +10,7 @@ public interface UserVideoService {
     void create(String userId, String videoId) throws VideoAlreadyLinkedToUser;
 
     //READ
-    UserVideoDTO get(String userId, String videoId);
+    UserVideoDTO get(String userId, String videoId) throws UserVideoLinkNotFound;
 
     List<UserVideoDTO> getWithUserId(String userId);
 

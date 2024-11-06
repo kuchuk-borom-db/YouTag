@@ -10,7 +10,8 @@ public interface UserService {
 
     void addUser(UserDTO userDTO) throws UserAlreadyExists, InvalidUser;
 
-    void deleteUser(String email) throws EmailNotFound;
-
     void updateUser(UserDTO userDTO) throws InvalidUser;
+
+    boolean isUserOutdated(UserDTO user);
+
 }
