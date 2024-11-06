@@ -28,10 +28,11 @@ public class UserVideoServiceImpl implements UserVideoService {
 
     @Override
     public void linkVideoToUser(String videoId, String userId) throws VideoAlreadyLinkedToUser {
-        log.info("Linking Video {} to user {}", videoId, userId);
-        if (isVideoLinkedToUser(videoId, userId)) {
+        if (isVideoLinkedToUser(userId, videoId)) {
+            log.info("Video {} already linked", videoId);
             throw new VideoAlreadyLinkedToUser(userId, videoId);
         }
+        log.info("Linking Video {} to user {}", videoId, userId);
         repo.save(new UserVideo(userId, videoId, LocalDateTime.now()));
     }
 

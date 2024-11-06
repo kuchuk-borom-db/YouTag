@@ -15,6 +15,10 @@ public class CacheSystem {
     private final ConcurrentHashMap<String, Map<String, Object>> cacheStore = new ConcurrentHashMap<>();
 
     public void cache(String uniqueKey, Object objectToCache) {
+        if (objectToCache == null) {
+            log.warn("Skipping caching as objectToCache is null");
+            return;
+        }
         log.info("caching key {}  in {} to store: {}", uniqueKey, objectToCache.getClass().getName(), objectToCache);
         getStore(objectToCache.getClass().getName()).put(uniqueKey, objectToCache);
     }
