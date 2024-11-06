@@ -12,5 +12,11 @@ public interface UserVideoTagRepo extends CrudRepository<UserVideoTag, UserVideo
      */
     List<UserVideoTag> findAllByUserIdAndTag(String userId, String tag);
 
+    void deleteAllByUserIdAndVideoId(String userId, String videoId);
+
+    void deleteAllByUserIdAndVideoIdAndTag(String userId, String videoId, String tag);
+
     UserVideoTag findByUserIdAndTagAndVideoId(String userId, String tag, String videoId);
+
+    List<UserVideoTag> findAllByUserIdAndVideoId(String userId, String videoId);
 }

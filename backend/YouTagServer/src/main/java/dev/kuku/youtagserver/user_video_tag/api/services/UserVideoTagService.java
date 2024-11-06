@@ -11,5 +11,9 @@ public interface UserVideoTagService {
 
     List<UserVideoTagDTO> getVideosOfUserWithTag(String userId, String tag);
 
+    void deleteTagsFromVideo(String id, String email, String[] tagsToRemove);
+
     UserVideoTagDTO get(String id, String userId, String tag) throws UserVideoTagNotFound;
+
+    String[] getTagsOfVideo(String videoId, String userId);
 }

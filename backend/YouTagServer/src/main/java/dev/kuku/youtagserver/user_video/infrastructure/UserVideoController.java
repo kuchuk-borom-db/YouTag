@@ -2,12 +2,16 @@ package dev.kuku.youtagserver.user_video.infrastructure;
 
 
 import dev.kuku.youtagserver.shared.exceptions.AuthenticatedUserNotFound;
+import dev.kuku.youtagserver.shared.exceptions.ResponseException;
 import dev.kuku.youtagserver.shared.helper.UserHelper;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
+import dev.kuku.youtagserver.shared.models.VideoTagDTO;
 import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
+import dev.kuku.youtagserver.user_video.api.dto.UserVideoDTO;
 import dev.kuku.youtagserver.user_video.api.exception.VideoAlreadyLinkedToUser;
+import dev.kuku.youtagserver.user_video.api.services.UserVideoLinkNotFound;
 import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
-import dev.kuku.youtagserver.video.api.dto.VideoDTO;
+import dev.kuku.youtagserver.user_video_tag.api.services.UserVideoTagService;
 import dev.kuku.youtagserver.video.api.exceptions.InvalidVideoIDException;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
@@ -29,7 +33,14 @@ class UserVideoController {
     final UserHelper userHelper;
     final VideoService videoService;
     final UserVideoService userVideoService;
+    final UserVideoTagService userVideoTagService;
 
+    /**
+     * Link a video to a user
+     *
+     * @param videoId videoID to link
+     * @return true if linked successfully
+     */
     @PostMapping("/")
     ResponseEntity<ResponseModel<Boolean>> linkVideoToUser(@RequestParam("id") String videoId) {
         String currentUserId;
@@ -62,20 +73,40 @@ class UserVideoController {
         return ResponseEntity.ok(new ResponseModel<>(true, ""));
     }
 
+    @DeleteMapping("/")
+    ResponseEntity<ResponseModel<Boolean>> unlinkVideoFromUser(@RequestParam("id") String videoId) throws ResponseException {
+        String currentUserId = userHelper.getCurrentUserDTO().email();
+        userVideoService.unlinkVideoFromUser(videoId, currentUserId);
+        return ResponseEntity.ok(new ResponseModel<>(true, ""));
+        //TODO Make sure the video is removed from videos db if no user has it linked
+    }
+
+    /**
+     * Get videos linked to the user
+     *
+     * @param id optional param. If provided will only return video info of that specific video
+     * @return list of videos
+     */
     @GetMapping("/")
-    ResponseEntity<ResponseModel<List<VideoDTO>>> getVideosLinkedToUser() {
+    ResponseEntity<ResponseModel<List<VideoTagDTO>>> getVideosLinkedToUser(@RequestParam(required = false) String id) throws UserVideoLinkNotFound {
         String currentUserId;
         try {
             currentUserId = userHelper.getCurrentUserDTO().email();
         } catch (EmailNotFound | AuthenticatedUserNotFound e) {
             return ResponseEntity.status(e.getCode()).body(new ResponseModel<>(List.of(), e.getMessage()));
         }
-        var userVidDtos = userVideoService.getVideosByUserId(currentUserId);
-        List<VideoDTO> videoDTOS = new ArrayList<>();
+        List<UserVideoDTO> userVidDtos;
+        if (id == null)
+            userVidDtos = userVideoService.getUserVideosOfUser(currentUserId);
+        else {
+            userVidDtos = List.of(userVideoService.getUserVideo(currentUserId, id));
+        }
+        List<VideoTagDTO> videoDTOS = new ArrayList<>();
         for (var dto : userVidDtos) {
             try {
                 var vid = videoService.getVideo(dto.videoId());
-                videoDTOS.add(vid);
+                String[] tags = userVideoTagService.getTagsOfVideo(vid.id(), currentUserId);
+                videoDTOS.add(new VideoTagDTO(vid, tags));
             } catch (VideoNotFound e) {
                 //TODO Remove link and tags
                 log.warn("Video not found in database.");

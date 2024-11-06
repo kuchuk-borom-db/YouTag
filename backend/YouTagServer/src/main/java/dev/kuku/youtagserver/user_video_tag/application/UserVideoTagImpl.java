@@ -10,6 +10,7 @@ import dev.kuku.youtagserver.user_video_tag.infrastructure.UserVideoTagRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Service
+@Transactional
 public class UserVideoTagImpl implements UserVideoTagService {
     final UserVideoTagRepo repo;
     final CacheSystem cacheSystem;
@@ -45,6 +47,14 @@ public class UserVideoTagImpl implements UserVideoTagService {
     }
 
     @Override
+    public void deleteTagsFromVideo(String id, String email, String[] tagsToRemove) {
+        log.info("Deleting tag {} from video {} for user {}", tagsToRemove, id, email);
+        for (String tag : tagsToRemove) {
+            repo.deleteAllByUserIdAndVideoIdAndTag(email.trim(), id, tag);
+        }
+    }
+
+    @Override
     public UserVideoTagDTO get(String id, String userId, String tag) throws UserVideoTagNotFound {
         UserVideoTag videoTag = (UserVideoTag) cacheSystem.getObject(this.getClass().toString(), String.format("%s%s%s", userId, id, tag));
         if (videoTag == null) {
@@ -55,6 +65,14 @@ public class UserVideoTagImpl implements UserVideoTagService {
             throw new UserVideoTagNotFound(userId, id, tag);
         }
         return toDto(videoTag);
+    }
+
+    @Override
+    public String[] getTagsOfVideo(String videoId, String userId) {
+        log.info("Getting tags of video {} for user {}", videoId, userId);
+        List<String> tags = new ArrayList<>();
+        repo.findAllByUserIdAndVideoId(userId, videoId).forEach(userVideoTag -> tags.add(userVideoTag.getTag()));
+        return tags.toArray(new String[0]);
     }
 
     private UserVideoTagDTO toDto(UserVideoTag userVideoTag) {

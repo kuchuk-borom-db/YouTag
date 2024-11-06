@@ -8,9 +8,14 @@ import java.util.List;
 public interface UserVideoService {
     void linkVideoToUser(String videoId, String currentUserId) throws VideoAlreadyLinkedToUser;
 
-    UserVideoDTO getUserVideoByUserIdAndVideo(String userId, String videoId) throws UserVideoLinkNotFound;
+    void unlinkVideoFromUser(String videoId, String currentUserId) throws UserVideoLinkNotFound;
 
-    List<UserVideoDTO> getVideosByUserId(String userId);
+    UserVideoDTO getUserVideo(String userId, String videoId) throws UserVideoLinkNotFound;
+
+    List<UserVideoDTO> getUserVideosOfUser(String userId);
 
     boolean isVideoLinkedToUser(String email, String id);
+
+    List<UserVideoDTO> getUserVideosContainingVideoId(String videoId);
+
 }

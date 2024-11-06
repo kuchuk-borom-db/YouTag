@@ -1,25 +1,24 @@
 package dev.kuku.youtagserver.user_video_tag.infrastructure;
 
 import dev.kuku.youtagserver.shared.exceptions.AuthenticatedUserNotFound;
+import dev.kuku.youtagserver.shared.exceptions.ResponseException;
 import dev.kuku.youtagserver.shared.helper.UserHelper;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
+import dev.kuku.youtagserver.shared.models.VideoTagDTO;
 import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
 import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
 import dev.kuku.youtagserver.user_video_tag.api.exceptions.UserVideoTagAlreadyExists;
 import dev.kuku.youtagserver.user_video_tag.api.services.UserVideoTagService;
-import dev.kuku.youtagserver.video.api.dto.VideoDTO;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
 import dev.kuku.youtagserver.video.api.services.VideoService;
 import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -54,9 +53,18 @@ public class UserVideoTagController {
         }
         return ResponseEntity.ok(new ResponseModel<>(true, ""));
     }
+
+    @DeleteMapping("/")
+    ResponseEntity<ResponseModel<Boolean>> deleteTagFromVideo(@PathParam("id") String id, @PathParam("tags") String tags) throws ResponseException {
+        String email = userHelper.getCurrentUserDTO().email();
+        String[] tagsArray = Arrays.stream(tags.split(",")).map(String::trim).toArray(String[]::new);
+        userVideoTagService.deleteTagsFromVideo(id, email, tagsArray);
+        return ResponseEntity.ok(new ResponseModel<>(true, "Deleted tag"));
+    }
+
     //TODO Get by TAGS
     @GetMapping("/")
-    ResponseEntity<ResponseModel<List<VideoDTO>>> GetVideosWithTagForUser(@PathParam("tag") String tag) {
+    ResponseEntity<ResponseModel<List<VideoTagDTO>>> GetVideosWithTagForUser(@PathParam("tag") String tag) {
         String email;
         try {
             email = userHelper.getCurrentUserDTO().email();
@@ -64,10 +72,12 @@ public class UserVideoTagController {
             return ResponseEntity.status(e.getCode()).body(new ResponseModel<>(List.of(), e.getMessage()));
         }
         var dtos = userVideoTagService.getVideosOfUserWithTag(email, tag);
-        List<VideoDTO> vids = new ArrayList<>();
+        List<VideoTagDTO> vids = new ArrayList<>();
         for (var v : dtos) {
             try {
-                vids.add(videoService.getVideo(v.videoId()));
+                var vid = videoService.getVideo(v.videoId());
+                String[] tags = userVideoTagService.getTagsOfVideo(v.videoId(), email);
+                vids.add(new VideoTagDTO(vid, tags));
             } catch (VideoNotFound e) {
                 //TODO: Remove from link and tags
                 log.warn("Vide not found");

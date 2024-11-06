@@ -3,6 +3,7 @@ package dev.kuku.youtagserver.video.application.services;
 import dev.kuku.youtagserver.shared.helper.CacheSystem;
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
 import dev.kuku.youtagserver.video.api.events.VideoAddedEvent;
+import dev.kuku.youtagserver.video.api.events.VideoDeletedEvent;
 import dev.kuku.youtagserver.video.api.exceptions.InvalidVideoIDException;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
@@ -55,6 +56,15 @@ public class VideoServiceImpl implements VideoService {
         var saved = videoRepo.save(new Video(id, "NA", "NA", "NA", LocalDateTime.now()));
         eventPublisher.publishEvent(new VideoAddedEvent(id));
         return toDTO(saved);
+    }
+
+    @Override
+    public void deleteVideo(String id) throws VideoNotFound {
+        log.info("Deleting video {}", id);
+        getVideo(id);
+        videoRepo.deleteById(id);
+        eventPublisher.publishEvent(new VideoDeletedEvent(id));
+
     }
 
     private VideoDTO toDTO(Video video) {
