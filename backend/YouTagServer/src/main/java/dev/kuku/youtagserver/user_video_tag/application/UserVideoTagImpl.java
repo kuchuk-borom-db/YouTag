@@ -1,15 +1,18 @@
 package dev.kuku.youtagserver.user_video_tag.application;
 
-import dev.kuku.youtagserver.shared.helper.CacheSystem;
 import dev.kuku.youtagserver.user_video_tag.api.dto.UserVideoTagDTO;
-import dev.kuku.youtagserver.user_video_tag.api.exceptions.UserVideoTagAlreadyExists;
+import dev.kuku.youtagserver.user_video_tag.api.exceptions.UserVideoTagNotFound;
 import dev.kuku.youtagserver.user_video_tag.api.services.UserVideoTagService;
+import dev.kuku.youtagserver.user_video_tag.domain.entity.UserVideoTag;
+import dev.kuku.youtagserver.user_video_tag.domain.entity.UserVideoTagId;
 import dev.kuku.youtagserver.user_video_tag.infrastructure.UserVideoTagRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -18,81 +21,68 @@ import java.util.List;
 @Transactional
 public class UserVideoTagImpl implements UserVideoTagService {
     final UserVideoTagRepo repo;
-    final CacheSystem cacheSystem;
-
 
     @Override
-    public void addTagToVid(String id, String userId, String tag) throws UserVideoTagAlreadyExists {
+    public void addTagsToVid(String userId, String videoId, List<String> tags) {
+        tags = tags.stream().map(t -> t.trim().toLowerCase()).toList();
+        List<UserVideoTag> userVideoTags = new ArrayList<>();
 
+        for (String tag : tags) {
+            try {
+                get(userId, videoId, tag);
+                userVideoTags.add(new UserVideoTag(userId, videoId, tag));
+            } catch (UserVideoTagNotFound e) {
+                log.error(e.getMessage());
+            }
+        }
+        log.info("Adding tags {} to video {}", tags, videoId);
+        repo.saveAll(userVideoTags);
     }
 
     @Override
-    public UserVideoTagDTO get(String userId, String videoId, String tag) {
-        return null;
+    public UserVideoTagDTO get(String userId, String videoId, String tag) throws UserVideoTagNotFound {
+        var data = repo.findById(new UserVideoTagId(userId, videoId, tag));
+        if (data.isEmpty()) {
+            throw new UserVideoTagNotFound(userId, videoId, tag);
+        }
+        log.info("Getting userVideoTagDTO {}", data);
+        return toDTO(data.get());
     }
 
     @Override
     public List<UserVideoTagDTO> getWithUserId(String userId) {
-        return List.of();
-    }
-
-    @Override
-    public List<UserVideoTagDTO> getWithVideoId(String videoId) {
-        return List.of();
-    }
-
-    @Override
-    public List<UserVideoTagDTO> getWithTag(String tag) {
-        return List.of();
+        List<UserVideoTag> datas = repo.findAllByUserId(userId);
+        log.info("Getting videos of userId {}-> {}", userId, datas);
+        return datas.stream().map(this::toDTO).toList();
     }
 
     @Override
     public List<UserVideoTagDTO> getWithUserIdAndVideoId(String userId, String videoId) {
-        return List.of();
+        List<UserVideoTag> datas = repo.findAllByUserIdAndVideoId(userId, videoId);
+        log.info("Getting data with user {} and videoId {} -> {}", userId, videoId, datas);
+        return datas.stream().map(this::toDTO).toList();
     }
 
     @Override
-    public List<UserVideoTagDTO> getWithUserIdAndTag(String userId, String tag) {
-        return List.of();
+    public List<UserVideoTagDTO> getWithUserIdAndTags(String userId, String[] tags) {
+        List<UserVideoTag> datas = repo.findAllByUserIdAndTagIn(userId, Arrays.stream(tags).toList());
+        log.info("getting data with user {} and tags {} -> {}", userId, Arrays.toString(tags), datas);
+        return datas.stream().map(this::toDTO).toList();
+    }
+
+
+    @Override
+    public void deleteWithUserIdAndTag(String userId, String[] tags) {
+        repo.deleteAllByUserIdAndTagIn(userId, Arrays.stream(tags).map(t -> t.trim().toLowerCase()).toList());
     }
 
     @Override
-    public List<UserVideoTagDTO> getWithVideoIdAndTag(String videoId, String tag) {
-        return List.of();
+    public void deleteWithUserIdAndVideoIdAndTagIn(String userId, String videoId, List<String> tags) {
+        repo.deleteAllByUserIdAndVideoIdAndTagIn(userId, videoId, tags);
     }
 
-    @Override
-    public void delete(String userId, String videoId, String tag) {
 
-    }
-
-    @Override
-    public void deleteWithUserId(String userId) {
-
-    }
-
-    @Override
-    public void deleteWithVideoId(String videoId) {
-
-    }
-
-    @Override
-    public void deleteWithTag(String tag) {
-
-    }
-
-    @Override
-    public void deleteWithUserIdAndVideoId(String userId, String videoId) {
-
-    }
-
-    @Override
-    public void deleteWithUserIdAndTag(String userId, String tag) {
-
-    }
-
-    @Override
-    public void deleteWithVideoIdAndTag(String videoId, String tag) {
-
+    private UserVideoTagDTO toDTO(UserVideoTag userVideoTag) {
+        return new UserVideoTagDTO(userVideoTag.getUserId(), userVideoTag.getVideoId(), userVideoTag.getTag());
     }
 }
