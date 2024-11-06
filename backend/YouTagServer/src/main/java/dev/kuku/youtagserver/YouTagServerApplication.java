@@ -13,6 +13,8 @@ public class YouTagServerApplication {
 }
 //TODO Read Google client.json for secret stuff
 //TODO Read config file for web scrapping
+//TODO Separate logical controller entry points
+//TODO independent services. And orchestrators will handle working with each service
 /*
  *
  * Spring modulith is awesome!
