@@ -14,7 +14,7 @@ import java.io.IOException;
 
 @Slf4j
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+class JwtAuthenticationFilter extends OncePerRequestFilter {
     final JwtAuthenticationProvider provider;
 
     @Override

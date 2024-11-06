@@ -26,7 +26,7 @@ public class UserVideoTagImpl implements UserVideoTagService {
     @Override
     public void addTagToVid(String id, String userId, String tag) throws UserVideoTagAlreadyExists {
         try {
-            get(id, userId, tag);
+            getUserVideoTagByVideoIdUserIdAndTag(id, userId, tag);
             throw new UserVideoTagAlreadyExists(userId, id, tag);
         } catch (UserVideoTagNotFound e) {
             log.info("Adding tag {} to video {} for user {}", tag, id, userId);
@@ -55,11 +55,11 @@ public class UserVideoTagImpl implements UserVideoTagService {
     }
 
     @Override
-    public UserVideoTagDTO get(String id, String userId, String tag) throws UserVideoTagNotFound {
-        UserVideoTag videoTag = (UserVideoTag) cacheSystem.getObject(this.getClass().toString(), String.format("%s%s%s", userId, id, tag));
+    public UserVideoTagDTO getUserVideoTagByVideoIdUserIdAndTag(String id, String userId, String tag) throws UserVideoTagNotFound {
+        UserVideoTag videoTag = cacheSystem.getObject(String.format("%s%s%s", userId, id, tag), UserVideoTag.class);
         if (videoTag == null) {
             videoTag = repo.findByUserIdAndTagAndVideoId(userId, tag, id);
-            cacheSystem.cache(this.getClass().toString(), String.format("%s%s%s", userId, id, tag), videoTag);
+            cacheSystem.cache(String.format("%s%s%s", userId, id, tag), videoTag);
         }
         if (videoTag == null) {
             throw new UserVideoTagNotFound(userId, id, tag);

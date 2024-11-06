@@ -1,6 +1,5 @@
 package dev.kuku.youtagserver.auth.domain.models;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -8,10 +7,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.Collection;
 import java.util.List;
 
-@RequiredArgsConstructor
-public class AuthenticatedUser implements Authentication {
-    final String email;
 
+public record AuthenticatedUser(String email) implements Authentication {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("USER"));
@@ -44,6 +41,6 @@ public class AuthenticatedUser implements Authentication {
 
     @Override
     public String getName() {
-        return email;
+        return null;
     }
 }

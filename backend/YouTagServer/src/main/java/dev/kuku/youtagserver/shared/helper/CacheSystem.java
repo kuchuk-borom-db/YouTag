@@ -14,27 +14,31 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CacheSystem {
     private final ConcurrentHashMap<String, Map<String, Object>> cacheStore = new ConcurrentHashMap<>();
 
-    public void cache(String cacheName, String uniqueKey, Object objectToCache) {
-        log.info("caching key {} to store {} : {}", cacheName, uniqueKey, objectToCache);
-        getStore(cacheName).put(uniqueKey, objectToCache);
+    public void cache(String uniqueKey, Object objectToCache) {
+        log.info("caching key {}  in {} to store: {}", uniqueKey, objectToCache.getClass().getName(), objectToCache);
+        getStore(objectToCache.getClass().getName()).put(uniqueKey, objectToCache);
     }
 
-    public Object getObject(String cacheName, String uniqueKey) {
-        var obj = getStore(cacheName).get(uniqueKey);
-        log.info("Found object {} in cache", obj);
+    public <T> T getObject(String uniqueKey, Class<T> objClass) {
+        T obj = (T) getStore(objClass.getName()).get(uniqueKey);
+        if (obj == null) {
+            log.info("Failed to find obj in cache: {}", uniqueKey);
+        } else {
+            log.info("Found obj in cache: {}", uniqueKey);
+        }
         return obj;
     }
 
-    public void evict(String cacheName, String uniqueKey) {
-        log.info("Removing key {} from store {}", uniqueKey, cacheName);
-        if (cacheStore.containsKey(cacheName)) {
-            cacheStore.get(cacheName).remove(cacheName);
-            if (cacheStore.get(cacheName).isEmpty()) {
-                cacheStore.remove(cacheName);
+    public void evict(String uniqueKey, Class<?> objClass) {
+        log.info("Removing key {} from store {}", uniqueKey, objClass.getName());
+        if (cacheStore.containsKey(objClass.getName())) {
+            cacheStore.get(objClass.getName()).remove(uniqueKey);
+            //If cacheStore is empty then remove the store
+            if (cacheStore.get(objClass.getName()).isEmpty()) {
+                cacheStore.remove(objClass.getName());
             }
         }
     }
-
 
     private Map<String, Object> getStore(String name) {
         if (!cacheStore.containsKey(name)) {

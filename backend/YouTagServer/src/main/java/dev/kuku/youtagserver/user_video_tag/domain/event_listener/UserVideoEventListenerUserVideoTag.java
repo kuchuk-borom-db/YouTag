@@ -13,7 +13,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 @Service
 @Transactional
-public class UserVideoEventListener {
+public class UserVideoEventListenerUserVideoTag {
     final UserVideoTagRepo repo;
 
     @TransactionalEventListener

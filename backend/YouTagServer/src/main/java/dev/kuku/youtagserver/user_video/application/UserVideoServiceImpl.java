@@ -47,10 +47,10 @@ public class UserVideoServiceImpl implements UserVideoService {
 
     @Override
     public UserVideoDTO getUserVideo(String userId, String videoId) throws UserVideoLinkNotFound {
-        UserVideo userVideo = (UserVideo) cacheSystem.getObject(this.getClass().toString(), userId);
+        UserVideo userVideo = cacheSystem.getObject(userId, UserVideo.class);
         if (userVideo == null) {
             userVideo = repo.findByUserIdAndVideoId(userId, videoId);
-            cacheSystem.cache(this.getClass().toString(), String.format("%s%s", userId, videoId), userVideo);
+            cacheSystem.cache(String.format("%s%s", userId, videoId), userVideo);
         }
         if (userVideo == null) {
             throw new UserVideoLinkNotFound(userId, videoId);

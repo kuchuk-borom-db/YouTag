@@ -1,9 +1,9 @@
-package dev.kuku.youtagserver.auth.infrastructure.controller;
+package dev.kuku.youtagserver.auth.infrastructure;
 
 import com.nimbusds.jose.JOSEException;
 import dev.kuku.youtagserver.auth.application.GoogleOAuthService;
 import dev.kuku.youtagserver.auth.application.JwtService;
-import dev.kuku.youtagserver.auth.domain.exceptions.InvalidOAuthRedirect;
+import dev.kuku.youtagserver.auth.api.exceptions.InvalidOAuthRedirect;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

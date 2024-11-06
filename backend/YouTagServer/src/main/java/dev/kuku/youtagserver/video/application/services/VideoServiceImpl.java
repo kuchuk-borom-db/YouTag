@@ -32,10 +32,10 @@ public class VideoServiceImpl implements VideoService {
     @Override
     public VideoDTO getVideo(String id) throws VideoNotFound {
         log.info("Getting video {}", id);
-        Video video = (Video) cacheSystem.getObject("vid", id);
+        Video video = cacheSystem.getObject(id, Video.class);
         if (video == null) {
             video = videoRepo.findById(id).orElse(null);
-            cacheSystem.cache("vid", id, video);
+            cacheSystem.cache(id, video);
         }
         if (video == null) {
             throw new VideoNotFound(id);
@@ -44,7 +44,7 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public VideoDTO addVideo(String id) throws VideoAlreadyExists, InvalidVideoIDException {
+    public void addVideo(String id) throws VideoAlreadyExists, InvalidVideoIDException {
         log.info("Adding video: {}", id);
         var vid = videoRepo.findById(id);
         if (vid.isPresent()) {
@@ -53,9 +53,8 @@ public class VideoServiceImpl implements VideoService {
         if (!youtubeScrapperService.validateVideo(id)) {
             throw new InvalidVideoIDException(id);
         }
-        var saved = videoRepo.save(new Video(id, "NA", "NA", "NA", LocalDateTime.now()));
+        videoRepo.save(new Video(id, "NA", "NA", "NA", LocalDateTime.now()));
         eventPublisher.publishEvent(new VideoAddedEvent(id));
-        return toDTO(saved);
     }
 
     @Override

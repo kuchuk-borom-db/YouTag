@@ -33,3 +33,16 @@ delete tag from video
 delete tag from all videos
 delete video containing specific tag
  */
+
+/*
+Endpoints:-
+
+1. link video
+2. unlink video
+3. Add tags to video
+4. Remove tags from video
+5. Get video info
+
+1. Get all videos of current user
+2. Get all videos with tags T1,T2,T3 of user
+ */

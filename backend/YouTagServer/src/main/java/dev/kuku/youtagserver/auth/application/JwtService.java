@@ -2,8 +2,8 @@ package dev.kuku.youtagserver.auth.application;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.JWTClaimsSet;
-import dev.kuku.youtagserver.auth.domain.exceptions.JWTVerificationFailed;
-import dev.kuku.youtagserver.auth.domain.exceptions.JwtTokenExpired;
+import dev.kuku.youtagserver.auth.api.exceptions.JWTVerificationFailed;
+import dev.kuku.youtagserver.auth.api.exceptions.JwtTokenExpired;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;

@@ -13,7 +13,7 @@ public interface UserVideoTagService {
 
     void deleteTagsFromVideo(String id, String email, String[] tagsToRemove);
 
-    UserVideoTagDTO get(String id, String userId, String tag) throws UserVideoTagNotFound;
+    UserVideoTagDTO getUserVideoTagByVideoIdUserIdAndTag(String id, String userId, String tag) throws UserVideoTagNotFound;
 
     String[] getTagsOfVideo(String videoId, String userId);
 }

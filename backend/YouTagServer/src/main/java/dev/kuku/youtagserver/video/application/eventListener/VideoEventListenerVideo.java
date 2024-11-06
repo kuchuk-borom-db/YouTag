@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class VideoEventListener {
+public class VideoEventListenerVideo {
     final YoutubeScrapperService scrapperService;
     final VideoRepo videoRepo;
     final CacheSystem cacheSystem;
@@ -28,7 +28,7 @@ public class VideoEventListener {
         String vidID = addedVideoID.getVideoId();
         var vidInfo = scrapperService.getYoutubeVideoInfo(vidID);
         log.info("Updating video info {}", vidInfo);
-        cacheSystem.evict("vid", vidID);
+        cacheSystem.evict(vidID, Video.class);
         videoRepo.save(new Video(vidID, vidInfo.title(), vidInfo.description(), vidInfo.thumbnail(), LocalDateTime.now()));
     }
 }

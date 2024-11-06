@@ -3,6 +3,7 @@ package dev.kuku.youtagserver.video.domain.eventListener;
 
 import dev.kuku.youtagserver.user_video.api.events.VideoUnlinkedEvent;
 import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
+import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
 import dev.kuku.youtagserver.video.api.services.VideoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +16,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class UserVideoEventListener {
+public class UserVideoEventListenerVideo {
 
     final UserVideoService userVideoService;
     final VideoService videoService;
@@ -25,7 +26,11 @@ public class UserVideoEventListener {
     void on(VideoUnlinkedEvent e) {
         if (userVideoService.getUserVideosContainingVideoId(e.videoId()).isEmpty()) {
             log.info("Removing vide {}. No user has it linked.", e.videoId());
-            videoService.deleteVideo(videoService);
+            try {
+                videoService.deleteVideo(e.videoId());
+            } catch (VideoNotFound ex) {
+                log.warn(ex.getMessage());
+            }
         }
     }
 }

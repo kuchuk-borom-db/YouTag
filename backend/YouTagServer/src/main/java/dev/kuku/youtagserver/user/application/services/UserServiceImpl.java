@@ -5,6 +5,8 @@ import dev.kuku.youtagserver.user.api.dto.UserDTO;
 import dev.kuku.youtagserver.user.api.events.UserAddedEvent;
 import dev.kuku.youtagserver.user.api.events.UserUpdatedEvent;
 import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
+import dev.kuku.youtagserver.user.api.exceptions.InvalidUser;
+import dev.kuku.youtagserver.user.api.exceptions.UserAlreadyExists;
 import dev.kuku.youtagserver.user.domain.entity.User;
 import dev.kuku.youtagserver.user.infrastructure.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
@@ -27,10 +29,10 @@ public class UserServiceImpl implements UserServiceInternal {
     @Override
     public UserDTO getUser(String email) throws EmailNotFound {
         log.info("Get user with email {}", email);
-        User user = (User) cacheSystem.getObject("user", email);
+        User user = cacheSystem.getObject(email, User.class);
         if (user == null) {
             user = userRepo.findByEmail(email).orElse(null);
-            cacheSystem.cache("user", email, user);
+            cacheSystem.cache(email, User.class);
         }
         if (user == null) {
             throw new EmailNotFound(email);
@@ -39,23 +41,22 @@ public class UserServiceImpl implements UserServiceInternal {
     }
 
     @Override
-    public boolean addUser(UserDTO userDTO) {
-        log.info("Add user {}", userDTO);
+    public void addUser(UserDTO userDTO) throws InvalidUser, UserAlreadyExists {
+        log.info("Add user {} called", userDTO);
         User user = toEntity(userDTO);
         if (user.getUsername() == null || user.getThumbUrl() == null || user.getEmail() == null) {
             log.error("Invalid user");
-            return false;
+            throw new InvalidUser();
         }
         try {
             getUser(user.getEmail());
             log.error("User already exists");
-            return false;
+            throw new UserAlreadyExists(userDTO.email());
         } catch (EmailNotFound e) {
             User savedUser = userRepo.save(user);
+            log.info("Saved user {}", savedUser);
             eventPublisher.publishEvent(new UserAddedEvent(savedUser));
-            return true;
         }
-
     }
 
     @Override
@@ -66,7 +67,7 @@ public class UserServiceImpl implements UserServiceInternal {
             log.error("User is not outdated");
             return false;
         }
-        cacheSystem.evict("user", userDTO.email());
+        cacheSystem.evict(userDTO.email(), User.class);
         user.setUpdated(LocalDateTime.now());
         userRepo.save(user);
         eventPublisher.publishEvent(new UserUpdatedEvent(user));
