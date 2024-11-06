@@ -19,4 +19,7 @@ public interface UserVideoTagRepo extends CrudRepository<UserVideoTag, UserVideo
     UserVideoTag findByUserIdAndTagAndVideoId(String userId, String tag, String videoId);
 
     List<UserVideoTag> findAllByUserIdAndVideoId(String userId, String videoId);
+
+    //Allows passing in many tags at once
+    List<UserVideoTag> findAllByUserIdAndTagIn(String userId, List<String> tags);
 }

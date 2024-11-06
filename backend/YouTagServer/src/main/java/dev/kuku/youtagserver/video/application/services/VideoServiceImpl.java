@@ -4,13 +4,11 @@ import dev.kuku.youtagserver.shared.helper.CacheSystem;
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
 import dev.kuku.youtagserver.video.api.events.VideoAddedEvent;
 import dev.kuku.youtagserver.video.api.events.VideoDeletedEvent;
-import dev.kuku.youtagserver.video.api.exceptions.InvalidVideoIDException;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
 import dev.kuku.youtagserver.video.api.services.VideoService;
 import dev.kuku.youtagserver.video.domain.entity.Video;
 import dev.kuku.youtagserver.video.infrastructure.repo.VideoRepo;
-import dev.kuku.youtagserver.webscraper.api.services.YoutubeScrapperService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,7 +24,6 @@ import java.time.LocalDateTime;
 public class VideoServiceImpl implements VideoService {
     final VideoRepo videoRepo;
     final ApplicationEventPublisher eventPublisher;
-    final YoutubeScrapperService youtubeScrapperService;
     final CacheSystem cacheSystem;
 
     @Override
@@ -44,14 +41,11 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public void addVideo(String id) throws VideoAlreadyExists, InvalidVideoIDException {
+    public void addVideo(String id) throws VideoAlreadyExists {
         log.info("Adding video: {}", id);
         var vid = videoRepo.findById(id);
         if (vid.isPresent()) {
             throw new VideoAlreadyExists(id);
-        }
-        if (!youtubeScrapperService.validateVideo(id)) {
-            throw new InvalidVideoIDException(id);
         }
         videoRepo.save(new Video(id, "NA", "NA", "NA", LocalDateTime.now()));
         eventPublisher.publishEvent(new VideoAddedEvent(id));

@@ -1,20 +1,13 @@
 package dev.kuku.youtagserver.user_video.application;
 
-import dev.kuku.youtagserver.shared.helper.CacheSystem;
 import dev.kuku.youtagserver.user_video.api.dto.UserVideoDTO;
-import dev.kuku.youtagserver.user_video.api.events.VideoUnlinkedEvent;
 import dev.kuku.youtagserver.user_video.api.exception.VideoAlreadyLinkedToUser;
-import dev.kuku.youtagserver.user_video.api.services.UserVideoLinkNotFound;
 import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
-import dev.kuku.youtagserver.user_video.domain.entity.UserVideo;
-import dev.kuku.youtagserver.user_video.infrastructure.UserVideoRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -22,66 +15,39 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional
 public class UserVideoServiceImpl implements UserVideoService {
-    final UserVideoRepo repo;
-    final CacheSystem cacheSystem;
-    final ApplicationEventPublisher eventPublisher;
 
     @Override
-    public void linkVideoToUser(String videoId, String userId) throws VideoAlreadyLinkedToUser {
-        if (isVideoLinkedToUser(userId, videoId)) {
-            log.info("Video {} already linked", videoId);
-            throw new VideoAlreadyLinkedToUser(userId, videoId);
-        }
-        log.info("Linking Video {} to user {}", videoId, userId);
-        repo.save(new UserVideo(userId, videoId, LocalDateTime.now()));
+    public void create(String videoId, String currentUserId) throws VideoAlreadyLinkedToUser {
+
     }
 
     @Override
-    public void unlinkVideoFromUser(String videoId, String userId) throws UserVideoLinkNotFound {
-        log.info("Unlinking Video {} from user {}", videoId, userId);
-        if (!isVideoLinkedToUser(userId, videoId)) {
-            throw new UserVideoLinkNotFound(videoId, userId);
-        }
-        repo.deleteByUserIdAndVideoId(userId, videoId);
-        eventPublisher.publishEvent(new VideoUnlinkedEvent(userId, videoId));
+    public UserVideoDTO get(String userId, String videoId) {
+        return null;
     }
 
     @Override
-    public UserVideoDTO getUserVideo(String userId, String videoId) throws UserVideoLinkNotFound {
-        UserVideo userVideo = cacheSystem.getObject(userId, UserVideo.class);
-        if (userVideo == null) {
-            userVideo = repo.findByUserIdAndVideoId(userId, videoId);
-            cacheSystem.cache(String.format("%s%s", userId, videoId), userVideo);
-        }
-        if (userVideo == null) {
-            throw new UserVideoLinkNotFound(userId, videoId);
-        }
-        return toDTO(userVideo);
+    public List<UserVideoDTO> getWithUserId(String userId) {
+        return List.of();
     }
 
     @Override
-    public List<UserVideoDTO> getUserVideosOfUser(String userId) {
-        log.info("Getting videos of user {}", userId);
-        return repo.findByUserId(userId).stream().map(this::toDTO).toList();
+    public List<UserVideoDTO> getWithVideoId(String videoId) {
+        return List.of();
     }
 
     @Override
-    public boolean isVideoLinkedToUser(String email, String id) {
-        try {
-            getUserVideo(email, id);
-            return true;
-        } catch (UserVideoLinkNotFound e) {
-            return false;
-        }
+    public void delete(String userId, String videoId) {
+
     }
 
     @Override
-    public List<UserVideoDTO> getUserVideosContainingVideoId(String videoId) {
-        log.info("Getting user videos which contains video {}", videoId);
-        return repo.findAllByVideoId(videoId);
+    public void deleteWithUserId(String userId) {
+
     }
 
-    public UserVideoDTO toDTO(UserVideo userVideo) {
-        return new UserVideoDTO(userVideo.getUserId(), userVideo.getVideoId(), userVideo.getCreated());
+    @Override
+    public void deleteWithVideoId(String videoId) {
+
     }
 }

@@ -6,16 +6,21 @@ import dev.kuku.youtagserver.user_video.api.exception.VideoAlreadyLinkedToUser;
 import java.util.List;
 
 public interface UserVideoService {
-    void linkVideoToUser(String videoId, String currentUserId) throws VideoAlreadyLinkedToUser;
+    //CREATE
+    void create(String userId, String videoId) throws VideoAlreadyLinkedToUser;
 
-    void unlinkVideoFromUser(String videoId, String currentUserId) throws UserVideoLinkNotFound;
+    //READ
+    UserVideoDTO get(String userId, String videoId);
 
-    UserVideoDTO getUserVideo(String userId, String videoId) throws UserVideoLinkNotFound;
+    List<UserVideoDTO> getWithUserId(String userId);
 
-    List<UserVideoDTO> getUserVideosOfUser(String userId);
+    List<UserVideoDTO> getWithVideoId(String videoId);
 
-    boolean isVideoLinkedToUser(String email, String id);
+    //DELETE
+    void delete(String userId, String videoId) throws UserVideoLinkNotFound;
 
-    List<UserVideoDTO> getUserVideosContainingVideoId(String videoId);
+    void deleteWithUserId(String userId);
+
+    void deleteWithVideoId(String videoId);
 
 }

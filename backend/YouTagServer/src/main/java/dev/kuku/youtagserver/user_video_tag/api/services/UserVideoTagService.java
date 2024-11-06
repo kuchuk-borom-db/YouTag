@@ -2,18 +2,42 @@ package dev.kuku.youtagserver.user_video_tag.api.services;
 
 import dev.kuku.youtagserver.user_video_tag.api.dto.UserVideoTagDTO;
 import dev.kuku.youtagserver.user_video_tag.api.exceptions.UserVideoTagAlreadyExists;
-import dev.kuku.youtagserver.user_video_tag.api.exceptions.UserVideoTagNotFound;
 
 import java.util.List;
 
 public interface UserVideoTagService {
-    void addTagToVid(String id, String userId, String tag) throws UserVideoTagAlreadyExists;
+    //Create
+    void addTagToVid(String userId, String videoId, String tag) throws UserVideoTagAlreadyExists;
 
-    List<UserVideoTagDTO> getVideosOfUserWithTag(String userId, String tag);
+    //Read
+    UserVideoTagDTO get(String userId, String videoId, String tag);
 
-    void deleteTagsFromVideo(String id, String email, String[] tagsToRemove);
+    List<UserVideoTagDTO> getWithUserId(String userId);
 
-    UserVideoTagDTO getUserVideoTagByVideoIdUserIdAndTag(String id, String userId, String tag) throws UserVideoTagNotFound;
+    List<UserVideoTagDTO> getWithVideoId(String videoId);
 
-    String[] getTagsOfVideo(String videoId, String userId);
+    List<UserVideoTagDTO> getWithTag(String tag);
+
+    List<UserVideoTagDTO> getWithUserIdAndVideoId(String userId, String videoId);
+
+    List<UserVideoTagDTO> getWithUserIdAndTag(String userId, String tag);
+
+    List<UserVideoTagDTO> getWithUserIdAndTag(String userId, String[] tags);
+
+    List<UserVideoTagDTO> getWithVideoIdAndTag(String videoId, String tag);
+
+    //Delete
+    void delete(String userId, String videoId, String tag);
+
+    void deleteWithUserId(String userId);
+
+    void deleteWithVideoId(String videoId);
+
+    void deleteWithTag(String tag);
+
+    void deleteWithUserIdAndVideoId(String userId, String videoId);
+
+    void deleteWithUserIdAndTag(String userId, String tag);
+
+    void deleteWithVideoIdAndTag(String videoId, String tag);
 }

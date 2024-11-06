@@ -7,5 +7,10 @@ import dev.kuku.youtagserver.user.api.exceptions.UserAlreadyExists;
 
 public interface UserService {
     UserDTO getUser(String email) throws EmailNotFound;
+
     void addUser(UserDTO userDTO) throws UserAlreadyExists, InvalidUser;
+
+    void deleteUser(String email) throws EmailNotFound;
+
+    void updateUser(UserDTO userDTO) throws InvalidUser;
 }
