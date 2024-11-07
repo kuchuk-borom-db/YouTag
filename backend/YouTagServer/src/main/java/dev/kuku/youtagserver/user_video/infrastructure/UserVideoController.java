@@ -37,15 +37,18 @@ class UserVideoController {
         return ResponseEntity.ok(new ResponseModel<>(true, String.format("Linked Video %s", videoId)));
     }
 
+    /**
+     * Delete link between user and video
+     */
     @DeleteMapping("/")
-    ResponseEntity<ResponseModel<Object>> unlinkVideoFromUser(@RequestParam(value = "id", required = false) String videoId) throws ResponseException {
-        if (videoId == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseModel<>(null, "id query parameter missing"));
-        }
+    ResponseEntity<ResponseModel<Object>> unlinkVideoFromUser(@RequestParam(value = "id") String videoId) throws ResponseException {
         commandHandler.unlinkVideoFromUser(videoId);
         return ResponseEntity.ok(new ResponseModel<>(true, String.format("Unlinked Video %s", videoId)));
     }
 
+    /**
+     * Get video info or video infos of user
+     */
     @GetMapping("/")
     ResponseEntity<ResponseModel<List<VideoTagDTO>>> getVideosOfUser(@RequestParam(value = "video_id", required = false) String videoId) throws ResponseException {
         List<VideoTagDTO> videoTagDTOS = new ArrayList<>();

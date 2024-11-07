@@ -1,6 +1,5 @@
 package dev.kuku.youtagserver.user_video.infrastructure;
 
-import dev.kuku.youtagserver.user_video.api.dto.UserVideoDTO;
 import dev.kuku.youtagserver.user_video.domain.entity.UserVideo;
 import dev.kuku.youtagserver.user_video.domain.entity.UserVideoId;
 import org.springframework.data.repository.CrudRepository;
@@ -14,5 +13,11 @@ public interface UserVideoRepo extends CrudRepository<UserVideo, UserVideoId> {
 
     List<UserVideo> findByUserId(String userId);
 
-    List<UserVideoDTO> findAllByVideoId(String videoId);
+    List<UserVideo> findAllByVideoId(String videoId);
+
+    List<UserVideo> findAllByUserId(String userId);
+
+    void deleteByUserId(String userId);
+
+    void deleteByVideoId(String videoId);
 }

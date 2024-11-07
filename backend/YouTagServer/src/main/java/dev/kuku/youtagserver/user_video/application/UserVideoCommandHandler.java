@@ -5,7 +5,7 @@ import dev.kuku.youtagserver.auth.api.services.AuthService;
 import dev.kuku.youtagserver.shared.exceptions.ResponseException;
 import dev.kuku.youtagserver.shared.models.VideoTagDTO;
 import dev.kuku.youtagserver.user_video.api.dto.UserVideoDTO;
-import dev.kuku.youtagserver.user_video.api.services.UserVideoLinkNotFound;
+import dev.kuku.youtagserver.user_video.api.exception.UserVideoLinkNotFound;
 import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
 import dev.kuku.youtagserver.user_video_tag.api.dto.UserVideoTagDTO;
 import dev.kuku.youtagserver.user_video_tag.api.services.UserVideoTagService;

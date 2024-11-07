@@ -1,6 +1,5 @@
-package dev.kuku.youtagserver.user.application.services;
+package dev.kuku.youtagserver.user.application;
 
-import dev.kuku.youtagserver.auth.api.events.GotUserFromTokenEvent;
 import dev.kuku.youtagserver.user.api.dto.UserDTO;
 import dev.kuku.youtagserver.user.api.events.UserAddedEvent;
 import dev.kuku.youtagserver.user.api.events.UserUpdatedEvent;
@@ -13,10 +12,8 @@ import dev.kuku.youtagserver.user.infrastructure.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDateTime;
 
@@ -87,39 +84,5 @@ public class UserServiceImpl implements UserService {
 
     private User toEntity(UserDTO userDTO) {
         return new User(userDTO.email(), userDTO.name(), userDTO.pic(), userDTO.created());
-    }
-}
-
-@RequiredArgsConstructor
-@Service
-@Slf4j
-class UserEventListener {
-    final UserService userService;
-
-    @Async
-    @TransactionalEventListener
-    void on(GotUserFromTokenEvent event) throws InvalidUser {
-        log.info("Got userMap from token {}", event.userMap());
-
-        String email = event.userMap().get("email");
-        String name = event.userMap().get("name");
-        String pic = event.userMap().get("picture");
-        UserDTO tokenUser = new UserDTO(email, name, pic, LocalDateTime.now());
-
-        try {
-            //Attempt to getUserVideoTagByVideoIdUserIdAndTag user
-            var existingUser = userService.getUser(email);
-            if (userService.isUserOutdated(tokenUser)) {
-                log.info("Existing user found {}. But outdated {}", existingUser, tokenUser);
-                userService.updateUser(tokenUser);
-            }
-        } catch (EmailNotFound e) {
-            log.info("Email not found. Adding user to database");
-            try {
-                userService.addUser(tokenUser);
-            } catch (UserAlreadyExists ex) {
-                log.error("This should not have happened");
-            }
-        }
     }
 }

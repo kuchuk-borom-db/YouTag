@@ -1,13 +1,20 @@
 package dev.kuku.youtagserver.user_video.application;
 
 import dev.kuku.youtagserver.user_video.api.dto.UserVideoDTO;
+import dev.kuku.youtagserver.user_video.api.events.CreatedLinkBetweenUserAndVideo;
+import dev.kuku.youtagserver.user_video.api.events.DeletedLinkBetweenUserAndVideo;
+import dev.kuku.youtagserver.user_video.api.exception.UserVideoLinkNotFound;
 import dev.kuku.youtagserver.user_video.api.exception.VideoAlreadyLinkedToUser;
 import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
+import dev.kuku.youtagserver.user_video.domain.entity.UserVideo;
+import dev.kuku.youtagserver.user_video.infrastructure.UserVideoRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -15,39 +22,47 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional
 public class UserVideoServiceImpl implements UserVideoService {
+    final UserVideoRepo repo;
+    final ApplicationEventPublisher eventPublisher;
 
     @Override
-    public void create(String videoId, String currentUserId) throws VideoAlreadyLinkedToUser {
-
+    public void create(String videoId, String userId) throws VideoAlreadyLinkedToUser {
+        //Check if video is already linked
+        try {
+            get(userId, videoId);
+            throw new VideoAlreadyLinkedToUser(userId, videoId);
+        } catch (UserVideoLinkNotFound _) {
+        }
+        log.info("Creating link between user {} and video {}", userId, videoId);
+        repo.save(new UserVideo(userId, videoId, LocalDateTime.now()));
+        eventPublisher.publishEvent(new CreatedLinkBetweenUserAndVideo(userId,videoId));
     }
 
     @Override
-    public UserVideoDTO get(String userId, String videoId) {
-        return null;
+    public UserVideoDTO get(String userId, String videoId) throws UserVideoLinkNotFound {
+        var video = repo.findByUserIdAndVideoId(userId, videoId);
+        if (video != null) {
+            return toDto(video);
+        }
+        throw new UserVideoLinkNotFound(userId, videoId);
     }
+
 
     @Override
     public List<UserVideoDTO> getWithUserId(String userId) {
-        return List.of();
-    }
-
-    @Override
-    public List<UserVideoDTO> getWithVideoId(String videoId) {
-        return List.of();
+        log.info("Getting User Video with userID {}", userId);
+        var userVideos = repo.findAllByUserId(userId);
+        return userVideos.stream().map(this::toDto).toList();
     }
 
     @Override
     public void delete(String userId, String videoId) {
-
+        log.info("Deleting User Video with userID {} and video {}", userId, videoId);
+        repo.deleteByUserIdAndVideoId(userId, videoId);
+        eventPublisher.publishEvent(new DeletedLinkBetweenUserAndVideo(userId,videoId));
     }
 
-    @Override
-    public void deleteWithUserId(String userId) {
-
-    }
-
-    @Override
-    public void deleteWithVideoId(String videoId) {
-
+    private UserVideoDTO toDto(UserVideo video) {
+        return new UserVideoDTO(video.getUserId(), video.getVideoId());
     }
 }
