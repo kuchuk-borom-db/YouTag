@@ -12,6 +12,8 @@ public interface UserService {
 
     void updateUser(UserDTO userDTO) throws InvalidUser;
 
+    void deleteUser(String email) throws EmailNotFound;
+
     boolean isUserOutdated(UserDTO user);
 
 }

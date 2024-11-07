@@ -2,8 +2,7 @@ package dev.kuku.youtagserver.user_video_tag.application;
 
 import dev.kuku.youtagserver.user_video_tag.api.dto.UserVideoTagDTO;
 import dev.kuku.youtagserver.user_video_tag.api.events.AddedTagsToVideo;
-import dev.kuku.youtagserver.user_video_tag.api.events.DeletedUserTagVideoWithUserIdAndTags;
-import dev.kuku.youtagserver.user_video_tag.api.events.DeletedUserVideoTagWithUserIdAndVideoIdAndTags;
+import dev.kuku.youtagserver.user_video_tag.api.events.DeletedUserVideoTag;
 import dev.kuku.youtagserver.user_video_tag.api.exceptions.UserVideoTagNotFound;
 import dev.kuku.youtagserver.user_video_tag.api.services.UserVideoTagService;
 import dev.kuku.youtagserver.user_video_tag.domain.entity.UserVideoTag;
@@ -43,7 +42,7 @@ public class UserVideoTagServiceImpl implements UserVideoTagService {
         }
         log.info("Adding tags {} to video {}", tags, videoId);
         repo.saveAll(userVideoTags);
-        eventPublisher.publishEvent(new AddedTagsToVideo(userId,videoId,tags));
+        eventPublisher.publishEvent(new AddedTagsToVideo(userId, videoId, tags));
     }
 
     @Override
@@ -80,14 +79,16 @@ public class UserVideoTagServiceImpl implements UserVideoTagService {
 
     @Override
     public void deleteWithUserIdAndTag(String userId, String[] tags) {
-        repo.deleteAllByUserIdAndTagIn(userId, Arrays.stream(tags).map(t -> t.trim().toLowerCase()).toList());
-        eventPublisher.publishEvent(new DeletedUserTagVideoWithUserIdAndTags(userId,tags));
+        var deleted = repo.deleteAllByUserIdAndTagIn(userId, Arrays.stream(tags).map(t -> t.trim().toLowerCase()).toList());
+        var deletedDto = deleted.stream().map(this::toDTO).toList();
+        eventPublisher.publishEvent(new DeletedUserVideoTag(deletedDto));
     }
 
     @Override
     public void deleteWithUserIdAndVideoIdAndTagIn(String userId, String videoId, List<String> tags) {
-        repo.deleteAllByUserIdAndVideoIdAndTagIn(userId, videoId, tags);
-        eventPublisher.publishEvent(new DeletedUserVideoTagWithUserIdAndVideoIdAndTags(userId,videoId,tags));
+        var deleted = repo.deleteAllByUserIdAndVideoIdAndTagIn(userId, videoId, tags);
+        var deletedDto = deleted.stream().map(this::toDTO).toList();
+        eventPublisher.publishEvent(new DeletedUserVideoTag(deletedDto));
     }
 
 

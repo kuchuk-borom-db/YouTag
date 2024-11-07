@@ -2,6 +2,7 @@ package dev.kuku.youtagserver.user.application;
 
 import dev.kuku.youtagserver.user.api.dto.UserDTO;
 import dev.kuku.youtagserver.user.api.events.UserAddedEvent;
+import dev.kuku.youtagserver.user.api.events.UserDeletedEvent;
 import dev.kuku.youtagserver.user.api.events.UserUpdatedEvent;
 import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
 import dev.kuku.youtagserver.user.api.exceptions.InvalidUser;
@@ -65,6 +66,14 @@ public class UserServiceImpl implements UserService {
         user.setUpdated(LocalDateTime.now());
         userRepo.save(user);
         eventPublisher.publishEvent(new UserUpdatedEvent(user));
+    }
+
+    @Override
+    public void deleteUser(String email) throws EmailNotFound {
+        getUser(email);
+        log.info("Delete user {}", email);
+        userRepo.deleteById(email);
+        eventPublisher.publishEvent(new UserDeletedEvent(email));
     }
 
     @Override
