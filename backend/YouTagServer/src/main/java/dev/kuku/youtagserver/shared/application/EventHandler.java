@@ -9,7 +9,7 @@ import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
 import dev.kuku.youtagserver.user.api.exceptions.InvalidUser;
 import dev.kuku.youtagserver.user.api.exceptions.UserAlreadyExists;
 import dev.kuku.youtagserver.user.api.services.UserService;
-import dev.kuku.youtagserver.user_video.api.events.CreatedLinkBetweenUserAndVideo;
+import dev.kuku.youtagserver.user_video.api.events.AddedUserVideoEvent;
 import dev.kuku.youtagserver.user_video.api.events.DeletedLinkBetweenUserAndVideo;
 import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
 import dev.kuku.youtagserver.user_video_tag.api.events.AddedTagsToVideo;
@@ -90,6 +90,7 @@ class UserEventHandler {
     @TransactionalEventListener
     void on(UserUpdatedEvent event) {
         log.info("User updated: {}", event);
+        //TODO Clear cache
     }
 
     /**
@@ -102,6 +103,9 @@ class UserEventHandler {
     @TransactionalEventListener
     void on(UserDeletedEvent event) {
         log.info("User deleted: {}", event);
+        userVideoService.deleteAll(event.userId());
+        userVideoTagService.deleteWithUserId(event.userId());
+        //TODO Clear cache
     }
 }
 
@@ -110,12 +114,22 @@ class UserEventHandler {
 @Transactional
 @Slf4j
 class UserVideoEventHandler {
+    /**
+     * Tasks :- <br>
+     * 1. Evict cache storing list of UserVideo of user
+     */
     @Async
     @TransactionalEventListener
-    void on(CreatedLinkBetweenUserAndVideo event) {
+    void on(AddedUserVideoEvent event) {
         log.info("CreatedLinkBetweenUserAndVideo: {}", event);
     }
 
+    /**
+     * Tasks :- <br>
+     * 1. Evict cache of the user and video
+     * 2. Evict cache of list of UserVideo of user
+     * 3. Remove all records in UserVideoTag entries where user and videoId match
+     */
     @Async
     @TransactionalEventListener
     void on(DeletedLinkBetweenUserAndVideo event) {
@@ -134,6 +148,8 @@ class UserVideoTagEventHandler {
         log.info("AddedTagsToVideo: {}", event);
     }
 
+    @Async
+    @TransactionalEventListener
     void on(DeletedUserVideoTag event) {
         log.info("DeletedUserVideoTag: {}", event);
     }

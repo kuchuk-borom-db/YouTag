@@ -23,4 +23,5 @@ public interface UserVideoTagService {
 
     void deleteWithUserIdAndVideoIdAndTagIn(String userId, String videoId, List<String> tags);
 
+    void deleteWithUserId(String userId);
 }

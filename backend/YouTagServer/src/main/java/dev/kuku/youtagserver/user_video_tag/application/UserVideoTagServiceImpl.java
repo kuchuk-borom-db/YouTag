@@ -91,6 +91,13 @@ public class UserVideoTagServiceImpl implements UserVideoTagService {
         eventPublisher.publishEvent(new DeletedUserVideoTag(deletedDto));
     }
 
+    @Override
+    public void deleteWithUserId(String userId) {
+        List<UserVideoTag> deleted = repo.deleteAllByUserId(userId);
+        var deletedDto = deleted.stream().map(this::toDTO).toList();
+        eventPublisher.publishEvent(new DeletedUserVideoTag(deletedDto));
+    }
+
 
     private UserVideoTagDTO toDTO(UserVideoTag userVideoTag) {
         return new UserVideoTagDTO(userVideoTag.getUserId(), userVideoTag.getVideoId(), userVideoTag.getTag());

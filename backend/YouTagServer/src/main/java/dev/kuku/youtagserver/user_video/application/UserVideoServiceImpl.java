@@ -1,8 +1,8 @@
 package dev.kuku.youtagserver.user_video.application;
 
 import dev.kuku.youtagserver.user_video.api.dto.UserVideoDTO;
-import dev.kuku.youtagserver.user_video.api.events.CreatedLinkBetweenUserAndVideo;
-import dev.kuku.youtagserver.user_video.api.events.DeletedLinkBetweenUserAndVideo;
+import dev.kuku.youtagserver.user_video.api.events.AddedUserVideoEvent;
+import dev.kuku.youtagserver.user_video.api.events.DeletedUserVideo;
 import dev.kuku.youtagserver.user_video.api.exception.UserVideoLinkNotFound;
 import dev.kuku.youtagserver.user_video.api.exception.VideoAlreadyLinkedToUser;
 import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
@@ -35,7 +35,7 @@ public class UserVideoServiceImpl implements UserVideoService {
         }
         log.info("Creating link between user {} and video {}", userId, videoId);
         repo.save(new UserVideo(userId, videoId, LocalDateTime.now()));
-        eventPublisher.publishEvent(new CreatedLinkBetweenUserAndVideo(userId,videoId));
+        eventPublisher.publishEvent(new AddedUserVideoEvent(userId, videoId));
     }
 
     @Override
@@ -58,8 +58,16 @@ public class UserVideoServiceImpl implements UserVideoService {
     @Override
     public void delete(String userId, String videoId) {
         log.info("Deleting User Video with userID {} and video {}", userId, videoId);
-        repo.deleteByUserIdAndVideoId(userId, videoId);
-        eventPublisher.publishEvent(new DeletedLinkBetweenUserAndVideo(userId,videoId));
+        var deleted = repo.deleteByUserIdAndVideoId(userId, videoId);
+        eventPublisher.publishEvent(new DeletedUserVideo(List.of(toDto(deleted))));
+    }
+
+    @Override
+    public void deleteAll(String userId) {
+        log.info("Deleting all UserVideo records where user is {}", userId);
+        var deleted = repo.deleteByUserId(userId);
+        var deletedDto = deleted.stream().map(this::toDto).toList();
+        eventPublisher.publishEvent(new DeletedUserVideo(deletedDto));
     }
 
     private UserVideoDTO toDto(UserVideo video) {

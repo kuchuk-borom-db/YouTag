@@ -18,4 +18,6 @@ public interface UserVideoService {
     //DELETE
     void delete(String userId, String videoId) throws UserVideoLinkNotFound;
 
+    void deleteAll(String userId);
+
 }
