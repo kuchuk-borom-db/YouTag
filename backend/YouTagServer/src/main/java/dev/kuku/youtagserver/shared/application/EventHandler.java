@@ -8,6 +8,7 @@ import dev.kuku.youtagserver.user.api.events.UserUpdatedEvent;
 import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
 import dev.kuku.youtagserver.user.api.exceptions.InvalidUser;
 import dev.kuku.youtagserver.user.api.exceptions.UserAlreadyExists;
+import dev.kuku.youtagserver.user.api.exceptions.UserDTOHasNullValues;
 import dev.kuku.youtagserver.user.api.services.UserService;
 import dev.kuku.youtagserver.video.api.events.VideoAddedEvent;
 import dev.kuku.youtagserver.video.api.events.VideoDeletedEvent;
@@ -35,7 +36,7 @@ class AuthEventHandler {
      */
     @Async
     @TransactionalEventListener
-    void on(GotUserFromTokenEvent event) throws InvalidUser {
+    void on(GotUserFromTokenEvent event) throws InvalidUser, UserDTOHasNullValues {
         log.info("Got user from token : {}", event);
 
         String email = event.userMap().get("email");

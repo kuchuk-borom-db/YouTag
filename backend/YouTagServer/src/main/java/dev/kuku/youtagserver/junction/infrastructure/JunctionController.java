@@ -20,11 +20,13 @@ public class JunctionController {
 
         If tags are present but not videos them get all videos with the tags
         If no tags are present but videos are present then get all videos mentioned with its tags
+
     3. Delete (tags) (videos)
         If both are present then it's invalid
         If both are not present then delete EVERYTHING
 
         If tags are present but videos are not then remove all videos that are using the tags.
         If tags are not present but videos are then remove all videos that are listed.
+
      */
 }
