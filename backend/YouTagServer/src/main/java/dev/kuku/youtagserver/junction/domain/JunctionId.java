@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 @EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor
 @Getter
 @Service
 public class JunctionId {

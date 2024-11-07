@@ -1,6 +1,6 @@
 package dev.kuku.youtagserver.junction.api.exceptions;
 
-import dev.kuku.youtagserver.junction.api.dto.JunctionDTO;
+import dev.kuku.youtagserver.junction.api.dtos.JunctionDTO;
 import dev.kuku.youtagserver.shared.exceptions.ResponseException;
 import org.springframework.http.HttpStatus;
 

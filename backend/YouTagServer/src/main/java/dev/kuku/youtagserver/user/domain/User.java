@@ -1,4 +1,4 @@
-package dev.kuku.youtagserver.user.domain.entity;
+package dev.kuku.youtagserver.user.domain;
 
 import dev.kuku.youtagserver.shared.constants.DbConst;
 import jakarta.persistence.Column;

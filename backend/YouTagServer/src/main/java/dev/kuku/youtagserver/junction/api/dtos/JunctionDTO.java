@@ -1,4 +1,4 @@
-package dev.kuku.youtagserver.junction.api.dto;
+package dev.kuku.youtagserver.junction.api.dtos;
 
 import dev.kuku.youtagserver.junction.api.exceptions.JunctionDTOHasNullValues;
 import lombok.Getter;

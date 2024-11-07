@@ -1,6 +1,6 @@
-package dev.kuku.youtagserver.user.infrastructure.repo;
+package dev.kuku.youtagserver.user.infrastructure;
 
-import dev.kuku.youtagserver.user.domain.entity.User;
+import dev.kuku.youtagserver.user.domain.User;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
