@@ -7,17 +7,16 @@ import dev.kuku.youtagserver.junction.api.exceptions.JunctionDTOHasNullValues;
 import dev.kuku.youtagserver.junction.api.services.JunctionService;
 import dev.kuku.youtagserver.junction.domain.Junction;
 import dev.kuku.youtagserver.junction.infrastructure.JunctionRepo;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,125 +26,178 @@ public class JunctionServiceImpl implements JunctionService {
 
     private final JunctionRepo repo;
     private final ApplicationEventPublisher eventPublisher;
-    private final CacheManager cacheManager;
-    private Cache cacheStore; // TODO: Use cache in methods as needed
+    private final Map<String, List<JunctionDTO>> cache = new ConcurrentHashMap<>();
 
-    @PostConstruct
-    void setup() {
-        cacheStore = cacheManager.getCache(this.getClass().getName());
+    /**
+     * Generates a unique key for caching based on userId, videos, tags, skip, and limit parameters.
+     * This ensures each unique request has a unique cache entry.
+     */
+    private String generateCacheKey(String userId, List<String> videos, List<String> tags, int skip, int limit) {
+        return userId + ":" + (videos != null ? videos.toString() : "") + ":" +
+                (tags != null ? tags.toString() : "") + ":" + skip + ":" + limit;
     }
 
     /**
-     * Adds multiple videos with associated tags for a user, optimized to avoid nested loops.
+     * Evicts cache entries related to a specific user. This method is called before modifications
+     * (additions or deletions) to ensure stale data is removed from the cache.
+     */
+    private void evictCache(String userId) {
+        cache.entrySet().removeIf(entry -> entry.getKey().startsWith(userId + ":"));
+        log.debug("Evicted cache entries for user {}", userId);
+    }
+
+    /**
+     * Adds multiple videos with associated tags for a user. Each video is associated with each tag
+     * in a flat structure. This method also evicts the user's cache to ensure consistency.
      */
     @Override
     public void addVideosWithTags(String userId, List<String> videos, List<String> tags) {
         log.debug("Attempting to add videos with tags for user {}", userId);
 
-        // Creates junctions for each combination of video and tag without nested loops
+        // Evict cache for user before modification
+        evictCache(userId);
+
+        // Creates a list of junctions by combining each video with each tag
         List<Junction> junctions = tags.stream()
                 .flatMap(tag -> videos.stream().map(videoId -> new Junction(userId, videoId, tag)))
                 .collect(Collectors.toList());
 
+        // Save all junctions in the database
         repo.saveAll(junctions);
         log.info("Saved {} junctions for user {}", junctions.size(), userId);
 
+        // Publish addition events
         publishAddedEvents(junctions);
     }
 
     /**
-     * Deletes all videos and tags for a given user and publishes the deletion event.
+     * Deletes all videos and tags for a given user, then evicts the cache and publishes deletion events.
      */
     @Override
     public void deleteAllVideosAndTags(String userId) {
         log.debug("Deleting all videos and tags of user {}", userId);
 
+        // Evict cache for user before modification
+        evictCache(userId);
+
+        // Delete all junctions for the user
         List<Junction> deleted = repo.deleteAllByUserId(userId);
         log.info("Deleted {} junctions for user {}", deleted.size(), userId);
 
+        // Publish deletion events
         publishDeletedEvents(deleted);
     }
 
     /**
-     * Deletes specified tags from all videos of a user and publishes the deletion event.
+     * Deletes specified tags from all videos of a user, evicts the cache, and publishes deletion events.
      */
     @Override
     public void deleteTagsFromAllVideos(String userId, List<String> tags) {
         log.debug("Deleting tags {} from all videos for user {}", tags, userId);
 
+        // Evict cache for user before modification
+        evictCache(userId);
+
+        // Delete all junctions with specified tags for the user
         List<Junction> deleted = repo.deleteAllByUserIdAndTagIn(userId, tags);
         log.info("Deleted {} junctions with specified tags for user {}", deleted.size(), userId);
 
+        // Publish deletion events
         publishDeletedEvents(deleted);
     }
 
     /**
-     * Deletes specified tags from specific videos of a user and publishes the deletion event.
+     * Deletes specified tags from specific videos of a user, evicts the cache, and publishes deletion events.
      */
     @Override
     public void deleteTagsFromVideos(String userId, List<String> videos, List<String> tags) {
         log.debug("Deleting tags {} from videos {} for user {}", tags, videos, userId);
 
+        // Evict cache for user before modification
+        evictCache(userId);
+
+        // Delete specified junctions based on userId, videos, and tags
         List<Junction> deleted = repo.deleteAllByUserIdAndVideoIdInAndTagIn(userId, videos, tags);
         log.info("Deleted {} junctions with specified tags from specific videos for user {}", deleted.size(), userId);
 
+        // Publish deletion events
         publishDeletedEvents(deleted);
     }
 
     /**
-     * Deletes specific videos for a user and publishes the deletion event.
+     * Deletes specific videos for a user, evicts the cache, and publishes deletion events.
      */
     @Override
     public void deleteVideosFromUser(String userId, List<String> videoIds) {
         log.debug("Deleting videos {} for user {}", videoIds, userId);
 
+        // Evict cache for user before modification
+        evictCache(userId);
+
+        // Delete junctions with specified videos for the user
         List<Junction> deleted = repo.deleteAllByUserIdAndVideoIdIn(userId, videoIds);
         log.info("Deleted {} videos for user {}", deleted.size(), userId);
 
+        // Publish deletion events
         publishDeletedEvents(deleted);
     }
 
     /**
-     * Retrieves all junction entries for a user, with pagination.
+     * Retrieves all junction entries for a user, with pagination, and caches the result.
      */
     @Override
     public List<JunctionDTO> getAllJunctionOfUser(String userId, int skip, int limit) {
-        log.debug("Retrieving all junction entries for user {} with skip {} and limit {}", userId, skip, limit);
+        String cacheKey = generateCacheKey(userId, null, null, skip, limit);
+        return cache.computeIfAbsent(cacheKey, _ -> {
+            log.debug("Cache miss for key: {}", cacheKey);
 
-        List<Junction> junctions = repo.findAllByUserId(userId, PageRequest.of(skip, limit));
-        log.info("Retrieved {} junction entries for user {}", junctions.size(), userId);
+            // Fetch junctions from the database
+            List<Junction> junctions = repo.findAllByUserId(userId, PageRequest.of(skip, limit));
+            log.info("Retrieved {} junction entries for user {}", junctions.size(), userId);
 
-        return toDtoList(junctions);
+            // Convert to DTOs
+            return toDtoList(junctions);
+        });
     }
 
     /**
-     * Retrieves videos with specified tags for a user, with pagination.
+     * Retrieves videos with specified tags for a user, with pagination, and caches the result.
      */
     @Override
     public List<JunctionDTO> getAllVideosWithTags(String userId, List<String> tags, int skip, int limit) {
-        log.debug("Retrieving videos with tags {} for user {} with skip {} and limit {}", tags, userId, skip, limit);
+        String cacheKey = generateCacheKey(userId, null, tags, skip, limit);
+        return cache.computeIfAbsent(cacheKey, _ -> {
+            log.debug("Cache miss for key: {}", cacheKey);
 
-        List<Junction> junctions = repo.findAllByUserIdAndTagIn(userId, tags, PageRequest.of(skip, limit));
-        log.info("Retrieved {} videos with tags for user {}", junctions.size(), userId);
+            // Fetch junctions from the database
+            List<Junction> junctions = repo.findAllByUserIdAndTagIn(userId, tags, PageRequest.of(skip, limit));
+            log.info("Retrieved {} videos with tags for user {}", junctions.size(), userId);
 
-        return toDtoList(junctions);
+            // Convert to DTOs
+            return toDtoList(junctions);
+        });
     }
 
     /**
-     * Retrieves specific videos for a user, with pagination.
+     * Retrieves specific videos for a user, with pagination, and caches the result.
      */
     @Override
     public List<JunctionDTO> getVideosOfUser(String userId, List<String> videos, int skip, int limit) {
-        log.debug("Retrieving specified videos {} for user {} with skip {} and limit {}", videos, userId, skip, limit);
+        String cacheKey = generateCacheKey(userId, videos, null, skip, limit);
+        return cache.computeIfAbsent(cacheKey, _ -> {
+            log.debug("Cache miss for key: {}", cacheKey);
 
-        List<Junction> junctions = repo.findAllByUserIdAndVideoIdIn(userId, videos, PageRequest.of(skip, limit));
-        log.info("Retrieved {} specified videos for user {}", junctions.size(), userId);
+            // Fetch junctions from the database
+            List<Junction> junctions = repo.findAllByUserIdAndVideoIdIn(userId, videos, PageRequest.of(skip, limit));
+            log.info("Retrieved {} specified videos for user {}", junctions.size(), userId);
 
-        return toDtoList(junctions);
+            // Convert to DTOs
+            return toDtoList(junctions);
+        });
     }
 
     /**
-     * Converts a Junction to a JunctionDTO.
+     * Converts a Junction entity to a JunctionDTO, throwing an exception if any required field is null.
      */
     @Override
     public JunctionDTO toDto(Junction e) throws JunctionDTOHasNullValues {
@@ -169,22 +221,19 @@ public class JunctionServiceImpl implements JunctionService {
                 .collect(Collectors.toList());
     }
 
-
     /**
      * Publishes a JunctionAddedEvent with the provided junctions converted to DTOs.
      */
     private void publishAddedEvents(List<Junction> junctions) {
         List<JunctionDTO> addedDTOs = toDtoList(junctions);
         eventPublisher.publishEvent(new JunctionAddedEvent(addedDTOs));
-        log.debug("Published JunctionAddedEvent for {} junctions", addedDTOs.size());
     }
 
     /**
      * Publishes a JunctionDeletedEvent with the provided junctions converted to DTOs.
      */
-    private void publishDeletedEvents(List<Junction> junctions) {
-        List<JunctionDTO> deletedDTOs = toDtoList(junctions);
+    private void publishDeletedEvents(List<Junction> deleted) {
+        List<JunctionDTO> deletedDTOs = toDtoList(deleted);
         eventPublisher.publishEvent(new JunctionDeletedEvent(deletedDTOs));
-        log.debug("Published JunctionDeletedEvent for {} junctions", deletedDTOs.size());
     }
 }
