@@ -13,9 +13,7 @@ public class YouTagServerApplication {
 }
 //TODO Read Google client.json for secret stuff
 //TODO Read config file for web scrapping
-//TODO independent services. And orchestrators will handle working with each service
-//TODO pagination support
-//TODO Base DTO exception
+//TODO Replace web scraping with api key call. Add api key option in future
 /*
  *
  * Spring modulith is awesome!
