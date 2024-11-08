@@ -37,7 +37,7 @@ class AuthEventHandler {
     @Async
     @TransactionalEventListener
     void on(GotUserFromTokenEvent event) throws InvalidUser, UserDTOHasNullValues {
-        log.info("Got user from token : {}", event);
+        log.debug("Got user from token : {}", event);
 
         String email = event.userMap().get("email");
         String name = event.userMap().get("name");
@@ -48,8 +48,10 @@ class AuthEventHandler {
             //Attempt to getUserVideoTagByVideoIdUserIdAndTag user
             var existingUser = userService.getUser(email);
             if (userService.isUserOutdated(tokenUser)) {
-                log.info("Existing user found {}. But outdated {}", existingUser, tokenUser);
+                log.debug("Existing user found {}. But outdated {}", existingUser, tokenUser);
                 userService.updateUser(tokenUser);
+            } else {
+                log.debug("Existing user found with up to date record{}.", existingUser);
             }
         } catch (EmailNotFound e) {
             log.info("Email not found. Adding user to database");

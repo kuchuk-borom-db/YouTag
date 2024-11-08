@@ -48,7 +48,7 @@ public class CommandHandler {
 
         // Adds the specified videos with the provided tags.
         junctionService.addVideosWithTags(userId, Arrays.stream(videoIds).toList(), Arrays.stream(tagsArray).toList());
-        log.info("Successfully added videos with tags for user: {}", userId);
+        log.debug("Successfully added videos with tags for user: {}", userId);
     }
 
     /**

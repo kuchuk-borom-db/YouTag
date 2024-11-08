@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class JunctionServiceImpl implements JunctionService {
 
     private final JunctionRepo repo;
@@ -52,7 +54,7 @@ public class JunctionServiceImpl implements JunctionService {
      */
     @Override
     public void addVideosWithTags(String userId, List<String> videos, List<String> tags) {
-        log.debug("Attempting to add videos with tags for user {}", userId);
+        log.debug("Attempting to add videos {} with tags {} for user {}", videos, tags, userId);
 
         // Evict cache for user before modification
         evictCache(userId);
@@ -64,7 +66,7 @@ public class JunctionServiceImpl implements JunctionService {
 
         // Save all junctions in the database
         repo.saveAll(junctions);
-        log.info("Saved {} junctions for user {}", junctions.size(), userId);
+        log.debug("Saved {} junctions", junctions);
 
         // Publish addition events
         publishAddedEvents(junctions);

@@ -4,14 +4,12 @@ import dev.kuku.youtagserver.video.api.dto.VideoDTO;
 import dev.kuku.youtagserver.video.api.events.VideoAddedEvent;
 import dev.kuku.youtagserver.video.api.events.VideoDeletedEvent;
 import dev.kuku.youtagserver.video.api.events.VideoUpdatedEvent;
-import dev.kuku.youtagserver.video.api.exceptions.InvalidVideoId;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoDTOHasNullValues;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
 import dev.kuku.youtagserver.video.api.services.VideoService;
 import dev.kuku.youtagserver.video.domain.Video;
 import dev.kuku.youtagserver.video.infrastructure.VideoRepo;
-import dev.kuku.youtagserver.webscraper.api.services.YoutubeScrapperService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +29,6 @@ public class VideoServiceImpl implements VideoService {
 
     private final VideoRepo videoRepo;
     private final ApplicationEventPublisher eventPublisher;
-    private final YoutubeScrapperService scrapperService;
 
     // Cache to store video data for faster access
     private final Map<String, Video> cache = new ConcurrentHashMap<>();
@@ -72,18 +69,13 @@ public class VideoServiceImpl implements VideoService {
      * Adds a new video if it does not already exist. Publishes an event for the addition.
      */
     @Override
-    public void addVideo(String id) throws VideoAlreadyExists, InvalidVideoId {
-        log.info("Adding video with id {}", id);
+    public void addVideo(String id) throws VideoAlreadyExists {
+        log.debug("Adding video with id {}", id);
 
         // Check if video already exists
         if (cache.containsKey(id) || videoRepo.existsById(id)) {
+            log.debug("Video already exists");
             throw new VideoAlreadyExists(id);
-        }
-
-        // Validate video ID with the scrapper service
-        log.debug("Validating video ID with YouTubeScrapperService");
-        if (!scrapperService.validateVideo(id)) {
-            throw new InvalidVideoId(id);
         }
 
         // Create and save new video entry
@@ -150,6 +142,6 @@ public class VideoServiceImpl implements VideoService {
     @Override
     public VideoDTO toDto(Video e) throws VideoDTOHasNullValues {
         log.debug("Converting Video entity to DTO for id {}", e.getId());
-        return new VideoDTO(e.getId(), e.getTitle(), e.getDescription(), e.getThumbnail(), e.getUpdated());
+        return new VideoDTO(e.getId(), e.getTitle(), e.getDescription(), e.getThumbnail());
     }
 }

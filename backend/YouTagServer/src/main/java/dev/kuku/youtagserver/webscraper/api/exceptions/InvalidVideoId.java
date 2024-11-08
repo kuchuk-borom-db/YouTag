@@ -1,4 +1,4 @@
-package dev.kuku.youtagserver.video.api.exceptions;
+package dev.kuku.youtagserver.webscraper.api.exceptions;
 
 import dev.kuku.youtagserver.shared.exceptions.ResponseException;
 import org.springframework.http.HttpStatus;

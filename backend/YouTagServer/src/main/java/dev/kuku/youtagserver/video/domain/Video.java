@@ -26,7 +26,7 @@ public class Video {
     String title;
     @Column(name = DbConst.Videos.DESCRIPTION, length = 500)
     String description;
-    @Column(name = DbConst.Videos.THUMBNAIL_URL, length = 250)
+    @Column(name = DbConst.Videos.THUMBNAIL_URL, length = 500)
     String thumbnail;
     @Column(name = DbConst.CommonColumn.UPDATED, nullable = false)
     LocalDateTime updated;

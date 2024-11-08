@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Getter
 @AllArgsConstructor
@@ -15,6 +16,7 @@ import lombok.NoArgsConstructor;
         @Index(name = "junction_tag", columnList = DbConst.Junction.TAG)
 })
 @IdClass(JunctionId.class)
+@ToString
 public class Junction {
     @Id
     @Column(name = DbConst.Junction.USER_ID)

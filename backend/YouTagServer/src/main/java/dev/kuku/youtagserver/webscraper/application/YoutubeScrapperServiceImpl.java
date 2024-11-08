@@ -1,6 +1,7 @@
 package dev.kuku.youtagserver.webscraper.application;
 
 import dev.kuku.youtagserver.webscraper.api.dto.YoutubeVideoInfoDto;
+import dev.kuku.youtagserver.webscraper.api.exceptions.InvalidVideoId;
 import dev.kuku.youtagserver.webscraper.api.services.YoutubeScrapperService;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -14,7 +15,7 @@ import java.io.IOException;
 public class YoutubeScrapperServiceImpl implements YoutubeScrapperService {
 
     @Override
-    public YoutubeVideoInfoDto getYoutubeVideoInfo(String videoId) {
+    public YoutubeVideoInfoDto getYoutubeVideoInfo(String videoId) throws InvalidVideoId {
         String url = generateUrl(videoId);
         try {
             Document page = Jsoup.connect(url).get();
@@ -36,21 +37,8 @@ public class YoutubeScrapperServiceImpl implements YoutubeScrapperService {
         } catch (IOException e) {
             log.error("Failed to load video {} with error {}", videoId, e.getMessage());
         }
-        return null;
+        throw new InvalidVideoId(videoId);
     }
-
-    @Override
-    public boolean validateVideo(String id) {
-        String url = "https://www.youtube.com/watch?v=" + id;
-        try {
-            Jsoup.connect(url).get();
-        } catch (IOException e) {
-            log.error(e.getMessage());
-            return false;
-        }
-        return true;
-    }
-
 
     private String generateUrl(String videoId) {
         return "https://www.youtube.com/watch?v=" + videoId;

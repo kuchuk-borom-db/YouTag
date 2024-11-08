@@ -3,11 +3,11 @@ package dev.kuku.youtagserver.video.api.services;
 
 import dev.kuku.youtagserver.shared.application.Service;
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
-import dev.kuku.youtagserver.video.api.exceptions.InvalidVideoId;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoDTOHasNullValues;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
 import dev.kuku.youtagserver.video.domain.Video;
+import dev.kuku.youtagserver.webscraper.api.exceptions.InvalidVideoId;
 
 public interface VideoService extends Service<Video, VideoDTO> {
     /**
@@ -19,9 +19,8 @@ public interface VideoService extends Service<Video, VideoDTO> {
      * Add a new video with empty title, description, thumbnail and current time as updated time
      *
      * @throws VideoAlreadyExists if video already exists in repo
-     * @throws InvalidVideoId     if videoId is invalid
      */
-    void addVideo(String id) throws VideoAlreadyExists, InvalidVideoId, VideoDTOHasNullValues;
+    void addVideo(String id) throws VideoAlreadyExists, VideoDTOHasNullValues;
 
     /**
      * Update info of existing video
