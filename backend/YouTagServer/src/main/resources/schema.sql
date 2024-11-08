@@ -33,7 +33,8 @@ create table if not exists junction
     id       VARCHAR(255) PRIMARY KEY,
     user_id  VARCHAR(255) NOT NULL,
     video_id VARCHAR(255) NOT NULL,
-    tag      VARCHAR(255) NOT NULL
+    tag      VARCHAR(255) NOT NULL,
+    unique (user_id, video_id, tag)
 );
 
 create index if not exists idx_junction_user_video_tag on junction (user_id, video_id, tag);

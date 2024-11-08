@@ -56,6 +56,7 @@ public class JunctionServiceImpl implements JunctionService {
      */
     @Override
     public void addVideosWithTags(String userId, List<String> videos, List<String> tags) {
+        tags = validateAndProcessTags(tags);
         log.debug("Attempting to add videos {} with tags {} for user {}", videos, tags, userId);
 
         // Evict cache for user before modification
@@ -102,6 +103,7 @@ public class JunctionServiceImpl implements JunctionService {
      */
     @Override
     public void deleteTagsFromAllVideos(String userId, List<String> tags) {
+        tags = validateAndProcessTags(tags);
         log.debug("Deleting tags {} from all videos for user {}", tags, userId);
 
         // Evict cache for user before modification
@@ -121,6 +123,7 @@ public class JunctionServiceImpl implements JunctionService {
      */
     @Override
     public void deleteTagsFromVideos(String userId, List<String> videos, List<String> tags) {
+        tags = validateAndProcessTags(tags);
         log.debug("Deleting tags {} from videos {} for user {}", tags, videos, userId);
 
         // Evict cache for user before modification
@@ -182,12 +185,14 @@ public class JunctionServiceImpl implements JunctionService {
      */
     @Override
     public List<JunctionDTO> getAllVideosWithTags(String userId, List<String> tags, int skip, int limit) {
+        tags = validateAndProcessTags(tags);
         String cacheKey = generateCacheKey(userId, null, tags, skip, limit);
+        List<String> finalTags = tags;
         return cache.computeIfAbsent(cacheKey, _ -> {
             log.debug("Cache miss for key: {}", cacheKey);
 
             // Fetch junctions from the database
-            List<Junction> junctions = repo.findAllByUserIdAndTagIn(userId, tags, PageRequest.of(skip, limit));
+            List<Junction> junctions = repo.findAllByUserIdAndTagIn(userId, finalTags, PageRequest.of(skip, limit));
             log.info("Retrieved {} videos with tags for user {}", junctions.size(), userId);
 
             // Convert to DTOs
@@ -253,5 +258,19 @@ public class JunctionServiceImpl implements JunctionService {
     private void publishDeletedEvents(List<Junction> deleted) {
         List<JunctionDTO> deletedDTOs = toDtoList(deleted);
         eventPublisher.publishEvent(new JunctionDeletedEvent(deletedDTOs));
+    }
+
+    /**
+     * Processes tags by trimming whitespace, converting to lowercase, and filtering out invalid tags (e.g., "*").
+     *
+     * @param tags the list of tags to process
+     * @return a list of validated and processed tags
+     */
+    private List<String> validateAndProcessTags(List<String> tags) {
+        return tags.stream()
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .filter(tag -> !tag.equals("*")) // Exclude prohibited tag
+                .collect(Collectors.toList());
     }
 }
