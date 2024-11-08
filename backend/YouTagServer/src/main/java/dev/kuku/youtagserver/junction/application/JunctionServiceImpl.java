@@ -151,6 +151,13 @@ public class JunctionServiceImpl implements JunctionService {
         publishDeletedEvents(deleted);
     }
 
+    @Override
+    public void deleteVideos(List<String> ids) {
+        log.debug("Deleting all videos for all user with ids {}", ids);
+        var deleted = repo.deleteAllByVideoIdIn(ids);
+        publishDeletedEvents(deleted);
+    }
+
     /**
      * Retrieves all junction entries for a user, with pagination, and caches the result.
      */

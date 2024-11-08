@@ -2,6 +2,8 @@ package dev.kuku.youtagserver.shared.application;
 
 import dev.kuku.youtagserver.junction.api.dtos.JunctionDTO;
 import dev.kuku.youtagserver.junction.api.events.JunctionAddedEvent;
+import dev.kuku.youtagserver.junction.api.events.JunctionDeletedEvent;
+import dev.kuku.youtagserver.junction.api.exceptions.JunctionDTOHasNullValues;
 import dev.kuku.youtagserver.junction.api.services.JunctionService;
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
@@ -31,7 +33,8 @@ public class JunctionEventListener {
     final JunctionService junctionService;
 
     /**
-     * Add the videos to videos repo and update its details. If invalid videoIDs are found then delete them from junction
+     * Add the videos to videos repo and update its details.
+     * If invalid videoIDs are found then delete them from junction
      */
     @TransactionalEventListener
     @Async
@@ -75,5 +78,26 @@ public class JunctionEventListener {
 
         //Next, we need to delete junction records with invalid videoIds
         invalidVideoIds.forEach(junctionDTO -> junctionService.deleteVideosFromUser(junctionDTO.getUserId(), List.of(junctionDTO.getVideoId())));
+    }
+
+    /**
+     * Checks if there is any entry with the same videoId.
+     * If none found, delete the video from videos table
+     */
+    @Async
+    @TransactionalEventListener
+    void on(JunctionDeletedEvent event) throws JunctionDTOHasNullValues {
+        log.debug("Junction deleted event :- {}", event);
+        for (JunctionDTO deletedDto : event.deletedDtos()) {
+            var video = junctionService.getVideosOfUser(deletedDto.getUserId(), List.of(deletedDto.getVideoId()), 0, 1);
+            if (video == null || video.isEmpty()) {
+                try {
+                    videoService.deleteVideo(deletedDto.getVideoId());
+                } catch (VideoNotFound e) {
+                    log.error("Video not found to delete", e);
+                } catch (VideoDTOHasNullValues _) {
+                }
+            }
+        }
     }
 }

@@ -18,9 +18,12 @@ public interface JunctionService extends Service<Junction, JunctionDTO> {
 
     void deleteVideosFromUser(String userId, List<String> videoIds);
 
+    void deleteVideos(List<String> id);
+
     List<JunctionDTO> getAllJunctionOfUser(String userId, int skip, int limit) throws JunctionDTOHasNullValues;
 
     List<JunctionDTO> getAllVideosWithTags(String userId, List<String> list, int skip, int limit) throws JunctionDTOHasNullValues;
 
     List<JunctionDTO> getVideosOfUser(String userId, List<String> videos, int skip, int limit) throws JunctionDTOHasNullValues;
+
 }

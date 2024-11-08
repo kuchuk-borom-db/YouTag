@@ -15,9 +15,13 @@ public interface JunctionRepo extends CrudRepository<Junction, String> {
 
     List<Junction> deleteAllByUserIdAndVideoIdIn(String userId, List<String> videoId);
 
+    List<Junction> deleteAllByVideoIdIn(List<String> ids);
+
+
     List<Junction> findAllByUserId(String userId, Pageable pageRequest);
 
     List<Junction> findAllByUserIdAndTagIn(String userId, List<String> tags, Pageable of);
 
     List<Junction> findAllByUserIdAndVideoIdIn(String userId, List<String> videos, Pageable of);
+
 }
