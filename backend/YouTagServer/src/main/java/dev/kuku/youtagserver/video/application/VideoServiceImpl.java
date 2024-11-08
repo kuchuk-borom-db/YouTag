@@ -15,65 +15,69 @@ import dev.kuku.youtagserver.webscraper.api.services.YoutubeScrapperService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class VideoServiceImpl implements VideoService {
-    final VideoRepo videoRepo;
-    final ApplicationEventPublisher eventPublisher;
-    final CacheManager cacheManager;
-    Cache cacheStore;
-    final YoutubeScrapperService scrapperService;
 
+    private final VideoRepo videoRepo;
+    private final ApplicationEventPublisher eventPublisher;
+    private final YoutubeScrapperService scrapperService;
+
+    // Cache to store video data for faster access
+    private final Map<String, Video> cache = new ConcurrentHashMap<>();
+
+    /**
+     * Initializes the video service by loading cache with existing data if necessary.
+     */
     @PostConstruct
     void setup() {
-        // Initialize the cache for video data
-        cacheStore = cacheManager.getCache(this.getClass().getName());
-        log.debug("Initialized cache for {}", this.getClass().getName());
+        log.debug("Initialized cache for video service");
     }
 
+    /**
+     * Retrieves a video by ID, either from the cache or database if not cached.
+     */
     @Override
     public VideoDTO getVideo(String id) throws VideoNotFound, VideoDTOHasNullValues {
         log.debug("Fetching video with id {}", id);
 
         // Attempt to fetch video from cache
-        Cache.ValueWrapper cacheVal = cacheStore.get(id);
-        Video video = cacheVal != null ? (Video) cacheVal.get() : null;
+        Video video = cache.get(id);
 
-        // If video is not in cache or casting fails, retrieve from repository
+        // If video is not in cache, retrieve from repository
         if (video == null) {
             log.debug("Video with id {} not found in cache, retrieving from repository", id);
             video = videoRepo.findById(id).orElseThrow(() -> new VideoNotFound(id));
             log.debug("Video with id {} retrieved from repository, storing in cache", id);
-            cacheStore.put(id, video);
+            cache.put(id, video); // Store video in cache for future requests
         } else {
             log.debug("Video with id {} retrieved from cache", id);
         }
 
         // Convert to DTO and return
-        log.debug("Converting video with id {} to DTO", id);
         return toDto(video);
     }
 
+    /**
+     * Adds a new video if it does not already exist. Publishes an event for the addition.
+     */
     @Override
-    public void addVideo(String id) throws VideoAlreadyExists, InvalidVideoId, VideoDTOHasNullValues {
+    public void addVideo(String id) throws VideoAlreadyExists, InvalidVideoId {
         log.info("Adding video with id {}", id);
 
         // Check if video already exists
-        try {
-            getVideo(id);
+        if (cache.containsKey(id) || videoRepo.existsById(id)) {
             throw new VideoAlreadyExists(id);
-        } catch (VideoNotFound ex) {
-            log.debug("No existing video with id {}, proceeding with addition", id);
         }
 
         // Validate video ID with the scrapper service
@@ -83,16 +87,21 @@ public class VideoServiceImpl implements VideoService {
         }
 
         // Create and save new video entry
-        log.debug("Creating new video entry in repository for id {}", id);
         Video newVideo = new Video(id, "NA", "NA", "NA", LocalDateTime.now());
         videoRepo.save(newVideo);
 
+        // Store the new video in cache
+        cache.put(id, newVideo);
+        log.debug("Video with id {} saved and added to cache", id);
+
         // Publish event for added video
         VideoAddedEvent videoAddedEvent = new VideoAddedEvent(id);
-        log.debug("Publishing VideoAddedEvent for id {}", id);
         eventPublisher.publishEvent(videoAddedEvent);
     }
 
+    /**
+     * Updates an existing video. Publishes an event for the update and updates cache.
+     */
     @Override
     public void updateVideo(VideoDTO video) throws VideoNotFound, VideoDTOHasNullValues {
         log.debug("Updating video with id {}", video.getId());
@@ -102,15 +111,20 @@ public class VideoServiceImpl implements VideoService {
 
         // Update video details and save
         Video updatedVideo = new Video(video.getId(), video.getTitle(), video.getDescription(), video.getThumbnail(), LocalDateTime.now());
-        log.debug("Saving updated video with id {}", updatedVideo.getId());
         videoRepo.save(updatedVideo);
+
+        // Update the cache with the new video details
+        cache.put(video.getId(), updatedVideo);
+        log.debug("Updated video with id {} saved and cache updated", video.getId());
 
         // Publish event for video update
         VideoUpdatedEvent videoUpdatedEvent = new VideoUpdatedEvent(video);
-        log.debug("Publishing VideoUpdatedEvent for id {}", video.getId());
         eventPublisher.publishEvent(videoUpdatedEvent);
     }
 
+    /**
+     * Deletes a video by ID, removes it from the cache, and publishes a deletion event.
+     */
     @Override
     public void deleteVideo(String id) throws VideoNotFound, VideoDTOHasNullValues {
         log.debug("Deleting video with id {}", id);
@@ -119,15 +133,20 @@ public class VideoServiceImpl implements VideoService {
         getVideo(id);
 
         // Delete video entry
-        log.debug("Removing video with id {} from repository", id);
         videoRepo.deleteById(id);
+
+        // Remove video from cache
+        cache.remove(id);
+        log.debug("Video with id {} deleted and removed from cache", id);
 
         // Publish deletion event
         VideoDeletedEvent videoDeletedEvent = new VideoDeletedEvent(id);
-        log.debug("Publishing VideoDeletedEvent for id {}", id);
         eventPublisher.publishEvent(videoDeletedEvent);
     }
 
+    /**
+     * Converts a Video entity to a VideoDTO.
+     */
     @Override
     public VideoDTO toDto(Video e) throws VideoDTOHasNullValues {
         log.debug("Converting Video entity to DTO for id {}", e.getId());
