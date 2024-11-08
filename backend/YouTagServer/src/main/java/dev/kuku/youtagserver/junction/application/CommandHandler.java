@@ -135,30 +135,25 @@ public class CommandHandler {
     /**
      * Converts a list of JunctionDTOs to a list of VideoInfoTagDTOs.
      */
-    private List<VideoInfoTagDTO> junctionDtoToVideoInfoTagDTO(List<JunctionDTO> junctionDTO) throws VideoInfoTagDTOHasNullValues, VideoDTOHasNullValues, VideoNotFound {
-        Map<String, VideoInfoTagDTO> videoToInfoMap = new HashMap<>();
+    private List<VideoInfoTagDTO> junctionDtoToVideoInfoTagDTO(List<JunctionDTO> junctionDTO) throws VideoInfoTagDTOHasNullValues, VideoDTOHasNullValues, VideoNotFound, JunctionDTOHasNullValues {
+        Map<String, VideoInfoTagDTO> map = new HashMap<>();
         log.debug("Converting JunctionDTO list to VideoInfoTagDTO list. Total JunctionDTOs: {}", junctionDTO.size());
 
         for (var j : junctionDTO) {
             String videoId = j.getVideoId();
-            String currentTag = j.getTag();
-            log.debug("Processing video ID: {}, Tag: {}", videoId, currentTag);
+            log.debug("Processing video ID: {}", videoId);
 
             // Add or update the video entry in the map
-            if (videoToInfoMap.containsKey(videoId)) {
-                var existing = videoToInfoMap.get(videoId);
-                if (!existing.getTags().contains(currentTag)) {
-                    existing.getTags().add(currentTag);
-                    log.debug("Added tag '{}' to existing video entry for video ID: {}", currentTag, videoId);
-                }
-            } else {
+            if (!map.containsKey(videoId)) {
                 var vidInfo = videoService.getVideo(videoId);
-                videoToInfoMap.put(videoId, new VideoInfoTagDTO(vidInfo, List.of(currentTag)));
+                //Get all entries where videoId match. Basically getting all tags
+                var tags = junctionService.getVideosOfUser(j.getUserId(), List.of(j.getVideoId()), 0, 100).stream().map(JunctionDTO::getTag).toList();
+                map.put(videoId, new VideoInfoTagDTO(vidInfo, tags));
                 log.debug("Created new video entry for video ID: {}", videoId);
             }
         }
 
-        log.info("Conversion completed. Total unique videos processed: {}", videoToInfoMap.size());
-        return videoToInfoMap.values().stream().toList();
+        log.info("Conversion completed. Total unique videos processed: {}", map.size());
+        return map.values().stream().toList();
     }
 }

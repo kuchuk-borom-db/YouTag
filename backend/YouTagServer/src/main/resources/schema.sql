@@ -30,6 +30,7 @@ create table if not exists videos
 
 create table if not exists junction
 (
+    id       VARCHAR(255) PRIMARY KEY,
     user_id  VARCHAR(255) NOT NULL,
     video_id VARCHAR(255) NOT NULL,
     tag      VARCHAR(255) NOT NULL
@@ -37,4 +38,11 @@ create table if not exists junction
 
 create index if not exists idx_junction_user_video_tag on junction (user_id, video_id, tag);
 
---TODO generated ID and rest is indexed for junctions
+-- Index for searching by user_id
+create index if not exists idx_junction_user_id ON junction (user_id);
+
+-- Index for searching by user_id and video_id
+create index if not exists idx_junction_user_id_video_id ON junction (user_id, video_id);
+
+-- Index for searching by user_id and tag
+create index if not exists idx_junction_user_id_tag ON junction (user_id, tag);

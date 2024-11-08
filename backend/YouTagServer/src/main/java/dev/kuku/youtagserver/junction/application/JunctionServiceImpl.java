@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -63,7 +64,7 @@ public class JunctionServiceImpl implements JunctionService {
         // Creates a list of junctions by combining each video with each tag
         List<Junction> junctions = tags.stream()
                 .flatMap(tag -> videos.stream()
-                        .map(videoId -> new Junction(userId, videoId, tag)))
+                        .map(videoId -> new Junction(UUID.randomUUID().toString(), userId, videoId, tag)))
                 .toList();
 
         for (Junction junction : junctions) {
@@ -204,7 +205,7 @@ public class JunctionServiceImpl implements JunctionService {
         });
     }
 
- 
+
     /**
      * Converts a Junction entity to a JunctionDTO, throwing an exception if any required field is null.
      */

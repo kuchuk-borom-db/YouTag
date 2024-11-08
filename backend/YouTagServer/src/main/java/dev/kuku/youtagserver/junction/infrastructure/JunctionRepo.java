@@ -1,13 +1,12 @@
 package dev.kuku.youtagserver.junction.infrastructure;
 
 import dev.kuku.youtagserver.junction.domain.Junction;
-import dev.kuku.youtagserver.junction.domain.JunctionId;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
 
-public interface JunctionRepo extends CrudRepository<Junction, JunctionId> {
+public interface JunctionRepo extends CrudRepository<Junction, String> {
     List<Junction> deleteAllByUserId(String userId);
 
     List<Junction> deleteAllByUserIdAndTagIn(String userId, List<String> tags);
