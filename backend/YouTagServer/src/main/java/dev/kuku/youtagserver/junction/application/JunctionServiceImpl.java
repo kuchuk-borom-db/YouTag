@@ -109,6 +109,7 @@ public class JunctionServiceImpl implements JunctionService {
 
         // Delete all junctions with specified tags for the user
         List<Junction> deleted = repo.deleteAllByUserIdAndTagIn(userId, tags);
+
         log.info("Deleted {} junctions with specified tags for user {}", deleted.size(), userId);
 
         // Publish deletion events

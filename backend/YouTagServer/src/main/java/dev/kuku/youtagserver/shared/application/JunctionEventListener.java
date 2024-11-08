@@ -81,8 +81,7 @@ public class JunctionEventListener {
     }
 
     /**
-     * Checks if there is any entry with the same videoId.
-     * If none found, delete the video from videos table
+     * Checks if there is any entry with the same videoId. If none found, delete the video from videos table
      */
     @Async
     @TransactionalEventListener
