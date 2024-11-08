@@ -32,10 +32,9 @@ create table if not exists junction
     user_id  VARCHAR(255) NOT NULL,
     video_id VARCHAR(255) NOT NULL,
     tag      VARCHAR(255) NOT NULL,
-    PRIMARY KEY (user_id, video_id), -- Composite primary key
+    PRIMARY KEY (user_id, video_id, tag), -- Composite primary key
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
-create index if not exists junction_tag_index ON junction (tag);
 
 

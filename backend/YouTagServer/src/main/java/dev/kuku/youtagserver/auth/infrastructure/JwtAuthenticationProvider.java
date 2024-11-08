@@ -33,9 +33,7 @@ record JwtAuthenticationProvider(JwtService jwtService, UserService userService)
                 //Check if the user exists in repo
                 userService.getUser(emailID);
                 log.info("Authenticated user : {}", emailID);
-                var authenticatedUser = new AuthenticatedUser(emailID);
-                SecurityContextHolder.getContext().setAuthentication(authenticatedUser);
-                return authenticatedUser;
+                return new AuthenticatedUser(emailID);
             } catch (ParseException | JWTVerificationFailed | JOSEException | JwtTokenExpired | EmailNotFound |
                      UserDTOHasNullValues e) {
                 log.error(e.getMessage());

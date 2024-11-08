@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -60,14 +61,15 @@ public class JunctionServiceImpl implements JunctionService {
         evictCache(userId);
 
         // Creates a list of junctions by combining each video with each tag
-        List<Junction> junctions = tags.stream()
-                .flatMap(tag -> videos.stream().map(videoId -> new Junction(userId, videoId, tag)))
-                .collect(Collectors.toList());
+        List<Junction> junctions = new ArrayList<>();
+        for (var v : videos) {
+            for (var t : tags) {
+                junctions.add(new Junction(userId, v, t));
+            }
+        }
 
         // Save all junctions in the database
-        for (Junction junction : junctions) {
-            repo.save(junction);
-        }
+        repo.saveAll(junctions);
         log.debug("Saved {} junctions", junctions);
 
         // Publish addition events

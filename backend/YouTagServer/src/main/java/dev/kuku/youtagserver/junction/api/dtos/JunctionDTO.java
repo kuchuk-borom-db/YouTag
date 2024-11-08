@@ -3,9 +3,11 @@ package dev.kuku.youtagserver.junction.api.dtos;
 import dev.kuku.youtagserver.junction.api.exceptions.JunctionDTOHasNullValues;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
+@ToString
 public class JunctionDTO {
     final String userId;
     final String videoId;
