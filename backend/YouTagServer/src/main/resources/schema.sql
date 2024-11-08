@@ -37,4 +37,4 @@ create table if not exists junction
 
 create index if not exists idx_junction_user_video_tag on junction (user_id, video_id, tag);
 
-
+--TODO generated ID and rest is indexed for junctions
