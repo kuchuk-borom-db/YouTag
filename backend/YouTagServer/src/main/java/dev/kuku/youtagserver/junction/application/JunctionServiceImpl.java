@@ -65,7 +65,9 @@ public class JunctionServiceImpl implements JunctionService {
                 .collect(Collectors.toList());
 
         // Save all junctions in the database
-        repo.saveAll(junctions);
+        for (Junction junction : junctions) {
+            repo.save(junction);
+        }
         log.debug("Saved {} junctions", junctions);
 
         // Publish addition events

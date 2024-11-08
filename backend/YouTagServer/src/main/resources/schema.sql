@@ -36,6 +36,6 @@ create table if not exists junction
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
-CREATE INDEX junction_tag_index ON junction (tag);
+create index if not exists junction_tag_index ON junction (tag);
 
 
