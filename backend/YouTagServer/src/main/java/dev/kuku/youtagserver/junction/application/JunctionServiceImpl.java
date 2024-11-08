@@ -10,11 +10,11 @@ import dev.kuku.youtagserver.junction.infrastructure.JunctionRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -61,18 +61,20 @@ public class JunctionServiceImpl implements JunctionService {
         evictCache(userId);
 
         // Creates a list of junctions by combining each video with each tag
-        List<Junction> junctions = new ArrayList<>();
-        for (var v : videos) {
-            for (var t : tags) {
-                junctions.add(new Junction(userId, v, t));
+        List<Junction> junctions = tags.stream()
+                .flatMap(tag -> videos.stream()
+                        .map(videoId -> new Junction(userId, videoId, tag)))
+                .toList();
+
+        for (Junction junction : junctions) {
+            try {
+                repo.save(junction);
+                log.debug("Saved junction for user {}, video {}, and tag {}", junction.getUserId(), junction.getVideoId(), junction.getTag());
+            } catch (DataIntegrityViolationException e) {
+                log.warn("Duplicate record detected, skipping: {}", e.getMessage());
+                // Handle the exception, e.g., log a warning and continue
             }
         }
-
-        // Save all junctions in the database
-        repo.saveAll(junctions);
-        log.debug("Saved {} junctions", junctions);
-
-        // Publish addition events
         publishAddedEvents(junctions);
     }
 
@@ -202,6 +204,7 @@ public class JunctionServiceImpl implements JunctionService {
         });
     }
 
+ 
     /**
      * Converts a Junction entity to a JunctionDTO, throwing an exception if any required field is null.
      */

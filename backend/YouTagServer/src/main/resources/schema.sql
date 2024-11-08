@@ -27,14 +27,14 @@ create table if not exists videos
     updated       TIMESTAMP(6) NOT NULL    -- Last updated timestamp (non-nullable)
 );
 
+
 create table if not exists junction
 (
     user_id  VARCHAR(255) NOT NULL,
     video_id VARCHAR(255) NOT NULL,
-    tag      VARCHAR(255) NOT NULL,
-    PRIMARY KEY (user_id, video_id, tag), -- Composite primary key
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+    tag      VARCHAR(255) NOT NULL
 );
 
+create index if not exists idx_junction_user_video_tag on junction (user_id, video_id, tag);
 
 

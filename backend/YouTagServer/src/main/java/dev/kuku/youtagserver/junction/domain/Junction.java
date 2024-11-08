@@ -12,9 +12,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = DbConst.Junction.TABLE_NAME, indexes = {
-        @Index(name = "junction_tag", columnList = DbConst.Junction.TAG)
-})
+@Table(name = DbConst.Junction.TABLE_NAME, indexes = @Index(name = "idx_junction_user_video_tag", columnList = "user_id, video_id, tag"))
 @IdClass(JunctionId.class)
 @ToString
 public class Junction {

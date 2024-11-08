@@ -88,7 +88,7 @@ public class CommandHandler {
     /**
      * Deletes specified videos for the user.
      */
-    public void deleteVideosForUser(String[] videos) throws NoAuthenticatedYouTagUser, JunctionDTOHasNullValues {
+    public void deleteVideosForUser(String[] videos) throws NoAuthenticatedYouTagUser {
         String userId = authService.getCurrentUser().email();
         log.debug("Deleting specified videos for user: {}, Videos: {}", userId, videos);
 
