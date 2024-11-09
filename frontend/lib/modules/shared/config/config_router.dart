@@ -29,7 +29,8 @@ class ConfigRouter {
         }
       }
 
-      final isGoingToLogin = state.uri.path == '/login';
+      final isGoingToLogin = state.uri.path == '/login' ||
+          state.uri.path == "/api/public/auth/redirect/google";
 
       if (!isLoggedIn && !isGoingToLogin) {
         if (kDebugMode) {
