@@ -10,10 +10,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
-import java.util.List;
 
 @EnableWebSecurity
 @Configuration
@@ -36,12 +34,34 @@ class Config {
     }
 
     @Bean
-    UrlBasedCorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOrigins(List.of("*"));
-        corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "DELETE"));
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // Allow your client origin specifically
+        configuration.addAllowedOrigin("http://localhost:8081");
+
+        // Allow all common HTTP methods including OPTIONS (important for preflight)
+        configuration.addAllowedMethod("GET");
+        configuration.addAllowedMethod("POST");
+        configuration.addAllowedMethod("PUT");
+        configuration.addAllowedMethod("DELETE");
+        configuration.addAllowedMethod("OPTIONS");
+
+        // Allow all headers
+        configuration.addAllowedHeader("*");
+
+        // Allow credentials if needed (cookies, authorization headers, etc.)
+        configuration.setAllowCredentials(true);
+
+        // Optional: expose headers if needed
+        configuration.addExposedHeader("Authorization");
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", corsConfiguration);
+        // Apply to all paths
+        source.registerCorsConfiguration("/**", configuration);
+        // Specifically apply to your OAuth endpoint
+        source.registerCorsConfiguration("/api/public/auth/**", configuration);
+
         return source;
     }
 }

@@ -23,7 +23,6 @@ class ConfigRouter {
           final params = state.uri.queryParameters.isNotEmpty
               ? state.uri.queryParameters
               : Uri.base.queryParameters;
-
           return PageRedirectGoogle(
             queryParameters: params,
           );

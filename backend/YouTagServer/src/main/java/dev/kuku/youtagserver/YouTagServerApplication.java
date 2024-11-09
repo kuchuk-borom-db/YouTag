@@ -14,6 +14,8 @@ public class YouTagServerApplication {
 //TODO Read Google client.json for secret stuff
 //TODO Read config file for web scrapping
 //TODO Replace web scraping with api key call. Add api key option in future
+//TODO CORS stuff for production
+//TODO Environment stuff for production
 /*
  *
  * Spring modulith is awesome!
