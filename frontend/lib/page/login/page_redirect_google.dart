@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -11,6 +12,9 @@ class PageRedirectGoogle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (kDebugMode) {
+      print(queryParameters);
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('OAuth Redirect Results'),
