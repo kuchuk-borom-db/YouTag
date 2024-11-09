@@ -42,7 +42,8 @@ class Config {
         // Allow multiple client origins
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:8081",
-                "http://127.0.0.1:8081"
+                "http://127.0.0.1:8081",
+                "http://192.168.29.95:8081"
         ));
 
         // Allow all common HTTP methods
