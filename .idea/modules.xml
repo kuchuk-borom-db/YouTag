@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/YouTag.iml" filepath="$PROJECT_DIR$/YouTag.iml" />
-      <module fileurl="file://$PROJECT_DIR$/YouTagServer/YouTagServer.iml" filepath="$PROJECT_DIR$/YouTagServer/YouTagServer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/frontend/frontend.iml" filepath="$PROJECT_DIR$/frontend/frontend.iml" />
     </modules>
   </component>
 </project>
