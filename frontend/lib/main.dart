@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/modules/shared/config/config_router.dart';
 import 'package:frontend/page/login/page_login.dart';
 
 import 'app_theme.dart';
@@ -8,7 +9,7 @@ void main() {
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -25,11 +26,13 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    var routerConfig = ConfigRouter();
+    return MaterialApp.router(
       title: 'Youtag',
       themeMode: _themeMode,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
+      routerConfig: ConfigRouter().router,
       home: const PageLogin(),
     );
   }
