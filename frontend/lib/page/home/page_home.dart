@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../main.dart';
+import '../../models/model_video.dart';
 import '../../modules/shared/services/service_storage.dart';
+import '../../widgets/widget_video_card.dart';
 
 class PageHome extends StatefulWidget {
   const PageHome({super.key});
@@ -18,8 +21,47 @@ class _PageHomeState extends State<PageHome>
   late Animation<Offset> _slideAnimation;
   final ScrollController _tagsScrollController = ScrollController();
 
+  // Sample video data
+  final List<ModelVideo> videos = List.generate(
+    20,
+    (index) => ModelVideo(
+      id: 'video_$index',
+      title: 'Amazing Video ${index + 1}: ${_getRandomTitle()}',
+      description: 'This is video description $index',
+      thumbnailUrl: 'https://picsum.photos/seed/$index/300/200',
+      tags: ['tag1', 'tag2', 'tag3'],
+    ),
+  );
+
+  // Helper method to generate random titles
+  static String _getRandomTitle() {
+    final List<String> adjectives = [
+      'Awesome',
+      'Incredible',
+      'Mind-blowing',
+      'Fascinating',
+      'Epic',
+      'Beautiful',
+      'Amazing',
+      'Stunning'
+    ];
+    final List<String> subjects = [
+      'Nature',
+      'Technology',
+      'Adventure',
+      'Discovery',
+      'Journey',
+      'Experience',
+      'Moment',
+      'Creation'
+    ];
+
+    adjectives.shuffle();
+    subjects.shuffle();
+    return '${adjectives.first} ${subjects.first}';
+  }
+
   Future<void> _handleLogout() async {
-    // Clear the stored token
     await getIt<ServiceStorage>().removeValue("token");
     if (mounted) {
       context.go('/login');
@@ -64,7 +106,7 @@ class _PageHomeState extends State<PageHome>
             child: Container(
               padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.black38,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.grey.withOpacity(0.2),
@@ -78,31 +120,35 @@ class _PageHomeState extends State<PageHome>
                   // Logo
                   Hero(
                     tag: 'logo',
-                    child: Image.network(
-                      'https://via.placeholder.com/150x50',
+                    child: Image.asset(
+                      'assets/images/youtag.png',
                       height: 50,
                     ),
                   ),
                   const SizedBox(width: 20),
 
-                  // Search Field
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Search...',
-                          prefixIcon: const Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
+                  // Developer credit
+                  Text(
+                    'Developed by Kuchuk Borom Debbarma',
+                    style: TextStyle(
+                      color: Colors.grey[800],
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
                     ),
+                  ),
+
+                  const Spacer(),
+
+                  // Search Icon Button
+                  IconButton(
+                    icon: const Icon(Icons.search, size: 28),
+                    onPressed: () {
+                      // Navigation will be handled later
+                      if (kDebugMode) {
+                        print('Navigate to search page');
+                      }
+                    },
+                    tooltip: 'Search',
                   ),
                   const SizedBox(width: 20),
 
@@ -125,7 +171,7 @@ class _PageHomeState extends State<PageHome>
                 opacity: _fadeAnimation,
                 child: Column(
                   children: [
-                    // Fixed Tags Section with Horizontal Scroll
+                    // Tags Section
                     Container(
                       height: 60,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -153,39 +199,34 @@ class _PageHomeState extends State<PageHome>
                                   vertical: 10,
                                   horizontal: 4,
                                 ),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
-                                      onTap: () {},
-                                      borderRadius: BorderRadius.circular(20),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.primaries[index %
-                                              Colors.primaries.length][100],
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color:
-                                                  Colors.grey.withOpacity(0.1),
-                                              spreadRadius: 1,
-                                              blurRadius: 2,
-                                            ),
-                                          ],
-                                        ),
-                                        child: Text(
-                                          'Tag ${index + 1}',
-                                          style: TextStyle(
-                                            color: Colors.primaries[index %
-                                                Colors.primaries.length][900],
-                                            fontWeight: FontWeight.w500,
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () {},
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.primaries[index %
+                                            Colors.primaries.length][100],
+                                        borderRadius: BorderRadius.circular(20),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.grey.withOpacity(0.1),
+                                            spreadRadius: 1,
+                                            blurRadius: 2,
                                           ),
+                                        ],
+                                      ),
+                                      child: Text(
+                                        'Tag ${index + 1}',
+                                        style: TextStyle(
+                                          color: Colors.primaries[index %
+                                              Colors.primaries.length][900],
+                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                     ),
@@ -198,11 +239,10 @@ class _PageHomeState extends State<PageHome>
                       ),
                     ),
 
-                    // Scrollable Videos Grid with Overlay Elements
+                    // Videos Grid with VideoCard
                     Expanded(
                       child: Stack(
                         children: [
-                          // Scrollable Grid
                           Scrollbar(
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
@@ -214,106 +254,19 @@ class _PageHomeState extends State<PageHome>
                                   crossAxisSpacing: 16,
                                   mainAxisSpacing: 16,
                                 ),
-                                itemCount: 20,
+                                itemCount: videos.length,
                                 itemBuilder: (context, index) {
-                                  return MouseRegion(
-                                    child: AnimatedContainer(
-                                      duration:
-                                          const Duration(milliseconds: 300),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[200],
-                                        borderRadius: BorderRadius.circular(10),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.grey.withOpacity(0.2),
-                                            spreadRadius: 1,
-                                            blurRadius: 5,
-                                          ),
-                                        ],
-                                      ),
-                                      child: Stack(
-                                        fit: StackFit.expand,
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                            child: Image.network(
-                                              'https://via.placeholder.com/300x169',
-                                              fit: BoxFit.cover,
-                                            ),
-                                          ),
-                                          Positioned(
-                                            bottom: 8,
-                                            left: 8,
-                                            right: 8,
-                                            child: Container(
-                                              padding: const EdgeInsets.all(8),
-                                              decoration: BoxDecoration(
-                                                color: Colors.black
-                                                    .withOpacity(0.7),
-                                                borderRadius:
-                                                    BorderRadius.circular(5),
-                                              ),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    'Video Title ${index + 1}',
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 4),
-                                                  Text(
-                                                    '${(index + 1) * 1000} views • ${(index % 7) + 1}d ago',
-                                                    style: TextStyle(
-                                                      color: Colors.grey[300],
-                                                      fontSize: 12,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
+                                  return VideoCard(
+                                    video: videos[index],
+                                    onTap: () {
+                                      if (kDebugMode) {
+                                        print(
+                                            'Tapped video: ${videos[index].id}');
+                                      }
+                                      // Handle video tap
+                                    },
                                   );
                                 },
-                              ),
-                            ),
-                          ),
-
-                          // Developer credit overlay
-                          Positioned(
-                            left: 16,
-                            bottom: 16,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.9),
-                                borderRadius: BorderRadius.circular(4),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Text(
-                                'Developed by Kuchuk Borom Debbarma',
-                                style: TextStyle(
-                                  color: Colors.grey[800],
-                                  fontSize: 12,
-                                  fontStyle: FontStyle.italic,
-                                ),
                               ),
                             ),
                           ),
