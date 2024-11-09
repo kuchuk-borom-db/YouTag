@@ -26,7 +26,6 @@ class AuthController {
         return ResponseEntity.ok(new ResponseModel<>(googleOAuthService.getAuthorizationURL(), "Success"));
     }
 
-    @CrossOrigin(originPatterns = "*", allowCredentials = "true")
     @GetMapping("/redirect/google")
     ResponseEntity<ResponseModel<String>> googleRedirectEndpoint(
             @RequestParam(required = false) String code,

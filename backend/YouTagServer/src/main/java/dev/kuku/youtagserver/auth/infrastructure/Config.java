@@ -13,6 +13,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
+
 @EnableWebSecurity
 @Configuration
 class Config {
@@ -25,6 +27,7 @@ class Config {
                         .requestMatchers("api/authenticated/**").authenticated()
                         .anyRequest().denyAll()
         );
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
         http.csrf(AbstractHttpConfigurer::disable);
         http.formLogin(AbstractHttpConfigurer::disable);
         http.logout(AbstractHttpConfigurer::disable);
@@ -33,34 +36,29 @@ class Config {
         return http.build();
     }
 
-    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        //TODO Env variable
+        // Allow multiple client origins
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:8081",
+                "http://127.0.0.1:8081"
+        ));
 
-        // Allow your client origin specifically
-        configuration.addAllowedOrigin("http://localhost:8081");
+        // Allow all common HTTP methods
+        configuration.setAllowedMethods(Arrays.asList(
+                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"
+        ));
 
-        // Allow all common HTTP methods including OPTIONS (important for preflight)
-        configuration.addAllowedMethod("GET");
-        configuration.addAllowedMethod("POST");
-        configuration.addAllowedMethod("PUT");
-        configuration.addAllowedMethod("DELETE");
-        configuration.addAllowedMethod("OPTIONS");
-
-        // Allow all headers
+        // Allow specific headers
         configuration.addAllowedHeader("*");
 
-        // Allow credentials if needed (cookies, authorization headers, etc.)
+        // Allow credentials (cookies, authorization headers, etc.)
         configuration.setAllowCredentials(true);
 
-        // Optional: expose headers if needed
-        configuration.addExposedHeader("Authorization");
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Apply to all paths
         source.registerCorsConfiguration("/**", configuration);
-        // Specifically apply to your OAuth endpoint
-        source.registerCorsConfiguration("/api/public/auth/**", configuration);
+
 
         return source;
     }

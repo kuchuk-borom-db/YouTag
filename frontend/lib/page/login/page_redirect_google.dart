@@ -2,7 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/main.dart';
 import 'package:frontend/modules/auth/api/service_auth.dart';
-import 'package:frontend/modules/shared/services/service_cookie.dart';
+import 'package:frontend/modules/shared/services/service_storage.dart';
+import 'package:go_router/go_router.dart';
 
 class PageRedirectGoogle extends StatefulWidget {
   final Map<String, String> queryParameters;
@@ -43,7 +44,13 @@ class _PageRedirectGoogleState extends State<PageRedirectGoogle> {
           widget.queryParameters["code"]!, widget.queryParameters["state"]!);
 
       // Save the token
-      getIt<ServiceCookie>().saveCookie("token", token);
+      await getIt<ServiceStorage>().saveValue("token", token);
+      if (kDebugMode) {
+        // Immediately verify if the token was saved
+        final savedToken = await getIt<ServiceStorage>().getValue("token");
+        print('Token saved: $token');
+        print('Token retrieved: $savedToken');
+      }
 
       // Update state to show success
       setState(() {
@@ -54,11 +61,13 @@ class _PageRedirectGoogleState extends State<PageRedirectGoogle> {
         _isLoading = false;
       });
 
-      // Optional: Add navigation logic here
-      // For example, after a short delay:
-      // Future.delayed(const Duration(seconds: 2), () {
-      //   Navigator.of(context).pushReplacementNamed('/home');
-      // });
+      // Navigate to home page after a brief delay to show success message
+      Future.delayed(const Duration(seconds: 1), () {
+        // Check if the widget is still mounted before navigating
+        if (mounted) {
+          context.go('/'); // Using GoRouter to navigate to the home route
+        }
+      });
     } catch (e) {
       if (kDebugMode) {
         print('Error during token exchange: $e');

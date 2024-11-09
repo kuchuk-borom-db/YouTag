@@ -16,6 +16,7 @@ class _PageLoginState extends State<PageLogin>
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
+  late Animation<double> _creditsFadeAnimation;
   bool _isLoading = false;
 
   @override
@@ -37,6 +38,13 @@ class _PageLoginState extends State<PageLogin>
       CurvedAnimation(
         parent: _controller,
         curve: Curves.easeIn,
+      ),
+    );
+
+    _creditsFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.6, 1.0, curve: Curves.easeIn),
       ),
     );
 
@@ -122,7 +130,23 @@ class _PageLoginState extends State<PageLogin>
                             ),
                             SizedBox(height: isSmallScreen ? 32 : 40),
                             // Google Sign In Button
-                            _buildGoogleSignInButton(isSmallScreen, isDarkMode)
+                            _buildGoogleSignInButton(isSmallScreen, isDarkMode),
+                            SizedBox(height: isSmallScreen ? 24 : 32),
+                            // Developer Credit
+                            FadeTransition(
+                              opacity: _creditsFadeAnimation,
+                              child: Text(
+                                'Developed by Kuchuk Borom Debbarma',
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 12 : 14,
+                                  fontWeight: FontWeight.w400,
+                                  color: isDarkMode
+                                      ? Colors.white38
+                                      : Colors.black38,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
