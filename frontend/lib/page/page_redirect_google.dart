@@ -1,10 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/main.dart';
-import 'package:frontend/modules/auth/api/service_auth.dart';
-import 'package:frontend/modules/shared/services/service_storage.dart';
-import 'package:frontend/modules/user/api/service_user.dart';
 import 'package:go_router/go_router.dart';
+
+import '../services/service_auth.dart';
+import '../services/service_storage.dart';
+import '../services/service_user.dart';
 
 class PageRedirectGoogle extends StatefulWidget {
   final Map<String, String> queryParameters;

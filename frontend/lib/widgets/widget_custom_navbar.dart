@@ -4,7 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 
 import '../models/model_user.dart';
-import '../modules/user/api/service_user.dart';
+import '../services/service_user.dart';
 
 class CustomNavBar extends StatefulWidget implements PreferredSizeWidget {
   final VoidCallback onSearchTap;

@@ -1,8 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:frontend/modules/shared/constants.dart';
 import 'package:http/http.dart' as http;
+
+import '../util/constants.dart';
 
 class ServiceAuth {
   final _url = Constants.serverUrl;

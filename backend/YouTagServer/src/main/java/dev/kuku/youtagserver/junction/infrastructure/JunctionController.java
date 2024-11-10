@@ -7,12 +7,14 @@ import dev.kuku.youtagserver.shared.exceptions.ResponseException;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
 import dev.kuku.youtagserver.shared.models.VideoInfoTagDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/authenticated/junction")
 @RequiredArgsConstructor
@@ -95,6 +97,7 @@ class JunctionController {
      * - If only videos are provided, returns specified videos with their associated tags.
      * - Returns an error if both tags and videos are provided simultaneously as this is considered invalid.
      */
+    //TODO ADD SORTING
     @GetMapping("/")
     ResponseEntity<ResponseModel<List<VideoInfoTagDTO>>> getTagsVideos(
             @RequestParam(value = "tags", required = false) String tags,
@@ -102,7 +105,7 @@ class JunctionController {
             @RequestParam(value = "skip", defaultValue = "0") int skip,
             @RequestParam(value = "limit", defaultValue = "100") int limit
     ) throws ResponseException {
-
+        log.debug("Get tags video endpoint hit");
         // Error case: Both tags and videos are provided, which is invalid
         if (tags != null && !tags.isEmpty() && videos != null && !videos.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

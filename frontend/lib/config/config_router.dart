@@ -9,44 +9,46 @@ import '../../../page/page_login.dart';
 import '../../../page/page_redirect_google.dart';
 import '../../../page/page_search.dart';
 import '../../../page/page_video.dart';
+import '../main.dart';
+import '../services/service_storage.dart';
 
 class ConfigRouter {
   GoRouter router = GoRouter(
     initialLocation: '/',
     debugLogDiagnostics: true,
     redirect: (context, state) async {
-      // var storageService = getIt<ServiceStorage>();
-      //
-      // if (state.uri.path == '/splash') {
-      //   return null;
-      // }
-      //
-      // final isLoggedIn = await storageService.hasValue("token");
-      // if (kDebugMode) {
-      //   print('Current path: ${state.uri.path}');
-      //   print('Is logged in: $isLoggedIn');
-      //   if (isLoggedIn) {
-      //     final token = await storageService.getValue("token");
-      //     print('Current token: $token');
-      //   }
-      // }
-      //
-      // final isGoingToLogin = state.uri.path == '/login' ||
-      //     state.uri.path == "/api/public/auth/redirect/google";
-      //
-      // if (!isLoggedIn && !isGoingToLogin) {
-      //   if (kDebugMode) {
-      //     print('Redirecting to login because not logged in');
-      //   }
-      //   return '/login';
-      // }
-      //
-      // if (isLoggedIn && isGoingToLogin) {
-      //   if (kDebugMode) {
-      //     print('Redirecting to home because already logged in');
-      //   }
-      //   return '/';
-      // }
+      var storageService = getIt<ServiceStorage>();
+
+      if (state.uri.path == '/splash') {
+        return null;
+      }
+
+      final isLoggedIn = await storageService.hasValue("token");
+      if (kDebugMode) {
+        print('Current path: ${state.uri.path}');
+        print('Is logged in: $isLoggedIn');
+        if (isLoggedIn) {
+          final token = await storageService.getValue("token");
+          print('Current token: $token');
+        }
+      }
+
+      final isGoingToLogin = state.uri.path == '/login' ||
+          state.uri.path == "/api/public/auth/redirect/google";
+
+      if (!isLoggedIn && !isGoingToLogin) {
+        if (kDebugMode) {
+          print('Redirecting to login because not logged in');
+        }
+        return '/login';
+      }
+
+      if (isLoggedIn && isGoingToLogin) {
+        if (kDebugMode) {
+          print('Redirecting to home because already logged in');
+        }
+        return '/';
+      }
 
       return null;
     },

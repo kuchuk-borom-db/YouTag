@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
-import 'package:frontend/modules/auth/api/service_auth.dart';
-import 'package:frontend/modules/shared/config/config_router.dart';
-import 'package:frontend/modules/shared/services/service_storage.dart';
-import 'package:frontend/modules/user/api/service_user.dart';
+import 'package:frontend/services/service_auth.dart';
+import 'package:frontend/services/service_storage.dart';
+import 'package:frontend/services/service_user.dart';
+import 'package:frontend/services/service_video.dart';
 import 'package:get_it/get_it.dart';
 
 import 'app_theme.dart';
+import 'config/config_router.dart';
 
 final getIt = GetIt.instance;
 
@@ -14,6 +15,8 @@ void setupGetIt() {
   getIt.registerSingleton<ServiceAuth>(ServiceAuth());
   getIt.registerSingleton<ServiceStorage>(ServiceStorage());
   getIt.registerSingleton<ServiceUser>(ServiceUser(getIt<ServiceStorage>()));
+  getIt.registerSingleton<ServiceVideo>(
+      ServiceVideo(storageService: getIt<ServiceStorage>()));
 }
 
 void main() {

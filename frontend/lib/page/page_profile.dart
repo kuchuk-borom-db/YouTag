@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../main.dart';
 import '../models/model_user.dart';
-import '../modules/shared/services/service_storage.dart';
-import '../modules/user/api/service_user.dart';
+import '../services/service_storage.dart';
+import '../services/service_user.dart';
 import '../widgets/widget_custom_navbar.dart';
 
 class PageProfile extends StatefulWidget {

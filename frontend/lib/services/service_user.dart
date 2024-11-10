@@ -2,13 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle; // Add this import
-import 'package:frontend/modules/shared/constants.dart';
-import 'package:frontend/modules/shared/exceptions/exception_no_jwt_token_found.dart';
-import 'package:frontend/modules/shared/exceptions/exception_response.dart';
-import 'package:frontend/modules/shared/services/service_storage.dart';
+import 'package:frontend/services/service_storage.dart';
 import 'package:http/http.dart' as http;
 
-import '../../../models/model_user.dart';
+import '../models/exceptions/exception_no_jwt_token_found.dart';
+import '../models/exceptions/exception_response.dart';
+import '../models/model_user.dart';
+import '../util/constants.dart';
 
 class ServiceUser {
   final _url = "${Constants.serverUrl}/authenticated/user/";
