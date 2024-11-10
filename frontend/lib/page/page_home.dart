@@ -25,11 +25,11 @@ class _PageHomeState extends State<PageHome>
   List<ModelVideo> videos = [];
   bool isLoading = false;
   String? error;
+  String? noMoreVideosMessage;
 
   // Pagination parameters
   int currentPage = 1;
-  final int limit = 20;
-  bool hasMore = true;
+  final int limit = 1;
 
   @override
   void initState() {
@@ -51,11 +51,12 @@ class _PageHomeState extends State<PageHome>
     if (kDebugMode) {
       print("Loading videos for page: $currentPage");
     }
-    if (!hasMore || isLoading) return;
+    if (isLoading) return;
 
     setState(() {
       isLoading = true;
       error = null;
+      noMoreVideosMessage = null;
     });
 
     try {
@@ -66,9 +67,17 @@ class _PageHomeState extends State<PageHome>
       );
 
       setState(() {
-        videos =
-            newVideos; // Replace instead of append for page-based navigation
-        hasMore = newVideos.length >= limit;
+        if (newVideos.isEmpty) {
+          if (currentPage > 1) {
+            currentPage--; // Go back to previous page if we've gone too far
+            noMoreVideosMessage = 'End of videos reached';
+          } else {
+            noMoreVideosMessage = 'No videos available';
+          }
+        } else {
+          videos = newVideos;
+          noMoreVideosMessage = null;
+        }
         isLoading = false;
       });
     } catch (e) {
@@ -161,7 +170,6 @@ class _PageHomeState extends State<PageHome>
         onRefresh: () async {
           setState(() {
             currentPage = 1;
-            hasMore = true;
           });
           await _loadVideos();
         },
@@ -253,13 +261,17 @@ class _PageHomeState extends State<PageHome>
                 ),
               ),
 
-              // Error message if any
-              if (error != null)
+              // Error or No More Videos message
+              if (error != null || noMoreVideosMessage != null)
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    'Error: $error',
-                    style: const TextStyle(color: Colors.red),
+                    error ?? noMoreVideosMessage!,
+                    style: TextStyle(
+                      color: error != null ? Colors.red : Colors.grey[600],
+                      fontStyle:
+                          error != null ? FontStyle.normal : FontStyle.italic,
+                    ),
                   ),
                 ),
 
@@ -308,7 +320,6 @@ class _PageHomeState extends State<PageHome>
                                       ? () {
                                           setState(() {
                                             currentPage--;
-                                            hasMore = true;
                                           });
                                           _loadVideos();
                                         }
@@ -327,7 +338,10 @@ class _PageHomeState extends State<PageHome>
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.arrow_forward),
-                                  onPressed: hasMore
+                                  onPressed: !isLoading &&
+                                          (noMoreVideosMessage == null ||
+                                              !noMoreVideosMessage!
+                                                  .contains('End of videos'))
                                       ? () {
                                           setState(() {
                                             currentPage++;

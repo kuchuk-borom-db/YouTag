@@ -17,6 +17,7 @@ public class YouTagServerApplication {
 //TODO CORS stuff for production
 //TODO Environment stuff for production
 //TODO Rate limiting? IDK Yet
+//TODO IMPORTANT user_video table. Its important. getting all videos of a user with paging support is inefficient without this.
 /*
  *
  * Spring modulith is awesome!

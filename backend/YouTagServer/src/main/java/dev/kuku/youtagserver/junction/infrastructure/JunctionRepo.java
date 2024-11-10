@@ -24,4 +24,5 @@ public interface JunctionRepo extends CrudRepository<Junction, String> {
 
     List<Junction> findAllByUserIdAndVideoIdIn(String userId, List<String> videos, Pageable of);
 
+    long countByUserId(String userId);
 }

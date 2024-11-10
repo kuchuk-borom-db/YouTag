@@ -171,9 +171,17 @@ public class JunctionServiceImpl implements JunctionService {
         return cache.computeIfAbsent(cacheKey, _ -> {
             log.debug("Cache miss for key: {}", cacheKey);
 
-            // Fetch junctions from the database
-            List<Junction> junctions = repo.findAllByUserId(userId, PageRequest.of(skip, limit));
-            log.info("Retrieved {} junction entries for user {}", junctions.size(), userId);
+            // Calculate the page number and page size
+            int pageNumber = skip / limit;  // This was the key fix
+
+            // If skip is beyond the total number of items, return empty list
+            log.debug("TOtal items = {}", repo.countByUserId(userId));
+
+            // Fetch junctions from the database using correct pagination
+            List<Junction> junctions = repo.findAllByUserId(userId, PageRequest.of(pageNumber, limit));
+
+
+            log.debug("Retrieved {} junction entries for user {}", junctions.size(), userId);
 
             // Convert to DTOs
             return toDtoList(junctions);
