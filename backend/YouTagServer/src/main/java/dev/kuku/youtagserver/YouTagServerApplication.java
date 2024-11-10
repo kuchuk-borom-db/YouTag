@@ -16,6 +16,7 @@ public class YouTagServerApplication {
 //TODO Replace web scraping with api key call. Add api key option in future
 //TODO CORS stuff for production
 //TODO Environment stuff for production
+//TODO Rate limiting? IDK Yet
 /*
  *
  * Spring modulith is awesome!

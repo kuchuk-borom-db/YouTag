@@ -1,14 +1,14 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:frontend/modules/shared/constants.dart';
 import 'package:http/http.dart' as http;
 
 class ServiceAuth {
-  //TODO Take base url from environment path
-  final String _baseUrl = 'http://localhost:8080/api/public/auth';
+  final _url = Constants.serverUrl;
 
   Future<String> getGoogleLoginUrl() async {
-    final uri = Uri.parse('$_baseUrl/login/google');
+    final uri = Uri.parse('$_url/public/auth/login/google');
     final response = await http.get(uri);
     if (response.statusCode == 200) {
       return json.decode(response.body)["data"];
@@ -21,7 +21,7 @@ class ServiceAuth {
   Future<String> exchangeGoogleTokenForJWTToken(
       String code, String state) async {
     try {
-      final uri = Uri.parse('$_baseUrl/redirect/google')
+      final uri = Uri.parse('$_url/public/auth/redirect/google')
           .replace(queryParameters: {"code": code, "state": state});
 
       if (kDebugMode) {

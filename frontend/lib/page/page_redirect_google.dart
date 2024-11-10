@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/main.dart';
 import 'package:frontend/modules/auth/api/service_auth.dart';
 import 'package:frontend/modules/shared/services/service_storage.dart';
+import 'package:frontend/modules/user/api/service_user.dart';
 import 'package:go_router/go_router.dart';
 
 class PageRedirectGoogle extends StatefulWidget {
@@ -51,6 +52,8 @@ class _PageRedirectGoogleState extends State<PageRedirectGoogle> {
         print('Token saved: $token');
         print('Token retrieved: $savedToken');
       }
+      // Get user info and store it
+      await getIt<ServiceUser>().getUserInfo();
 
       // Update state to show success
       setState(() {

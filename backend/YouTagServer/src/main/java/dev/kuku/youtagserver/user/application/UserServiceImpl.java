@@ -38,9 +38,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void addUser(UserDTO userDTO) throws InvalidUser, UserAlreadyExists {
-        log.info("Add user {} called", userDTO);
-        User user = toEntity(userDTO);
+    public void addUser(String email, String name, String thumbnail) throws InvalidUser, UserAlreadyExists {
+        log.debug("Add user {} {} {}", email, name, thumbnail);
+        User user = new User(email, name, thumbnail, LocalDateTime.now());
         if (user.getUsername() == null || user.getThumbUrl() == null || user.getEmail() == null) {
             log.error("Invalid user");
             throw new InvalidUser();
@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
         try {
             getUser(user.getEmail());
             log.error("User already exists");
-            throw new UserAlreadyExists(userDTO.getEmail());
+            throw new UserAlreadyExists(email);
         } catch (EmailNotFound e) {
             User savedUser = userRepo.save(user);
             log.info("Saved user {}", savedUser);

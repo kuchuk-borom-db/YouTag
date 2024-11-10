@@ -2,10 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../main.dart';
-import '../../models/model_video.dart';
-import '../../modules/shared/services/service_storage.dart';
-import '../../widgets/widget_video_card.dart';
+import '../models/model_video.dart';
+import '../widgets/widget_custom_navbar.dart';
+import '../widgets/widget_video_card.dart';
 
 class PageHome extends StatefulWidget {
   const PageHome({super.key});
@@ -24,11 +23,32 @@ class _PageHomeState extends State<PageHome>
   final List<ModelVideo> videos = List.generate(
     20,
     (index) => ModelVideo(
-      id: 'video_$index',
-      title: 'Amazing Video ${index + 1}: ${_getRandomTitle()}',
-      description: 'This is video description $index',
-      thumbnailUrl: 'https://picsum.photos/seed/$index/300/200',
-      tags: ['tag1', 'tag2', 'tag3'],
+      id: 'ZS7qHon1AlI',
+      title: 'Original | Kaitor ni chati | Kuku ft Paradox',
+      description:
+          'GOSPEL SONG :)My first original song sang in my own mother tongue (Kokborok)Funny how it took 5+ years and a secondary vocalist with sick voice',
+      thumbnailUrl:
+          'https://i.ytimg.com/vi/ZS7qHon1AlI/hqdefault.jpg?sqp=-oaymwEmCOADEOgC8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGH8gHChMMA8=&rs=AOn4CLADdIMjhsmBof7-dbtm02hDpfsyWg',
+      tags: [
+        'tag1',
+        'tag2',
+        'tag3',
+        'tag1',
+        'tag2',
+        'tag3',
+        'tag1',
+        'tag2',
+        'tag3',
+        'tag1',
+        'tag2',
+        'tag3',
+        'tag1',
+        'tag2',
+        'tag3',
+        'tag1',
+        'tag2',
+        'tag3',
+      ],
     ),
   );
 
@@ -60,13 +80,6 @@ class _PageHomeState extends State<PageHome>
     return '${adjectives.first} ${subjects.first}';
   }
 
-  Future<void> _handleLogout() async {
-    await getIt<ServiceStorage>().removeValue("token");
-    if (mounted) {
-      context.go('/login');
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -94,74 +107,39 @@ class _PageHomeState extends State<PageHome>
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
+      appBar: CustomNavBar(
+        onProfileTap: () {
+          if (kDebugMode) {
+            print('Profile tapped');
+          }
+          context.go("/profile");
+        },
+        onSearchTap: () {
+          if (kDebugMode) {
+            print('Navigate to search page');
+          }
+        },
+        onLogoTap: () {
+          if (kDebugMode) {
+            print('Logo tapped');
+          }
+        },
+      ),
       body: SingleChildScrollView(
-        // Wrapping the entire content to avoid double scroll
         child: Column(
           children: [
-            // Top Navigation Bar
+            // Developer credit moved below navbar
             FadeTransition(
               opacity: _fadeAnimation,
-              child: Container(
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.black38,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      spreadRadius: 1,
-                      blurRadius: 5,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    // Logo
-                    Hero(
-                      tag: 'logo',
-                      child: Image.asset(
-                        'assets/images/youtag.png',
-                        height: 40,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-
-                    // Developer credit - Responsive text
-                    Expanded(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Developed by Kuchuk Borom Debbarma',
-                          style: TextStyle(
-                            color: Colors.grey[800],
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const Spacer(),
-
-                    // Search Icon Button
-                    IconButton(
-                      icon: const Icon(Icons.search, size: 28),
-                      onPressed: () {
-                        if (kDebugMode) {
-                          print('Navigate to search page');
-                        }
-                      },
-                      tooltip: 'Search',
-                    ),
-                    const SizedBox(width: 20),
-
-                    // User Profile
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: Colors.blue[100],
-                      child: const Icon(Icons.person, color: Colors.blue),
-                    ),
-                  ],
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Developed by Kuchuk Borom Debbarma',
+                  style: TextStyle(
+                    color: Colors.grey[800],
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ),
@@ -243,7 +221,6 @@ class _PageHomeState extends State<PageHome>
                   return GridView.builder(
                     physics: const NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
-                    // to avoid double scroll
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: (screenWidth < 600) ? 1 : 2,
                       childAspectRatio: (screenWidth < 600) ? 1.5 : 1.6,
@@ -252,42 +229,14 @@ class _PageHomeState extends State<PageHome>
                     ),
                     itemCount: videos.length,
                     itemBuilder: (context, index) {
-                      return VideoCard(
+                      return WidgetVideo(
                         video: videos[index],
-                        onTap: () {
-                          if (kDebugMode) {
-                            print('Tapped video: ${videos[index].id}');
-                          }
-                        },
+                        onTap:
+                            () {}, // Empty callback since navigation is handled in VideoCard
                       );
                     },
                   );
                 },
-              ),
-            ),
-
-            // Logout Button
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Align(
-                alignment: Alignment.bottomRight,
-                child: ElevatedButton.icon(
-                  onPressed: _handleLogout,
-                  icon: const Icon(Icons.logout),
-                  label: const Text('Logout'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red[400],
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    elevation: 2,
-                  ),
-                ),
               ),
             ),
           ],

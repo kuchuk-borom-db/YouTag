@@ -1,10 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend/page/page_profile.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../page/home/page_home.dart';
-import '../../../page/login/page_login.dart';
-import '../../../page/login/page_redirect_google.dart';
+import '../../../models/model_video.dart';
+import '../../../page/page_home.dart';
+import '../../../page/page_login.dart';
+import '../../../page/page_redirect_google.dart';
+import '../../../page/page_search.dart';
+import '../../../page/page_video.dart';
 
 class ConfigRouter {
   GoRouter router = GoRouter(
@@ -56,6 +60,10 @@ class ConfigRouter {
         builder: (context, state) => const PageHome(),
       ),
       GoRoute(
+        path: '/profile',
+        builder: (context, state) => const PageProfile(),
+      ),
+      GoRoute(
         path: '/login',
         builder: (context, state) => const PageLogin(),
       ),
@@ -74,6 +82,72 @@ class ConfigRouter {
               : Uri.base.queryParameters;
           return PageRedirectGoogle(
             queryParameters: params,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/video',
+        builder: (context, state) {
+          ModelVideo? video;
+
+          // If extra failed, try to construct from query parameters
+          if (state.uri.queryParameters.isNotEmpty) {
+            try {
+              video = ModelVideo(
+                id: state.uri.queryParameters['id'] ?? '',
+                title: Uri.decodeComponent(
+                    state.uri.queryParameters['title'] ?? ''),
+                thumbnailUrl: Uri.decodeComponent(
+                    state.uri.queryParameters['thumbnailUrl'] ?? ''),
+                description: Uri.decodeComponent(
+                    state.uri.queryParameters['description'] ?? ''),
+                tags: (state.uri.queryParameters['tags'] ?? '')
+                    .split(',')
+                    .where((tag) => tag.isNotEmpty)
+                    .toList(),
+              );
+            } catch (e) {
+              if (kDebugMode) {
+                print('Failed to construct video from query parameters: $e');
+              }
+            }
+          }
+          if (video == null) {
+            return Scaffold(
+              body: Center(
+                child: Text(
+                  'Video not found',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+              ),
+            );
+          }
+          return PageVideo(video: video);
+        },
+      ),
+      GoRoute(
+        path: '/search',
+        builder: (context, state) {
+          final params = state.uri.queryParameters;
+          final tags = params['tags']
+                  ?.split(',')
+                  .where((tag) => tag.isNotEmpty)
+                  .toList() ??
+              [];
+          final titles = params['titles']
+                  ?.split(',')
+                  .where((title) => title.isNotEmpty)
+                  .toList() ??
+              [];
+          final ids =
+              params['ids']?.split(',').where((id) => id.isNotEmpty).toList() ??
+                  [];
+
+          return PageSearch(
+            initialTags: tags,
+            initialTitles: titles,
+            initialIds: ids,
+            autoSearch: tags.isNotEmpty || titles.isNotEmpty || ids.isNotEmpty,
           );
         },
       ),

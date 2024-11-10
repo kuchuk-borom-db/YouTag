@@ -26,9 +26,13 @@ public class UserDTO {
             throw new UserDTOHasNullValues(this);
         }
 
+        if (pic == null || pic.isEmpty()) {
+            throw new UserDTOHasNullValues(this);
+        }
+
         this.email = email;
         this.name = name;
-        this.pic = pic;  // pic can be null, assuming it's optional
+        this.pic = pic;
         this.created = created;
     }
 

@@ -1,7 +1,6 @@
 package dev.kuku.youtagserver.auth.infrastructure;
 
 import dev.kuku.youtagserver.auth.application.JwtService;
-import dev.kuku.youtagserver.user.api.services.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,7 +19,7 @@ import java.util.Arrays;
 class Config {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService, UserService userService) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService) throws Exception {
         http.authorizeHttpRequests(
                 req -> req
                         .requestMatchers("api/public/**").permitAll()
@@ -32,7 +31,7 @@ class Config {
         http.formLogin(AbstractHttpConfigurer::disable);
         http.logout(AbstractHttpConfigurer::disable);
         http.httpBasic(AbstractHttpConfigurer::disable);
-        http.addFilterBefore(new JwtAuthenticationFilter(new JwtAuthenticationProvider(jwtService, userService)), BasicAuthenticationFilter.class);
+        http.addFilterBefore(new JwtAuthenticationFilter(new JwtAuthenticationProvider(jwtService)), BasicAuthenticationFilter.class);
         return http.build();
     }
 

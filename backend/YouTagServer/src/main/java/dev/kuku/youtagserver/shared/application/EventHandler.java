@@ -56,7 +56,7 @@ class AuthEventHandler {
         } catch (EmailNotFound e) {
             log.info("Email not found. Adding user to database");
             try {
-                userService.addUser(tokenUser);
+                userService.addUser(tokenUser.getEmail(), tokenUser.getName(), tokenUser.getPic());
             } catch (UserAlreadyExists ex) {
                 log.error("This should not have happened");
             }
