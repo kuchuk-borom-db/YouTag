@@ -20,13 +20,27 @@ create table if not exists users
 
 create table if not exists videos
 (
-    id            VARCHAR(50) PRIMARY KEY, -- Primary key for the video ID
-    title         VARCHAR(250),            -- Title of the video
-    description   VARCHAR(500),            -- Description of the video
-    thumbnail_url VARCHAR(500),            -- URL for the thumbnail
-    updated       TIMESTAMP(6) NOT NULL    -- Last updated timestamp (non-nullable)
+    id            VARCHAR(50) PRIMARY KEY,
+    title         VARCHAR(250),
+    description   VARCHAR(500),
+    thumbnail_url VARCHAR(500),
+    updated       TIMESTAMP(6) NOT NULL
 );
 
+create table if not exists user_videos
+(
+    id       VARCHAR(255) PRIMARY KEY,
+    user_id  VARCHAR(250) NOT NULL,
+    video_id VARCHAR(50)  NOT NULL,
+    unique (user_id, video_id)
+);
+
+-- Removed: create index if not exists idx_user_videos_user on user_videos (user_id);
+-- Reason: Redundant because idx_user_videos_composite (user_id, video_id) covers this due to leftmost prefix rule.
+-- Any query using just user_id can use the composite index.
+
+create index if not exists idx_user_videos_video on user_videos (video_id);
+create index if not exists idx_user_videos_composite on user_videos (user_id, video_id);
 
 create table if not exists junction
 (
@@ -37,13 +51,30 @@ create table if not exists junction
     unique (user_id, video_id, tag)
 );
 
-create index if not exists idx_junction_user_video_tag on junction (user_id, video_id, tag);
+create index if not exists idx_junction_user_video_user_video_tag on junction (user_id, video_id, tag);
+create index if not exists idx_junction_user_tag ON junction (user_id, tag);
 
--- Index for searching by user_id
-create index if not exists idx_junction_user_id ON junction (user_id);
+-- Not used index: create index if not exists idx_junction_user_id ON junction (user_id);
+-- Reason: Redundant because both remaining indexes start with user_id.
+-- Queries using just user_id can use either of the remaining indexes due to leftmost prefix rule.
 
--- Index for searching by user_id and video_id
-create index if not exists idx_junction_user_id_video_id ON junction (user_id, video_id);
+-- Not use index: create index if not exists idx_junction_user_video ON junction (user_id, video_id);
+-- Reason: Redundant because idx_junction_user_video_user_video_tag (user_id, video_id, tag) covers this.
+-- Queries using user_id + video_id can use the triple composite index due to leftmost prefix rule.
 
--- Index for searching by user_id and tag
-create index if not exists idx_junction_user_id_tag ON junction (user_id, tag);
+/* Index Coverage for Common Queries:
+1. Find by user_id:
+   - Uses prefix of idx_junction_user_video_user_video_tag or idx_junction_user_tag
+
+2. Find by user_id + video_id:
+   - Uses prefix of idx_junction_user_video_user_video_tag
+
+3. Find by user_id + tag:
+   - Uses idx_junction_user_tag
+
+4. Find by user_id + video_id + tag:
+   - Uses full idx_junction_user_video_user_video_tag
+
+5. Find videos by video_id (in user_videos):
+   - Uses idx_user_videos_video
+*/

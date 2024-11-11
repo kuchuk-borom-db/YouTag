@@ -29,7 +29,7 @@ class _PageHomeState extends State<PageHome>
 
   // Pagination parameters
   int currentPage = 1;
-  final int limit = 1;
+  final int limit = 2;
 
   @override
   void initState() {
