@@ -2,12 +2,15 @@ package dev.kuku.youtagserver.user_video.application;
 
 import dev.kuku.youtagserver.user_video.api.UserVideoDTO;
 import dev.kuku.youtagserver.user_video.api.UserVideoService;
+import dev.kuku.youtagserver.user_video.api.events.LinkedVideoToUser;
+import dev.kuku.youtagserver.user_video.api.events.UnlinkedVideoFromUser;
 import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoAlreadyLinked;
 import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoNotFound;
 import dev.kuku.youtagserver.user_video.domain.UserVideo;
 import dev.kuku.youtagserver.user_video.infrastructure.UserVideoRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +24,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserVideoServiceImpl implements UserVideoService {
     final UserVideoRepo repo;
+    final ApplicationEventPublisher eventPublisher;
 
     @Override
     public void linkVideoToUser(String userId, String videoId) throws UserVideoAlreadyLinked {
@@ -31,17 +35,16 @@ public class UserVideoServiceImpl implements UserVideoService {
             throw new UserVideoAlreadyLinked(userId, videoId);
         } catch (UserVideoNotFound e) {
             log.debug("No existing link found. Proceeding to link...");
-            repo.save(new UserVideo(UUID.randomUUID().toString(), userId, videoId));
+            var saved = repo.save(new UserVideo(UUID.randomUUID().toString(), userId, videoId));
+            eventPublisher.publishEvent(new LinkedVideoToUser(saved));
         }
     }
 
     @Override
-    public void unlinkVideoFromUser(String userId, String videoId) throws UserVideoNotFound {
-        log.debug("Attempting Unlinking Video {} -> {}", videoId, userId);
-        //Check if video exists
-        getVideoOfUser(userId, videoId);
-        log.debug("Deleting Link {} -> {}", videoId, userId);
-        repo.deleteByUserIdAndVideoId(userId, videoId);
+    public void unlinkVideoFromUser(String userId, List<String> videoId) {
+        log.debug("Deleting Links {} -> {}", videoId, userId);
+        repo.deleteAllByUserIdAndVideoIdIn(userId, videoId);
+        eventPublisher.publishEvent(new UnlinkedVideoFromUser(userId, videoId));
     }
 
     @Override

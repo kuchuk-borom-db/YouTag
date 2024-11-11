@@ -12,7 +12,7 @@ public interface UserVideoService extends Service<UserVideo, UserVideoDTO> {
 
     void linkVideoToUser(String userId, String videoId) throws UserVideoAlreadyLinked;
 
-    void unlinkVideoFromUser(String userId, String videoId) throws UserVideoNotFound;
+    void unlinkVideoFromUser(String userId, List<String> videoId);
 
     void unlinkAllVideosFromUser(String userId);
 
