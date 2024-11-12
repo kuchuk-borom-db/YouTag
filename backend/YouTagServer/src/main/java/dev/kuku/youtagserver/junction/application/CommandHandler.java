@@ -2,19 +2,28 @@ package dev.kuku.youtagserver.junction.application;
 
 import dev.kuku.youtagserver.auth.api.exceptions.NoAuthenticatedYouTagUser;
 import dev.kuku.youtagserver.auth.api.services.AuthService;
-import dev.kuku.youtagserver.junction.api.dtos.JunctionDTO;
-import dev.kuku.youtagserver.junction.api.exceptions.JunctionDTOHasNullValues;
-import dev.kuku.youtagserver.junction.api.services.JunctionService;
+import dev.kuku.youtagserver.junction.api.dtos.TagDTO;
+import dev.kuku.youtagserver.junction.api.exceptions.TagDTOHasNullValues;
+import dev.kuku.youtagserver.junction.api.services.TagService;
 import dev.kuku.youtagserver.shared.exceptions.VideoInfoTagDTOHasNullValues;
 import dev.kuku.youtagserver.shared.models.VideoInfoTagDTO;
+import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
+import dev.kuku.youtagserver.user.api.exceptions.UserDTOHasNullValues;
+import dev.kuku.youtagserver.user.api.services.UserService;
+import dev.kuku.youtagserver.user_video.api.UserVideoService;
+import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoAlreadyLinked;
+import dev.kuku.youtagserver.video.api.dto.VideoDTO;
+import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoDTOHasNullValues;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
 import dev.kuku.youtagserver.video.api.services.VideoService;
+import dev.kuku.youtagserver.webscraper.api.dto.YoutubeVideoInfoDto;
+import dev.kuku.youtagserver.webscraper.api.exceptions.InvalidVideoId;
+import dev.kuku.youtagserver.webscraper.api.services.YoutubeScrapperService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,131 +32,58 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class CommandHandler {
-    private final JunctionService junctionService;
+    private final TagService tagService;
     private final AuthService authService;
     private final VideoService videoService;
+    final UserService userService;
+    final UserVideoService userVideoService;
+    final YoutubeScrapperService scrapperService;
 
     /**
-     * Adds videos without specified tags (uses default '*' tag).
+     * 1. Add videos to video table if it doesn't exist
+     * 2. Add entry in user_video if it doesn't exist
+     * 3. Add entries in tags
      */
-    public void addVideosWithNoTags(String[] videoIds) throws NoAuthenticatedYouTagUser, JunctionDTOHasNullValues {
-        String userId = authService.getCurrentUser().email();
-        log.debug("Adding videos with no tags for user: {}", userId);
+    public void addTagsToVideo(String videoId, List<String> tags) throws UserDTOHasNullValues, EmailNotFound, NoAuthenticatedYouTagUser, InvalidVideoId, VideoDTOHasNullValues {
+        //Validation
+        String userId = validateAndGetUser();
+        log.debug("Adding videos with tags for user: {}, Video: {}, Tags: {}", userId, videoId, tags);
 
-        // Adds videos with '*' as the default tag representing no tags.
-        junctionService.addVideosWithTags(userId, Arrays.stream(videoIds).toList(), List.of("*"));
-        log.info("Added videos without specific tags for user: {}, Videos: {}", userId, videoIds);
-    }
-
-    /**
-     * Adds specified videos with specified tags.
-     */
-    public void addVideosWithTags(String[] videoIds, String[] tagsArray) throws NoAuthenticatedYouTagUser, JunctionDTOHasNullValues {
-        String userId = authService.getCurrentUser().email();
-        log.debug("Adding videos with tags for user: {}, Videos: {}, Tags: {}", userId, videoIds, tagsArray);
-
+        //Get video info
+        YoutubeVideoInfoDto videoInfoDto = scrapperService.getYoutubeVideoInfo(videoId);
+        //Add video to video table if it doesn't exist
+        try {
+            videoService.addVideo(new VideoDTO(videoId, videoInfoDto.title(), videoInfoDto.description(), videoInfoDto.thumbnail()));
+        } catch (VideoAlreadyExists _) {
+            log.debug("Existing video {} found.", videoId);
+        }
+        //Add entry to user_video table if it doesn't exist
+        try {
+            userVideoService.linkVideoToUser(userId, videoId);
+        } catch (UserVideoAlreadyLinked _) {
+            log.debug("Existing link between user {} and video {} found.", userId, videoId);
+        }
         // Adds the specified videos with the provided tags.
-        junctionService.addVideosWithTags(userId, Arrays.stream(videoIds).toList(), Arrays.stream(tagsArray).toList());
-        log.debug("Successfully added videos with tags {} for user: {}", tagsArray, userId);
-    }
-
-    /**
-     * Deletes all videos and tags for the authenticated user.
-     */
-    public void deleteAllVideosAndTags() throws NoAuthenticatedYouTagUser, JunctionDTOHasNullValues {
-        String userId = authService.getCurrentUser().email();
-        log.debug("Deleting all videos and tags for user: {}", userId);
-
-        // Deletes all associations of videos and tags for the user.
-        junctionService.deleteAllVideosAndTags(userId);
-        log.info("All videos and tags deleted for user: {}", userId);
-    }
-
-    /**
-     * Deletes specified tags from specified videos.
-     */
-    public void deleteTagsFromVideos(String[] videos, String[] tags) throws NoAuthenticatedYouTagUser, JunctionDTOHasNullValues {
-        String userId = authService.getCurrentUser().email();
-        log.debug("Deleting specified tags from videos for user: {}, Videos: {}, Tags: {}", userId, videos, tags);
-
-        junctionService.deleteTagsFromVideos(userId, Arrays.stream(videos).toList(), Arrays.stream(tags).toList());
-        log.info("Deleted specified tags from videos for user: {}", userId);
-    }
-
-    /**
-     * Deletes all videos associated with the specified tags.
-     */
-    public void deleteTagsFromAllVideos(String[] tags) throws NoAuthenticatedYouTagUser, JunctionDTOHasNullValues {
-        String userId = authService.getCurrentUser().email();
-        log.debug("Deleting all videos associated with tags for user: {}, Tags: {}", userId, tags);
-
-        junctionService.deleteTagsFromAllVideos(userId, Arrays.stream(tags).toList());
-        log.info("Deleted all videos associated with tags for user: {}", userId);
-    }
-
-    /**
-     * Deletes specified videos for the user.
-     */
-    public void deleteVideosForUser(String[] videos) throws NoAuthenticatedYouTagUser {
-        String userId = authService.getCurrentUser().email();
-        log.debug("Deleting specified videos for user: {}, Videos: {}", userId, videos);
-
-        junctionService.deleteVideosFromUser(userId, Arrays.stream(videos).toList());
-        log.info("Deleted specified videos for user: {}", userId);
-    }
-
-    /**
-     * Retrieves all videos of the user, paginated by skip and limit.
-     */
-    public List<VideoInfoTagDTO> getAllVideosOfUser(int skip, int limit) throws NoAuthenticatedYouTagUser, JunctionDTOHasNullValues, VideoDTOHasNullValues, VideoNotFound, VideoInfoTagDTOHasNullValues {
-        String userId = authService.getCurrentUser().email();
-        log.debug("Fetching all videos for user: {}, Skip: {}, Limit: {}", userId, skip, limit);
-
-        var junctionDTOs = junctionService.getAllJunctionOfUser(userId, skip, limit);
-        log.info("Retrieved all videos for user: {}. Total videos: {}", userId, junctionDTOs.size());
-        return junctionDtoToVideoInfoTagDTO(junctionDTOs);
-    }
-
-    /**
-     * Retrieves videos associated with the specified tags, paginated.
-     */
-    public List<VideoInfoTagDTO> getVideosWithTags(String[] tags, int skip, int limit) throws NoAuthenticatedYouTagUser, VideoDTOHasNullValues, VideoNotFound, VideoInfoTagDTOHasNullValues, JunctionDTOHasNullValues {
-        String userId = authService.getCurrentUser().email();
-        log.debug("Fetching videos with tags for user: {}, Tags: {}, Skip: {}, Limit: {}", userId, tags, skip, limit);
-
-        List<JunctionDTO> junctionDTOs = junctionService.getAllVideosWithTags(userId, Arrays.stream(tags).toList(), skip, limit);
-        log.info("Fetched videos with tags for user: {}. Total results: {}", userId, junctionDTOs.size());
-        return junctionDtoToVideoInfoTagDTO(junctionDTOs);
-    }
-
-    /**
-     * Retrieves specific videos by IDs, paginated.
-     */
-    public List<VideoInfoTagDTO> getVideos(String[] videos, int skip, int limit) throws NoAuthenticatedYouTagUser, JunctionDTOHasNullValues, VideoDTOHasNullValues, VideoNotFound, VideoInfoTagDTOHasNullValues {
-        String userId = authService.getCurrentUser().email();
-        log.debug("Fetching specified videos for user: {}, Videos: {}, Skip: {}, Limit: {}", userId, videos, skip, limit);
-
-        List<JunctionDTO> junctionDTOs = junctionService.getVideosOfUser(userId, Arrays.stream(videos).toList(), skip, limit);
-        log.info("Fetched specified videos for user: {}. Total results: {}", userId, junctionDTOs.size());
-        return junctionDtoToVideoInfoTagDTO(junctionDTOs);
+        tagService.addTagsToVideo(userId, videoId, tags);
+        log.debug("Successfully added videos with tags {} for user: {}", tags, userId);
     }
 
     /**
      * Converts a list of JunctionDTOs to a list of VideoInfoTagDTOs.
      */
-    private List<VideoInfoTagDTO> junctionDtoToVideoInfoTagDTO(List<JunctionDTO> junctionDTO) throws VideoInfoTagDTOHasNullValues, VideoDTOHasNullValues, VideoNotFound, JunctionDTOHasNullValues {
+    private List<VideoInfoTagDTO> tagDTOSToVideoInfoTagDTO(List<TagDTO> tagDTO) throws VideoInfoTagDTOHasNullValues, VideoDTOHasNullValues, VideoNotFound, TagDTOHasNullValues {
         Map<String, VideoInfoTagDTO> map = new HashMap<>();
-        log.debug("Converting JunctionDTO list to VideoInfoTagDTO list. Total JunctionDTOs: {}", junctionDTO.size());
+        log.debug("Converting JunctionDTO list to VideoInfoTagDTO list. Total JunctionDTOs: {}", tagDTO.size());
 
-        for (var j : junctionDTO) {
+        for (var j : tagDTO) {
             String videoId = j.getVideoId();
             log.debug("Processing video ID: {}", videoId);
 
             // Add or update the video entry in the map
             if (!map.containsKey(videoId)) {
-                var vidInfo = videoService.getVideo(videoId);
+                var vidInfo = videoService.getVideoInfo(videoId);
                 //Get all entries where videoId match. Basically getting all tags
-                var tags = junctionService.getVideosOfUser(j.getUserId(), List.of(j.getVideoId()), 0, 100).stream().map(JunctionDTO::getTag).toList();
+                var tags = tagService.getVideosOfUser(j.getUserId(), List.of(j.getVideoId()), 0, 100).stream().map(TagDTO::getTag).toList();
                 map.put(videoId, new VideoInfoTagDTO(vidInfo, tags));
                 log.debug("Created new video entry for video ID: {}", videoId);
             }
@@ -155,5 +91,11 @@ public class CommandHandler {
 
         log.info("Conversion completed. Total unique videos processed: {}", map.size());
         return map.values().stream().toList();
+    }
+
+    private String validateAndGetUser() throws NoAuthenticatedYouTagUser, UserDTOHasNullValues, EmailNotFound {
+        //Basic validation
+        String userId = authService.getCurrentUser().email();
+        userService.getUser(userId);
     }
 }

@@ -1,6 +1,6 @@
 package dev.kuku.youtagserver.shared.application;
 
-import dev.kuku.youtagserver.junction.api.services.JunctionService;
+import dev.kuku.youtagserver.junction.api.services.TagService;
 import dev.kuku.youtagserver.video.api.events.VideoAddedEvent;
 import dev.kuku.youtagserver.video.api.events.VideoDeletedEvent;
 import dev.kuku.youtagserver.video.api.events.VideoUpdatedEvent;
@@ -18,7 +18,7 @@ import java.util.List;
 @Transactional
 @RequiredArgsConstructor
 public class VideoEventListener {
-    final JunctionService junctionService;
+    final TagService tagService;
 
     @Async
     @TransactionalEventListener
@@ -39,6 +39,6 @@ public class VideoEventListener {
     @TransactionalEventListener
     void on(VideoDeletedEvent event) {
         log.debug("Video deleted event :- {}", event);
-        junctionService.deleteVideos(List.of(event.id()));
+        tagService.deleteVideos(List.of(event.id()));
     }
 }

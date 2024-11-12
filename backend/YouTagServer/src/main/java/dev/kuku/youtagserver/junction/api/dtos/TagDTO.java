@@ -1,6 +1,6 @@
 package dev.kuku.youtagserver.junction.api.dtos;
 
-import dev.kuku.youtagserver.junction.api.exceptions.JunctionDTOHasNullValues;
+import dev.kuku.youtagserver.junction.api.exceptions.TagDTOHasNullValues;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -8,12 +8,12 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class JunctionDTO {
+public class TagDTO {
     final String userId;
     final String videoId;
     final String tag;
 
-    public JunctionDTO(String userId, String videoId, String tag) throws JunctionDTOHasNullValues {
+    public TagDTO(String userId, String videoId, String tag) throws TagDTOHasNullValues {
         this.userId = userId;
         this.videoId = videoId;
         this.tag = tag;
@@ -21,7 +21,7 @@ public class JunctionDTO {
         if (userId == null || userId.isBlank() ||
                 videoId == null || videoId.isBlank() ||
                 tag == null || tag.isBlank()) {
-            throw new JunctionDTOHasNullValues(this);
+            throw new TagDTOHasNullValues(this);
         }
     }
 }

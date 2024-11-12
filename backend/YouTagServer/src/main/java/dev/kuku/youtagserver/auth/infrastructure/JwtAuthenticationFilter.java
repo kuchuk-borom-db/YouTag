@@ -1,7 +1,6 @@
 package dev.kuku.youtagserver.auth.infrastructure;
 
 import dev.kuku.youtagserver.auth.domain.models.JwtAuthenticationToken;
-import dev.kuku.youtagserver.user.api.services.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,7 +19,6 @@ class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        log.info("JWT Authentication converter attempting to convert request");
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);

@@ -1,10 +1,8 @@
 package dev.kuku.youtagserver.shared.application;
 
-import dev.kuku.youtagserver.junction.api.dtos.JunctionDTO;
-import dev.kuku.youtagserver.junction.api.events.JunctionAddedEvent;
-import dev.kuku.youtagserver.junction.api.events.JunctionDeletedEvent;
-import dev.kuku.youtagserver.junction.api.exceptions.JunctionDTOHasNullValues;
-import dev.kuku.youtagserver.junction.api.services.JunctionService;
+import dev.kuku.youtagserver.junction.api.dtos.TagDTO;
+import dev.kuku.youtagserver.junction.api.exceptions.TagDTOHasNullValues;
+import dev.kuku.youtagserver.junction.api.services.TagService;
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoDTOHasNullValues;
@@ -30,7 +28,7 @@ import java.util.Objects;
 public class JunctionEventListener {
     final VideoService videoService;
     final YoutubeScrapperService youtubeScrapperService;
-    final JunctionService junctionService;
+    final TagService tagService;
 
     /**
      * Add the videos to videos repo and update its details.
@@ -39,7 +37,7 @@ public class JunctionEventListener {
     @TransactionalEventListener
     @Async
     void on(JunctionAddedEvent event) {
-        List<JunctionDTO> invalidVideoIds = new ArrayList<>(); //Used to delete invalid videos
+        List<TagDTO> invalidVideoIds = new ArrayList<>(); //Used to delete invalid videos
         log.debug("Junction added event :- {}", event);
 
         event.junctions().stream()
@@ -77,7 +75,7 @@ public class JunctionEventListener {
                 });
 
         //Next, we need to delete junction records with invalid videoIds
-        invalidVideoIds.forEach(junctionDTO -> junctionService.deleteVideosFromUser(junctionDTO.getUserId(), List.of(junctionDTO.getVideoId())));
+        invalidVideoIds.forEach(junctionDTO -> tagService.deleteVideosFromUser(junctionDTO.getUserId(), List.of(junctionDTO.getVideoId())));
     }
 
     /**
@@ -85,10 +83,10 @@ public class JunctionEventListener {
      */
     @Async
     @TransactionalEventListener
-    void on(JunctionDeletedEvent event) throws JunctionDTOHasNullValues {
+    void on(JunctionDeletedEvent event) throws TagDTOHasNullValues {
         log.debug("Junction deleted event :- {}", event);
-        for (JunctionDTO deletedDto : event.deletedDtos()) {
-            var video = junctionService.getVideosOfUser(deletedDto.getUserId(), List.of(deletedDto.getVideoId()), 0, 1);
+        for (TagDTO deletedDto : event.deletedDtos()) {
+            var video = tagService.getVideosOfUser(deletedDto.getUserId(), List.of(deletedDto.getVideoId()), 0, 1);
             if (video == null || video.isEmpty()) {
                 try {
                     videoService.deleteVideo(deletedDto.getVideoId());

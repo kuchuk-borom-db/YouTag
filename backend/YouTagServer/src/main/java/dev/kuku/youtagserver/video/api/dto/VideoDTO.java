@@ -28,9 +28,6 @@ public class VideoDTO {
         if (title == null || title.isEmpty() || title.isBlank()) {
             throw new VideoDTOHasNullValues(this);
         }
-        if (description == null || description.isEmpty() || description.isBlank()) {
-            throw new VideoDTOHasNullValues(this);
-        }
         if (thumbnail == null || thumbnail.isEmpty() || thumbnail.isBlank()) {
             throw new VideoDTOHasNullValues(this);
         }

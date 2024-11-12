@@ -12,21 +12,21 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = DbConst.Junction.TABLE_NAME,
+@Table(name = DbConst.Tag.TABLE_NAME,
         indexes = {
                 @Index(name = "idx_junction_user_id", columnList = "user_id"),
                 @Index(name = "idx_junction_user_id_video_id", columnList = "user_id, video_id"),
                 @Index(name = "idx_junction_user_id_tag", columnList = "user_id, tag")
         })
 @ToString
-public class Junction {
+public class Tag {
     @Id
     @Column(name = DbConst.CommonColumn.ID)
     String id;
-    @Column(name = DbConst.Junction.USER_ID)
+    @Column(name = DbConst.Tag.USER_ID)
     String userId;
-    @Column(name = DbConst.Junction.VIDEO_ID)
+    @Column(name = DbConst.Tag.VIDEO_ID)
     String videoId;
-    @Column(name = DbConst.Junction.TAG, updatable = false)
+    @Column(name = DbConst.Tag.TAG, updatable = false)
     String tag;
 }

@@ -21,7 +21,7 @@ class ServiceVideo {
     }
     final String? token = await storageService.getValue("token");
     if (token == null) throw ExceptionNoJwtTokenFound();
-    final finalUrl = '$_url/junction/?skip=$skip&limit=$limit';
+    final finalUrl = '$_url/tag/?skip=$skip&limit=$limit';
     if (kDebugMode) {
       print(
           "Getting all videos skipping $skip and limiting to $limit from $finalUrl");

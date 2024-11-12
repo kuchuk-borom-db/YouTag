@@ -48,6 +48,13 @@ public class UserVideoServiceImpl implements UserVideoService {
     }
 
     @Override
+    public void unlinkVideoFromUser(String userId, String videoId) throws UserVideoNotFound {
+        getVideoOfUser(userId,videoId);
+        log.debug("Deleting link between {}->{}", userId, videoId);
+        repo.deleteByUserIdAndVideoId(userId, videoId);
+    }
+
+    @Override
     public void unlinkAllVideosFromUser(String userId) {
         log.debug("Unlinking All Videos from user {}", userId);
         repo.deleteByUserId(userId);
@@ -71,6 +78,13 @@ public class UserVideoServiceImpl implements UserVideoService {
         }
         log.debug("Found video {}", video);
         return toDto(video);
+    }
+
+    @Override
+    public void linkVideosToUser(String userId, List<String> videoIds) {
+        log.debug("Linking videos {} to user {}", videoIds, userId);
+        var toSave = videoIds.stream().map(vid -> new UserVideo(UUID.randomUUID().toString(), userId, vid)).toList();
+        repo.saveAll(toSave);
     }
 
     @Override

@@ -18,7 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -45,7 +47,7 @@ public class VideoServiceImpl implements VideoService {
      * Retrieves a video by ID, either from the cache or database if not cached.
      */
     @Override
-    public VideoDTO getVideo(String id) throws VideoNotFound, VideoDTOHasNullValues {
+    public VideoDTO getVideoInfo(String id) throws VideoNotFound, VideoDTOHasNullValues {
         log.debug("Fetching video with id {}", id);
 
         // Attempt to fetch video from cache
@@ -65,30 +67,29 @@ public class VideoServiceImpl implements VideoService {
         return toDto(video);
     }
 
-    /**
-     * Adds a new video if it does not already exist. Publishes an event for the addition.
-     */
     @Override
-    public void addVideo(String id) throws VideoAlreadyExists {
-        log.debug("Adding video with id {}", id);
+    public List<VideoDTO> getVideoInfos(List<String> ids) {
+        log.debug("Getting info of videos {}", ids);
+        return videoRepo.findAllByIdIn(ids).stream().map(video -> {
+            try {
+                return toDto(video);
+            } catch (VideoDTOHasNullValues _) {
 
-        // Check if video already exists
-        if (cache.containsKey(id) || videoRepo.existsById(id)) {
-            log.debug("Video already exists");
-            throw new VideoAlreadyExists(id);
+            }
+            return null;
+        }).filter(Objects::nonNull).toList();
+    }
+
+    @Override
+    public void addVideo(VideoDTO video) throws VideoAlreadyExists {
+        try {
+            getVideoInfo(video.getId());
+            throw new VideoAlreadyExists(video.getId());
+        } catch (VideoNotFound | VideoDTOHasNullValues _) {
         }
-
-        // Create and save new video entry
-        Video newVideo = new Video(id, "NA", "NA", "NA", LocalDateTime.now());
-        videoRepo.save(newVideo);
-
-        // Store the new video in cache
-        cache.put(id, newVideo);
-        log.debug("Video with id {} saved and added to cache", id);
-
-        // Publish event for added video
-        VideoAddedEvent videoAddedEvent = new VideoAddedEvent(id);
-        eventPublisher.publishEvent(videoAddedEvent);
+        log.debug("Adding new video by dto {}", video);
+        videoRepo.save(new Video(video.getId(), video.getTitle(), video.getDescription(), video.getThumbnail(), LocalDateTime.now()));
+        eventPublisher.publishEvent(new VideoAddedEvent(video));
     }
 
     /**
@@ -99,7 +100,7 @@ public class VideoServiceImpl implements VideoService {
         log.debug("Updating video with id {}", video.getId());
 
         // Ensure the video exists before updating
-        getVideo(video.getId());
+        getVideoInfo(video.getId());
 
         // Update video details and save
         Video updatedVideo = new Video(video.getId(), video.getTitle(), video.getDescription(), video.getThumbnail(), LocalDateTime.now());
@@ -122,7 +123,7 @@ public class VideoServiceImpl implements VideoService {
         log.debug("Deleting video with id {}", id);
 
         // Ensure video exists before deletion
-        getVideo(id);
+        getVideoInfo(id);
 
         // Delete video entry
         videoRepo.deleteById(id);

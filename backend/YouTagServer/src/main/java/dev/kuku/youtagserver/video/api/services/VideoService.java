@@ -7,20 +7,18 @@ import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoDTOHasNullValues;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
 import dev.kuku.youtagserver.video.domain.Video;
-import dev.kuku.youtagserver.webscraper.api.exceptions.InvalidVideoId;
+
+import java.util.List;
 
 public interface VideoService extends Service<Video, VideoDTO> {
     /**
      * Get video by id
      */
-    VideoDTO getVideo(String id) throws VideoNotFound, VideoDTOHasNullValues;
+    VideoDTO getVideoInfo(String id) throws VideoNotFound, VideoDTOHasNullValues;
 
-    /**
-     * Add a new video with empty title, description, thumbnail and current time as updated time
-     *
-     * @throws VideoAlreadyExists if video already exists in repo
-     */
-    void addVideo(String id) throws VideoAlreadyExists, VideoDTOHasNullValues;
+    List<VideoDTO> getVideoInfos(List<String> userId);
+
+    void addVideo(VideoDTO video) throws VideoAlreadyExists;
 
     /**
      * Update info of existing video
@@ -37,6 +35,6 @@ public interface VideoService extends Service<Video, VideoDTO> {
      */
     void deleteVideo(String id) throws VideoNotFound, VideoDTOHasNullValues;
 
-    //TODO plural operations such as addVideos, getVideos(), updateVideos(), deleteVideos(). Skipping because there is no use for it yet.
+    //TODO plural operations such as addVideos, getVideoInfos(), updateVideos(), deleteVideos(). Skipping because there is no use for it yet.
 
 }

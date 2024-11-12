@@ -1,8 +1,8 @@
 package dev.kuku.youtagserver.shared.application;
 
 
-import dev.kuku.youtagserver.junction.api.exceptions.JunctionDTOHasNullValues;
-import dev.kuku.youtagserver.junction.api.services.JunctionService;
+import dev.kuku.youtagserver.junction.api.exceptions.TagDTOHasNullValues;
+import dev.kuku.youtagserver.junction.api.services.TagService;
 import dev.kuku.youtagserver.user.api.events.UserAddedEvent;
 import dev.kuku.youtagserver.user.api.events.UserDeletedEvent;
 import dev.kuku.youtagserver.user.api.events.UserUpdatedEvent;
@@ -18,7 +18,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Transactional
 @RequiredArgsConstructor
 public class UserEventListener {
-    final JunctionService junctionService;
+    final TagService tagService;
 
     @Async
     @TransactionalEventListener
@@ -40,8 +40,8 @@ public class UserEventListener {
     void on(UserDeletedEvent event) {
         log.debug("User Deleted Event :- {}", event);
         try {
-            junctionService.deleteAllVideosAndTags(event.userId());
-        } catch (JunctionDTOHasNullValues _) {
+            tagService.deleteAllVideosAndTags(event.userId());
+        } catch (TagDTOHasNullValues _) {
 
         }
     }
