@@ -16,18 +16,25 @@ import dev.kuku.youtagserver.user.api.exceptions.UserDTOHasNullValues;
 import dev.kuku.youtagserver.user.api.services.UserService;
 import dev.kuku.youtagserver.user_video.api.UserVideoDTO;
 import dev.kuku.youtagserver.user_video.api.UserVideoService;
+import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoAlreadyLinked;
 import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoNotFound;
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
+import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoDTOHasNullValues;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
 import dev.kuku.youtagserver.video.api.services.VideoService;
+import dev.kuku.youtagserver.webscraper.api.dto.YoutubeVideoInfoDto;
+import dev.kuku.youtagserver.webscraper.api.exceptions.InvalidVideoId;
+import dev.kuku.youtagserver.webscraper.api.services.YoutubeScrapperService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -43,6 +50,7 @@ class EndpointController {
     private final UserVideoService userVideoService;
     private final TagService tagService;
     private final VideoService videoService;
+    private final YoutubeScrapperService scrapperService;
 
     String getCurrentUserId() throws NoAuthenticatedYouTagUser {
         return authService.getCurrentUser().email();
@@ -142,6 +150,75 @@ class EndpointController {
                 userVideoService.unlinkAllVideosFromUser(userId);
                 return ResponseEntity.ok(null);
             }
+        }
+
+        /**
+         * Add tag(s) to video. If video is missing it needs to be created. <br>
+         * Delete tag(s) from all or a video. <br>
+         * Get tags of user with pagination.<br>
+         * get tags of video. <br>
+         */
+        @RestController
+        @RequestMapping("/video-tag")
+        class VideoTagController {
+
+            /**
+             * Adds tag(s) to a video.
+             * <p>
+             * If the video is not linked to the user then it will be linked first.
+             * <p>
+             * If video doesn't exist in record it will be added to record first.
+             */
+            @PostMapping("/{videoId}")
+            ResponseEntity<Object> addTagsToVideo(
+                    @PathVariable String videoId,
+                    @RequestParam(required = false) String tagRaw
+            ) throws VideoDTOHasNullValues, InvalidVideoId, VideoAlreadyExists, NoAuthenticatedYouTagUser {
+                log.debug("Adding tags {} to video {}", tagRaw, videoId);
+                String userId = getCurrentUserId();
+                //Check if video exists
+                try {
+                    videoService.getVideoInfo(videoId);
+                } catch (VideoNotFound e) {
+                    //Video doesn't exist in record. Adding it.
+                    log.debug("Video not found in video table. Adding it {}", videoId);
+                    YoutubeVideoInfoDto videoInfoDto = scrapperService.getYoutubeVideoInfo(videoId);
+                    videoService.addVideo(new VideoDTO(videoId, videoInfoDto.title(), videoInfoDto.description(), videoInfoDto.thumbnail()));
+                }
+                try {
+                    userVideoService.linkVideoToUser(userId, videoId);
+                } catch (UserVideoAlreadyLinked e) {
+                    log.debug("Video already linked.");
+                }
+
+                if (tagRaw == null || tagRaw.split(",").length == 0) {
+                    return ResponseEntity.ok(null);
+                }
+
+                //Add tags
+                List<String> tagsToAdd = Arrays.stream(tagRaw.split(",")).toList();
+                tagService.addTagsToVideo(userId, videoId, tagsToAdd);
+                return ResponseEntity.ok(null);
+            }
+
+            @DeleteMapping("/")
+            ResponseEntity<Object> deleteTagsAndOrVideos(
+                    @RequestParam(value = "tags", required = false) String tagsRaw,
+                    @RequestParam(value = "videos", required = false) String videosRaw
+            ) {
+                if ((tagsRaw == null || tagsRaw.isEmpty()) && (videosRaw == null || videosRaw.isEmpty())) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseModel.build(null, "tags and/or videos query parameters are missing"));
+                }
+            }
+        }
+
+        /**
+         * Search functionality with filters such as videoID or tags or video title.
+         * Sorting with ascending and descending.
+         */
+        @RestController
+        @RequestMapping("/search")
+        class SearchController {
         }
     }
 
