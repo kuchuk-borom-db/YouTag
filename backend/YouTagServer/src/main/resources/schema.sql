@@ -27,6 +27,8 @@ create table if not exists videos
     updated       TIMESTAMP(6) NOT NULL
 );
 
+create index if not exists idx_videos_title on videos(title);
+
 create table if not exists user_video
 (
     id       VARCHAR(255) PRIMARY KEY,

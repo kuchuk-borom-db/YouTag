@@ -10,5 +10,14 @@ public interface TagService extends Service<Tag, TagDTO> {
 
     void addTagsToVideo(String userId, String videoId, List<String> tags);
 
+    List<TagDTO> getAllTagsOfUser(String userId, int skip, int limit);
+
     List<TagDTO> getTagsOfVideo(String userId, String videoId);
+
+    List<TagDTO> getVideosWithTag(String userId, List<String> tags, int skip, int limit);
+
+    void deleteTagsFromAllVideos(String userId, List<String> tags);
+
+    void deleteTagsFromVideos(String userId, List<String> tags, List<String> videoIds);
+
 }

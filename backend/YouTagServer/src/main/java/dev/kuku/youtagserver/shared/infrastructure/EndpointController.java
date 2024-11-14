@@ -20,7 +20,6 @@ import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoAlreadyLinked;
 import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoNotFound;
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
-import dev.kuku.youtagserver.video.api.exceptions.VideoDTOHasNullValues;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
 import dev.kuku.youtagserver.video.api.services.VideoService;
 import dev.kuku.youtagserver.webscraper.api.dto.YoutubeVideoInfoDto;
@@ -37,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -66,7 +66,7 @@ class EndpointController {
          */
         @RestController
         @RequestMapping("/auth")
-        class AuthController {
+        class PublicAuthController {
 
             @GetMapping("/login/google")
             ResponseEntity<ResponseModel<String>> getGoogleLogin() {
@@ -101,7 +101,7 @@ class EndpointController {
          */
         @RestController
         @RequestMapping("/auth")
-        class AuthController {
+        class AuthenticatedAuthController {
 
             /// Get authenticated user info
             @GetMapping("/user")
@@ -112,16 +112,16 @@ class EndpointController {
 
         /**
          * Get videos of a user. <br>
-         * Get video of a user by Id. <br>
-         * Delete video of a user by id. <br>
-         * Delete videos of a user <br>
+         * Get video of a user by ID. <br>
+         * Delete video of a user by ID. <br>
+         * Delete all videos of a user <br>
          */
         @RestController
         @RequestMapping("/video")
         class VideoController {
             /// Get videos of user
             @GetMapping("/")
-            ResponseEntity<ResponseModel<List<VideoInfoTagDTO>>> getVideosOfUser(@RequestParam(value = "skip", defaultValue = "0") int skip, @RequestParam(value = "limit", defaultValue = "10") int limit) throws NoAuthenticatedYouTagUser, VideoDTOHasNullValues, VideoNotFound {
+            ResponseEntity<ResponseModel<List<VideoInfoTagDTO>>> getVideosOfUser(@RequestParam(value = "skip", defaultValue = "0") int skip, @RequestParam(value = "limit", defaultValue = "10") int limit) throws NoAuthenticatedYouTagUser {
                 String userId = getCurrentUserId();
                 List<String> videoIds = userVideoService.getVideosOfUser(userId, skip, limit).stream().map(UserVideoDTO::videoId).toList();
                 return ResponseEntity.ok(ResponseModel.build(createVideoInfoTagDTO(videoIds), null));
@@ -129,13 +129,13 @@ class EndpointController {
 
             /// Get video of user by id
             @GetMapping("/{id}")
-            ResponseEntity<ResponseModel<VideoInfoTagDTO>> getVideosOfUser(@PathVariable String id) throws NoAuthenticatedYouTagUser, UserVideoNotFound, VideoDTOHasNullValues, VideoNotFound {
+            ResponseEntity<ResponseModel<VideoInfoTagDTO>> getVideosOfUser(@PathVariable String id) throws NoAuthenticatedYouTagUser, UserVideoNotFound {
                 String userId = getCurrentUserId();
                 userVideoService.getVideoOfUser(userId, id); //Checking if the video is linked to user. Will throw exception if not linked
                 return ResponseEntity.ok(ResponseModel.build(createVideoInfoTagDTO(id), null));
             }
 
-            /// Delete video of user by Id
+            /// Delete video of user by ID
             @DeleteMapping("/{id}")
             ResponseEntity<ResponseModel<Object>> deleteVideoOfUser(@PathVariable String id) throws NoAuthenticatedYouTagUser, UserVideoNotFound {
                 String userId = getCurrentUserId();
@@ -154,7 +154,7 @@ class EndpointController {
 
         /**
          * Add tag(s) to video. If video is missing it needs to be created. <br>
-         * Delete tag(s) from all or a video. <br>
+         * Delete tag(s) from all or specific video. <br>
          * Get tags of user with pagination.<br>
          * get tags of video. <br>
          */
@@ -173,7 +173,7 @@ class EndpointController {
             ResponseEntity<Object> addTagsToVideo(
                     @PathVariable String videoId,
                     @RequestParam(required = false) String tagRaw
-            ) throws VideoDTOHasNullValues, InvalidVideoId, VideoAlreadyExists, NoAuthenticatedYouTagUser {
+            ) throws InvalidVideoId, VideoAlreadyExists, NoAuthenticatedYouTagUser {
                 log.debug("Adding tags {} to video {}", tagRaw, videoId);
                 String userId = getCurrentUserId();
                 //Check if video exists
@@ -201,38 +201,109 @@ class EndpointController {
                 return ResponseEntity.ok(null);
             }
 
+            /**
+             * Delete tags from specific videos or all videos
+             */
             @DeleteMapping("/")
-            ResponseEntity<Object> deleteTagsAndOrVideos(
+            ResponseEntity<ResponseModel<List<VideoInfoTagDTO>>> deleteTagsAndOrVideos(
                     @RequestParam(value = "tags", required = false) String tagsRaw,
                     @RequestParam(value = "videos", required = false) String videosRaw
-            ) {
+            ) throws NoAuthenticatedYouTagUser {
+                log.debug("Delete videos triggered with tags {}, videos {}", tagsRaw, videosRaw);
                 if ((tagsRaw == null || tagsRaw.isEmpty()) && (videosRaw == null || videosRaw.isEmpty())) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseModel.build(null, "tags and/or videos query parameters are missing"));
                 }
+                String userId = getCurrentUserId();
+                if (tagsRaw != null && tagsRaw.split(",").length > 0) {
+
+                    //If no videos are passed. Get all videos with the given tag
+                    if (videosRaw == null || videosRaw.split(",").length == 0) {
+                        tagService.deleteTagsFromAllVideos(userId, Arrays.stream(tagsRaw.split(",")).toList());
+                    } else {
+
+                        //If videos are passed. Delete tags from the given videos
+                        tagService.deleteTagsFromVideos(userId, Arrays.stream(tagsRaw.split(",")).toList(), Arrays.stream(videosRaw.split(",")).toList());
+                    }
+                    return ResponseEntity.ok(null);
+                } else {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseModel.build(null, "tags query missing"));
+                }
+            }
+
+            /**
+             * Get all tags of user
+             */
+            @GetMapping("/")
+            ResponseEntity<ResponseModel<List<String>>> getAllTagsOfUser(
+                    @RequestParam(required = false, defaultValue = "0") int skip,
+                    @RequestParam(required = false, defaultValue = "10") int limit
+            ) throws NoAuthenticatedYouTagUser {
+                log.debug("Getting all tags of user skip {} and limit {}", skip, limit);
+                String userId = getCurrentUserId();
+                List<String> tags = tagService.getAllTagsOfUser(userId, skip, limit).stream().map(TagDTO::getTag).collect(Collectors.toList());
+                return ResponseEntity.ok(ResponseModel.build(tags, null));
+            }
+
+            /**
+             * Get tags of specified video ID of user
+             */
+            @GetMapping("/{videoId}")
+            ResponseEntity<ResponseModel<List<String>>> getTagsOfVideoOfUser(
+                    @PathVariable String videoId
+            ) throws NoAuthenticatedYouTagUser {
+                log.debug("Getting tags of video {} of current user", videoId);
+                String userId = getCurrentUserId();
+                List<String> tags = tagService.getTagsOfVideo(userId, videoId).stream().map(TagDTO::getTag).collect(Collectors.toList());
+                return ResponseEntity.ok(ResponseModel.build(tags, null));
             }
         }
 
-        /**
-         * Search functionality with filters such as videoID or tags or video title.
-         * Sorting with ascending and descending.
-         */
+       //TODO Add searching using tags and title in future
         @RestController
         @RequestMapping("/search")
         class SearchController {
+
+            /**
+             * Get videos with given tags
+             */
+            @GetMapping("/")
+            ResponseEntity<ResponseModel<List<VideoInfoTagDTO>>> search(
+                    @RequestParam(value = "tags") String tagsRaw,
+                    @RequestParam(value = "skip", defaultValue = "0") int skip,
+                    @RequestParam(value = "limit", defaultValue = "10") int limit
+            ) throws NoAuthenticatedYouTagUser {
+                log.debug("Getting all videos with tag {}", tagsRaw);
+                if (tagsRaw == null || tagsRaw.isEmpty() || tagsRaw.split(",").length == 0) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseModel.build(null, "tags query missing"));
+                }
+                String userId = getCurrentUserId();
+                List<String> videoIds = tagService.getVideosWithTag(userId, Arrays.stream(tagsRaw.split(",")).toList(), skip, limit).stream().map(TagDTO::getVideoId).collect(Collectors.toList());
+                List<VideoInfoTagDTO> videoInfos = createVideoInfoTagDTO(videoIds);
+                return ResponseEntity.ok(ResponseModel.build(videoInfos, null));
+            }
         }
     }
 
-    List<VideoInfoTagDTO> createVideoInfoTagDTO(List<String> videoIds) throws NoAuthenticatedYouTagUser, VideoDTOHasNullValues, VideoNotFound {
+    List<VideoInfoTagDTO> createVideoInfoTagDTO(List<String> videoIds) throws NoAuthenticatedYouTagUser {
         List<VideoInfoTagDTO> videoInfoTagDTOs = new ArrayList<>();
         for (String videoId : videoIds) {
-            videoInfoTagDTOs.add(createVideoInfoTagDTO(videoId));
+            var videoInfo = createVideoInfoTagDTO(videoId);
+            if (videoInfo != null) {
+                videoInfoTagDTOs.add(videoInfo);
+            }
         }
         return videoInfoTagDTOs;
     }
 
-    VideoInfoTagDTO createVideoInfoTagDTO(String videoId) throws VideoDTOHasNullValues, VideoNotFound, NoAuthenticatedYouTagUser {
+    VideoInfoTagDTO createVideoInfoTagDTO(String videoId) throws NoAuthenticatedYouTagUser {
         String userId = getCurrentUserId();
-        VideoDTO videoInfo = videoService.getVideoInfo(videoId);
+        VideoDTO videoInfo;
+        try {
+            videoInfo = videoService.getVideoInfo(videoId);
+        } catch (VideoNotFound _) {
+            log.warn("Video {} not found", videoId);
+            return null;
+        }
         List<String> tags = tagService.getTagsOfVideo(userId, videoId).stream().map(TagDTO::getTag).toList();
         return new VideoInfoTagDTO(videoInfo, tags);
     }

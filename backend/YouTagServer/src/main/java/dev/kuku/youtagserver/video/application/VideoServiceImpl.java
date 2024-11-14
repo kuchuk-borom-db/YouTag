@@ -47,7 +47,7 @@ public class VideoServiceImpl implements VideoService {
      * Retrieves a video by ID, either from the cache or database if not cached.
      */
     @Override
-    public VideoDTO getVideoInfo(String id) throws VideoNotFound, VideoDTOHasNullValues {
+    public VideoDTO getVideoInfo(String id) throws VideoNotFound {
         log.debug("Fetching video with id {}", id);
 
         // Attempt to fetch video from cache
@@ -141,7 +141,7 @@ public class VideoServiceImpl implements VideoService {
      * Converts a Video entity to a VideoDTO.
      */
     @Override
-    public VideoDTO toDto(Video e) throws VideoDTOHasNullValues {
+    public VideoDTO toDto(Video e) {
         log.debug("Converting Video entity to DTO for id {}", e.getId());
         return new VideoDTO(e.getId(), e.getTitle(), e.getDescription(), e.getThumbnail());
     }

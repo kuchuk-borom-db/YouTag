@@ -9,6 +9,7 @@ import dev.kuku.youtagserver.junction.infrastructure.TagRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,22 +72,6 @@ public class TagServiceImpl implements TagService {
     }
 
     /**
-     * Publishes a JunctionAddedEvent with the provided junctions converted to DTOs.
-     */
-    private void publishAddedEvents(List<Tag> tags) {
-        List<TagDTO> addedDTOs = toDtoList(tags);
-        eventPublisher.publishEvent(new JunctionAddedEvent(addedDTOs));
-    }
-
-    /**
-     * Publishes a JunctionDeletedEvent with the provided junctions converted to DTOs.
-     */
-    private void publishDeletedEvents(List<Tag> deleted) {
-        List<TagDTO> deletedDTOs = toDtoList(deleted);
-        eventPublisher.publishEvent(new JunctionDeletedEvent(deletedDTOs));
-    }
-
-    /**
      * Processes tags by trimming whitespace, converting to lowercase, and filtering out invalid tags (e.g., "*").
      *
      * @param tags the list of tags to process
@@ -112,9 +97,39 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    public List<TagDTO> getAllTagsOfUser(String userId, int skip, int limit) {
+        log.debug("Getting tags of user {} skip {} and limit {}", userId, skip, limit);
+        int pageNum = skip / limit;
+        return toDtoList(repo.findAllByUserId(userId, PageRequest.of(pageNum, limit)));
+    }
+
+    @Override
     public List<TagDTO> getTagsOfVideo(String userId, String videoId) {
         log.debug("Getting tags of video {}", videoId);
         List<Tag> tags = repo.findAllByUserIdAndVideoId(userId, videoId);
         return toDtoList(tags);
+    }
+
+    @Override
+    public List<TagDTO> getVideosWithTag(String userId, List<String> tags, int skip, int limit) {
+        log.debug("Getting videos of user {} with tag {}, skipping {} and limit to {}", userId, tags, skip, limit);
+        tags = validateAndProcessTags(tags);
+        int pageNumber = skip / limit;
+        var videos = repo.findAllByUserIdAndTagIn(userId, tags, PageRequest.of(pageNumber, limit));
+        return toDtoList(videos);
+    }
+
+    @Override
+    public void deleteTagsFromAllVideos(String userId, List<String> tags) {
+        log.debug("Deleting tags {} from all videos for user {}", tags, userId);
+        tags = validateAndProcessTags(tags);
+        repo.deleteAllByUserIdAndTagIn(userId, tags);
+    }
+
+    @Override
+    public void deleteTagsFromVideos(String userId, List<String> tags, List<String> videoIds) {
+        log.debug("Deleting tags {} from videos {} for user {}", tags, videoIds, userId);
+        tags = validateAndProcessTags(tags);
+        repo.deleteAllByUserIdAndVideoIdInAndTagIn(userId, videoIds, tags);
     }
 }

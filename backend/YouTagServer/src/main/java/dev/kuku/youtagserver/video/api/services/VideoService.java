@@ -14,7 +14,7 @@ public interface VideoService extends Service<Video, VideoDTO> {
     /**
      * Get video by id
      */
-    VideoDTO getVideoInfo(String id) throws VideoNotFound, VideoDTOHasNullValues;
+    VideoDTO getVideoInfo(String id) throws VideoNotFound;
 
     List<VideoDTO> getVideoInfos(List<String> userId);
 
