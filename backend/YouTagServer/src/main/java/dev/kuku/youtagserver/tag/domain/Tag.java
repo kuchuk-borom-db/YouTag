@@ -1,4 +1,4 @@
-package dev.kuku.youtagserver.junction.domain;
+package dev.kuku.youtagserver.tag.domain;
 
 
 import dev.kuku.youtagserver.shared.constants.DbConst;

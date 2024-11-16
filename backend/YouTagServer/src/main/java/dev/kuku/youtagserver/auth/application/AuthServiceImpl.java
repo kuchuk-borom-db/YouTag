@@ -3,7 +3,7 @@ package dev.kuku.youtagserver.auth.application;
 import dev.kuku.youtagserver.auth.api.dto.YouTagUserDTO;
 import dev.kuku.youtagserver.auth.api.exceptions.NoAuthenticatedYouTagUser;
 import dev.kuku.youtagserver.auth.api.services.AuthService;
-import dev.kuku.youtagserver.auth.domain.models.AuthenticatedUser;
+import dev.kuku.youtagserver.auth.domain.AuthenticatedUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;

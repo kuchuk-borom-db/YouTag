@@ -1,6 +1,6 @@
-package dev.kuku.youtagserver.junction.infrastructure;
+package dev.kuku.youtagserver.tag.infrastructure;
 
-import dev.kuku.youtagserver.junction.domain.Tag;
+import dev.kuku.youtagserver.tag.domain.Tag;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 

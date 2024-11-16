@@ -16,8 +16,6 @@ public interface VideoService extends Service<Video, VideoDTO> {
      */
     VideoDTO getVideoInfo(String id) throws VideoNotFound;
 
-    List<VideoDTO> getVideoInfos(List<String> userId);
-
     void addVideo(VideoDTO video) throws VideoAlreadyExists;
 
     /**
@@ -25,7 +23,7 @@ public interface VideoService extends Service<Video, VideoDTO> {
      *
      * @throws VideoNotFound if video doesn't exist in repo
      */
-    void updateVideo(VideoDTO video) throws VideoNotFound, VideoDTOHasNullValues;
+    void updateVideo(VideoDTO video) throws VideoNotFound;
 
     /**
      * Delete a video from repo
@@ -33,8 +31,6 @@ public interface VideoService extends Service<Video, VideoDTO> {
      * @param id id of the video to delete
      * @throws VideoNotFound if video doesn't exist in repo
      */
-    void deleteVideo(String id) throws VideoNotFound, VideoDTOHasNullValues;
-
-    //TODO plural operations such as addVideos, getVideoInfos(), updateVideos(), deleteVideos(). Skipping because there is no use for it yet.
+    void deleteVideo(String id) throws VideoNotFound;
 
 }

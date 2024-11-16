@@ -6,8 +6,8 @@ import dev.kuku.youtagserver.auth.api.exceptions.NoAuthenticatedYouTagUser;
 import dev.kuku.youtagserver.auth.api.services.AuthService;
 import dev.kuku.youtagserver.auth.application.GoogleOAuthService;
 import dev.kuku.youtagserver.auth.application.JwtService;
-import dev.kuku.youtagserver.junction.api.dtos.TagDTO;
-import dev.kuku.youtagserver.junction.api.services.TagService;
+import dev.kuku.youtagserver.tag.api.dtos.TagDTO;
+import dev.kuku.youtagserver.tag.api.services.TagService;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
 import dev.kuku.youtagserver.shared.models.VideoInfoTagDTO;
 import dev.kuku.youtagserver.user.api.dto.UserDTO;
@@ -131,7 +131,7 @@ class EndpointController {
             @GetMapping("/{id}")
             ResponseEntity<ResponseModel<VideoInfoTagDTO>> getVideosOfUser(@PathVariable String id) throws NoAuthenticatedYouTagUser, UserVideoNotFound {
                 String userId = getCurrentUserId();
-                userVideoService.getVideoOfUser(userId, id); //Checking if the video is linked to user. Will throw exception if not linked
+                userVideoService.isVideoLinkedWithUser(userId, id); //Checking if the video is linked to user. Will throw exception if not linked
                 return ResponseEntity.ok(ResponseModel.build(createVideoInfoTagDTO(id), null));
             }
 
@@ -258,7 +258,6 @@ class EndpointController {
             }
         }
 
-       //TODO Add searching using tags and title in future
         @RestController
         @RequestMapping("/search")
         class SearchController {

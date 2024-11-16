@@ -1,8 +1,8 @@
 package dev.kuku.youtagserver.shared.application;
 
 
-import dev.kuku.youtagserver.junction.api.exceptions.TagDTOHasNullValues;
-import dev.kuku.youtagserver.junction.api.services.TagService;
+import dev.kuku.youtagserver.tag.api.exceptions.TagDTOHasNullValues;
+import dev.kuku.youtagserver.tag.api.services.TagService;
 import dev.kuku.youtagserver.user.api.events.UserAddedEvent;
 import dev.kuku.youtagserver.user.api.events.UserDeletedEvent;
 import dev.kuku.youtagserver.user.api.events.UserUpdatedEvent;

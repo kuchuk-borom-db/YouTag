@@ -1,6 +1,6 @@
 package dev.kuku.youtagserver.auth.infrastructure;
 
-import dev.kuku.youtagserver.auth.domain.models.JwtAuthenticationToken;
+import dev.kuku.youtagserver.auth.domain.JwtAuthenticationToken;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

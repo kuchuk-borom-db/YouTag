@@ -1,4 +1,4 @@
-package dev.kuku.youtagserver.auth.domain.models;
+package dev.kuku.youtagserver.auth.domain;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;

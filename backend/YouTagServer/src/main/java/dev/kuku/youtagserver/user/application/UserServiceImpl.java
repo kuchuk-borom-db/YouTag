@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
@@ -26,15 +28,47 @@ import java.time.LocalDateTime;
 public class UserServiceImpl implements UserService {
     final UserRepo userRepo;
     final ApplicationEventPublisher eventPublisher;
+    private final Map<String, UserDTO> cache = new ConcurrentHashMap<>();
+
+    /**
+     * Generates a cache key for a user based on their email.
+     * Since email is unique identifier for users, we can use it directly as the cache key.
+     */
+    private String generateCacheKey(String email) {
+        return "user:" + email;
+    }
+
+    /**
+     * Evicts a specific user from the cache.
+     * Called before modifications to ensure stale data is removed.
+     */
+    private void evictCache(String email) {
+        String cacheKey = generateCacheKey(email);
+        cache.remove(cacheKey);
+        log.debug("Evicted cache entry for user {}", email);
+    }
 
     @Override
     public UserDTO getUser(String email) throws EmailNotFound, UserDTOHasNullValues {
         log.info("Get user with email {}", email);
+        String cacheKey = generateCacheKey(email);
+
+        // Try to get from cache first
+        UserDTO cachedUser = cache.get(cacheKey);
+        if (cachedUser != null) {
+            log.debug("Cache hit for user {}", email);
+            return cachedUser;
+        }
+
+        // If not in cache, get from database and cache it
         var user = userRepo.findByEmail(email).orElse(null);
         if (user == null) {
             throw new EmailNotFound(email);
         }
-        return toDTO(user);
+
+        UserDTO userDTO = toDTO(user);
+        cache.put(cacheKey, userDTO);
+        return userDTO;
     }
 
     @Override
@@ -52,6 +86,7 @@ public class UserServiceImpl implements UserService {
         } catch (EmailNotFound e) {
             User savedUser = userRepo.save(user);
             log.info("Saved user {}", savedUser);
+            evictCache(email); // Evict any existing cache entry
             eventPublisher.publishEvent(new UserAddedEvent(savedUser));
         } catch (UserDTOHasNullValues e) {
             throw new RuntimeException(e);
@@ -68,6 +103,7 @@ public class UserServiceImpl implements UserService {
         }
         user.setUpdated(LocalDateTime.now());
         userRepo.save(user);
+        evictCache(user.getEmail()); // Evict cached entry after update
         eventPublisher.publishEvent(new UserUpdatedEvent(user));
     }
 
@@ -76,6 +112,7 @@ public class UserServiceImpl implements UserService {
         getUser(email);
         log.info("Delete user {}", email);
         userRepo.deleteById(email);
+        evictCache(email); // Evict cached entry after deletion
         eventPublisher.publishEvent(new UserDeletedEvent(email));
     }
 
@@ -87,7 +124,9 @@ public class UserServiceImpl implements UserService {
             log.error("User not found. Aborting update");
             return false;
         }
-        return !dbUser.getEmail().equals(userDTO.getEmail()) || !dbUser.getUsername().equals(userDTO.getName()) || !dbUser.getThumbUrl().equals(userDTO.getPic());
+        return !dbUser.getEmail().equals(userDTO.getEmail())
+                || !dbUser.getUsername().equals(userDTO.getName())
+                || !dbUser.getThumbUrl().equals(userDTO.getPic());
     }
 
     private UserDTO toDTO(User user) throws UserDTOHasNullValues {
