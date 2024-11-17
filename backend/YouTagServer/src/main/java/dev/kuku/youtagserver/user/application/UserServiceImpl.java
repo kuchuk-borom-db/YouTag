@@ -119,21 +119,21 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean isUserOutdated(UserDTO userDTO) {
         log.info("Check user outdated {}", userDTO);
-        User dbUser = userRepo.findByEmail(userDTO.getEmail()).orElse(null);
+        User dbUser = userRepo.findByEmail(userDTO.email()).orElse(null);
         if (dbUser == null) {
             log.error("User not found. Aborting update");
             return false;
         }
-        return !dbUser.getEmail().equals(userDTO.getEmail())
-                || !dbUser.getUsername().equals(userDTO.getName())
-                || !dbUser.getThumbUrl().equals(userDTO.getPic());
+        return !dbUser.getEmail().equals(userDTO.email())
+                || !dbUser.getUsername().equals(userDTO.name())
+                || !dbUser.getThumbUrl().equals(userDTO.pic());
     }
 
-    private UserDTO toDTO(User user) throws UserDTOHasNullValues {
+    private UserDTO toDTO(User user) {
         return new UserDTO(user.getEmail(), user.getUsername(), user.getThumbUrl(), user.getUpdated());
     }
 
     private User toEntity(UserDTO userDTO) {
-        return new User(userDTO.getEmail(), userDTO.getName(), userDTO.getPic(), userDTO.getCreated());
+        return new User(userDTO.email(), userDTO.name(), userDTO.pic(), userDTO.created());
     }
 }

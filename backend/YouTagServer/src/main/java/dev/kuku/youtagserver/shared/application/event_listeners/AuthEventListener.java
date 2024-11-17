@@ -49,7 +49,7 @@ public class AuthEventListener {
         } catch (EmailNotFound e) {
             log.info("Email not found. Adding user to database");
             try {
-                userService.addUser(tokenUser.getEmail(), tokenUser.getName(), tokenUser.getPic());
+                userService.addUser(tokenUser.email(), tokenUser.name(), tokenUser.pic());
             } catch (UserAlreadyExists ex) {
                 log.error("This should not have happened");
             }
