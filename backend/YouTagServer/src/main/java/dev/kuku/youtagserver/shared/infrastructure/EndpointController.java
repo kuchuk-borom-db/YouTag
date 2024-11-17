@@ -4,8 +4,6 @@ import com.nimbusds.jose.JOSEException;
 import dev.kuku.youtagserver.auth.api.exceptions.InvalidOAuthRedirect;
 import dev.kuku.youtagserver.auth.api.exceptions.NoAuthenticatedYouTagUser;
 import dev.kuku.youtagserver.auth.api.services.AuthService;
-import dev.kuku.youtagserver.auth.application.GoogleOAuthService;
-import dev.kuku.youtagserver.auth.application.JwtService;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
 import dev.kuku.youtagserver.shared.models.VideoInfoTagDTO;
 import dev.kuku.youtagserver.tag.api.dtos.TagDTO;
@@ -29,7 +27,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -43,8 +40,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 class EndpointController {
-    private final GoogleOAuthService googleOAuthService;
-    private final JwtService jwtService;
     private final UserService userService;
     private final AuthService authService;
     private final UserVideoService userVideoService;
@@ -70,7 +65,7 @@ class EndpointController {
 
             @GetMapping("/login/google")
             ResponseEntity<ResponseModel<String>> getGoogleLogin() {
-                return ResponseEntity.ok(new ResponseModel<>(googleOAuthService.getAuthorizationURL(), "Success"));
+                return ResponseEntity.ok(new ResponseModel<>(authService.getGoogleAuthorizationURL(), "Success"));
             }
 
             @GetMapping("/redirect/google")
@@ -81,9 +76,8 @@ class EndpointController {
                     throw new InvalidOAuthRedirect("Invalid Google OAuth redirect because code and/or state is null");
                 }
 
-                OAuth2AccessToken accessToken = googleOAuthService.getAccessToken(code, state);
-                var user = googleOAuthService.getUserFromToken(accessToken);
-                String token = jwtService.generateJwtToken(user.email(), new HashMap<>());
+                var user = authService.getUserFromGoogleToken(code, state);
+                String token = authService.generateJwtTokenForUser(user.email(), new HashMap<>());
 
                 return ResponseEntity.ok(new ResponseModel<>(token, ""));
             }
