@@ -1,6 +1,7 @@
-package dev.kuku.youtagserver.shared.application;
+package dev.kuku.youtagserver.shared.application.event_listeners;
 
 import dev.kuku.youtagserver.tag.api.services.TagService;
+import dev.kuku.youtagserver.user_video.api.UserVideoService;
 import dev.kuku.youtagserver.video.api.events.VideoAddedEvent;
 import dev.kuku.youtagserver.video.api.events.VideoDeletedEvent;
 import dev.kuku.youtagserver.video.api.events.VideoUpdatedEvent;
@@ -11,34 +12,38 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import java.util.List;
-
-@Slf4j
 @Service
-@Transactional
 @RequiredArgsConstructor
+@Transactional
+@Slf4j
 public class VideoEventListener {
+
+    final UserVideoService userVideoService;
     final TagService tagService;
 
     @Async
     @TransactionalEventListener
     void on(VideoAddedEvent event) {
-        log.debug("Video added event :- {}", event);
+        log.debug("Video Added Event : {}", event);
     }
 
     @Async
     @TransactionalEventListener
     void on(VideoUpdatedEvent event) {
-        log.debug("Video updated event :- {}", event);
+        log.debug("Video Updated Event : {}", event);
     }
 
     /**
-     * Delete every entries with matching videoId in junction
+     * Remove entries in user_video table with matching videoID
+     * Remove entries in tags table with matching videoId
      */
     @Async
     @TransactionalEventListener
     void on(VideoDeletedEvent event) {
-        log.debug("Video deleted event :- {}", event);
-        tagService.deleteVideos(List.of(event.id()));
+        log.debug("Video Deleted Event : {}", event);
+        log.debug("Deleting entries in user_video table with videoID {}", event.id());
+        userVideoService.unlinkVideoFromAllUsers(event.id());
+        log.debug("Deleting entries in tags table with videoID {}", event.id());
+        tagService.deleteAllTagsOfAllUsersOfVideo(event.id());
     }
 }

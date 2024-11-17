@@ -1,8 +1,8 @@
 package dev.kuku.youtagserver.tag.api.services;
 
+import dev.kuku.youtagserver.shared.application.Service;
 import dev.kuku.youtagserver.tag.api.dtos.TagDTO;
 import dev.kuku.youtagserver.tag.domain.Tag;
-import dev.kuku.youtagserver.shared.application.Service;
 
 import java.util.List;
 
@@ -16,8 +16,13 @@ public interface TagService extends Service<Tag, TagDTO> {
 
     List<TagDTO> getVideosWithTag(String userId, List<String> tags, int skip, int limit);
 
-    void deleteTagsFromAllVideos(String userId, List<String> tags);
+    void deleteAllTagsOfUser(String userId);
 
-    void deleteTagsFromVideos(String userId, List<String> tags, List<String> videoIds);
+    void DeleteTagsFromAllVideosOfUser(String userId, List<String> tags);
 
+    void deleteTagsFromVideosOfUser(String userId, List<String> tags, List<String> videoIds);
+
+    void deleteAllTagsOfVideoOfUser(String userId, String videoId);
+
+    void deleteAllTagsOfAllUsersOfVideo(String videoId);
 }

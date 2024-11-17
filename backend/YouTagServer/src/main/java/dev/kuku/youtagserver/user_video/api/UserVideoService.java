@@ -16,6 +16,8 @@ public interface UserVideoService extends Service<UserVideo, UserVideoDTO> {
 
     void unlinkAllVideosFromUser(String userId);
 
+    void unlinkVideoFromAllUsers(String videoId);
+
     List<UserVideoDTO> getVideosOfUser(String userId, int skip, int limit);
 
     boolean isVideoLinkedWithUser(String userId, String videoId);

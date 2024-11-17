@@ -1,7 +1,7 @@
 package dev.kuku.youtagserver.tag.application;
 
 import dev.kuku.youtagserver.tag.api.dtos.TagDTO;
-import dev.kuku.youtagserver.tag.api.events.AddedTagsToVideoEvent;
+import dev.kuku.youtagserver.tag.api.events.*;
 import dev.kuku.youtagserver.tag.api.exceptions.TagDTOHasNullValues;
 import dev.kuku.youtagserver.tag.api.services.TagService;
 import dev.kuku.youtagserver.tag.domain.Tag;
@@ -112,18 +112,54 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public void deleteTagsFromAllVideos(String userId, List<String> tags) {
-        log.debug("Deleting tags {} from all videos for user {}", tags, userId);
-        tags = validateAndProcessTags(tags);
-        repo.deleteAllByUserIdAndTagIn(userId, tags);
+    public void deleteAllTagsOfUser(String userId) {
+        log.debug("Deleting all tags of user {}", userId);
+        repo.deleteAllByUserId(userId);
+        eventPublisher.publishEvent(new DeleteAllTagsOfUser(userId));
         evictCache(userId);
     }
 
     @Override
-    public void deleteTagsFromVideos(String userId, List<String> tags, List<String> videoIds) {
+    public void DeleteTagsFromAllVideosOfUser(String userId, List<String> tags) {
+        log.debug("Deleting tags {} from all videos for user {}", tags, userId);
+        tags = validateAndProcessTags(tags);
+        repo.deleteAllByUserIdAndTagIn(userId, tags);
+        eventPublisher.publishEvent(new DeleteTagsFromAllVideosOfUser(userId, tags));
+        evictCache(userId);
+    }
+
+    @Override
+    public void deleteTagsFromVideosOfUser(String userId, List<String> tags, List<String> videoIds) {
         log.debug("Deleting tags {} from videos {} for user {}", tags, videoIds, userId);
         tags = validateAndProcessTags(tags);
         repo.deleteAllByUserIdAndVideoIdInAndTagIn(userId, videoIds, tags);
+        eventPublisher.publishEvent(new DeleteTagsFromVideosOfUser(userId, tags, videoIds));
         evictCache(userId);
+    }
+
+    @Override
+    public void deleteAllTagsOfVideoOfUser(String userId, String videoId) {
+        log.debug("Deleting all tags of video {} of user {}", videoId, userId);
+        repo.deleteAllByUserIdAndVideoIdIn(userId, List.of(videoId));
+        evictCache(userId);
+        eventPublisher.publishEvent(new DeleteAllTagsFromVideoOfUser(userId, videoId));
+    }
+
+    @Override
+    public void deleteAllTagsOfAllUsersOfVideo(String videoId) {
+        // First get all affected users
+        List<String> affectedUsers = repo.findAllByVideoId(videoId)
+                .stream()
+                .map(Tag::getUserId)
+                .distinct()
+                .toList();
+
+        // Delete all tags
+        repo.deleteAllByVideoId(videoId);
+
+        // Evict cache for all affected users
+        affectedUsers.forEach(this::evictCache);
+
+        eventPublisher.publishEvent(new DeleteAllTagsFromAllUsersOfVideo(videoId));
     }
 }

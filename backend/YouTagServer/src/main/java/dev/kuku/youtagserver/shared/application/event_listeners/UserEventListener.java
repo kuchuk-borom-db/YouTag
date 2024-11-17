@@ -1,11 +1,10 @@
-package dev.kuku.youtagserver.shared.application;
+package dev.kuku.youtagserver.shared.application.event_listeners;
 
-
-import dev.kuku.youtagserver.tag.api.exceptions.TagDTOHasNullValues;
 import dev.kuku.youtagserver.tag.api.services.TagService;
 import dev.kuku.youtagserver.user.api.events.UserAddedEvent;
 import dev.kuku.youtagserver.user.api.events.UserDeletedEvent;
 import dev.kuku.youtagserver.user.api.events.UserUpdatedEvent;
+import dev.kuku.youtagserver.user_video.api.UserVideoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -13,36 +12,38 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-@Slf4j
 @Service
-@Transactional
 @RequiredArgsConstructor
+@Transactional
+@Slf4j
 public class UserEventListener {
-    final TagService tagService;
+    private final UserVideoService userVideoService;
+    private final TagService tagService;
 
     @Async
     @TransactionalEventListener
     void on(UserAddedEvent event) {
-        log.debug("User Added Event :- {}", event);
+        log.debug("UserAddedEvent: {}", event);
     }
 
     @Async
     @TransactionalEventListener
     void on(UserUpdatedEvent event) {
-        log.debug("User Updated Event :- {}", event);
+        log.debug("UserUpdatedEvent: {}", event);
     }
 
     /**
-     * Delete entries from junction table where userId match
+     * Deletes all entries from user_video table with same userID. <br>
+     * Deletes all entries from tags table with same userID.
      */
     @Async
     @TransactionalEventListener
     void on(UserDeletedEvent event) {
-        log.debug("User Deleted Event :- {}", event);
-        try {
-            tagService.deleteAllVideosAndTags(event.userId());
-        } catch (TagDTOHasNullValues _) {
+        log.debug("UserDeletedEvent: {}", event);
+        log.debug("Deleting all entries from user_video with userID {}", event.userId());
+        userVideoService.unlinkAllVideosFromUser(event.userId());
+        log.debug("Deleting all entries from tags with userID {}", event.userId());
+        tagService.deleteAllTagsOfUser(event.userId());
 
-        }
     }
 }

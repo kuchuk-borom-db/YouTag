@@ -7,24 +7,24 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.List;
 
 public interface TagRepo extends CrudRepository<Tag, String> {
-    List<Tag> deleteAllByUserId(String userId);
+    /*
+    It is possible to have return type of delete as List to get a list of deleted items back.
+     */
+    void deleteAllByUserId(String userId);
 
-    List<Tag> deleteAllByUserIdAndTagIn(String userId, List<String> tags);
+    void deleteAllByUserIdAndTagIn(String userId, List<String> tags);
 
-    List<Tag> deleteAllByUserIdAndVideoIdInAndTagIn(String userId, List<String> videoIds, List<String> tags);
+    void deleteAllByUserIdAndVideoIdInAndTagIn(String userId, List<String> videoIds, List<String> tags);
 
-    List<Tag> deleteAllByUserIdAndVideoIdIn(String userId, List<String> videoId);
+    void deleteAllByUserIdAndVideoIdIn(String userId, List<String> videoId);
 
-    List<Tag> deleteAllByVideoIdIn(List<String> ids);
-
+    void deleteAllByVideoId(String videoId);
 
     List<Tag> findAllByUserId(String userId, Pageable pageRequest);
 
     List<Tag> findAllByUserIdAndTagIn(String userId, List<String> tags, Pageable of);
 
-    List<Tag> findAllByUserIdAndVideoIdIn(String userId, List<String> videos, Pageable of);
-
-    long countByUserId(String userId);
-
     List<Tag> findAllByUserIdAndVideoId(String userId, String videoId);
+
+    List<Tag> findAllByVideoId(String videoId);
 }

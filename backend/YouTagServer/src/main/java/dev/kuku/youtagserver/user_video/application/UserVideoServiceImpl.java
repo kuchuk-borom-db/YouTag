@@ -3,6 +3,8 @@ package dev.kuku.youtagserver.user_video.application;
 import dev.kuku.youtagserver.user_video.api.UserVideoDTO;
 import dev.kuku.youtagserver.user_video.api.UserVideoService;
 import dev.kuku.youtagserver.user_video.api.events.LinkedVideoToUser;
+import dev.kuku.youtagserver.user_video.api.events.UnlinkedAllVideosFromUser;
+import dev.kuku.youtagserver.user_video.api.events.UnlinkedVideoFromUser;
 import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoAlreadyLinked;
 import dev.kuku.youtagserver.user_video.domain.UserVideo;
 import dev.kuku.youtagserver.user_video.infrastructure.UserVideoRepo;
@@ -84,6 +86,7 @@ public class UserVideoServiceImpl implements UserVideoService {
         log.debug("Deleting link between {}->{}", userId, videoId);
         repo.deleteByUserIdAndVideoId(userId, videoId);
         evictCache(userId, videoId);
+        eventPublisher.publishEvent(new UnlinkedVideoFromUser(userId, videoId));
     }
 
     @Override
@@ -91,6 +94,14 @@ public class UserVideoServiceImpl implements UserVideoService {
         log.debug("Unlinking All Videos from user {}", userId);
         repo.deleteByUserId(userId);
         evictCache(userId);
+        eventPublisher.publishEvent(new UnlinkedAllVideosFromUser(userId));
+    }
+
+    @Override
+    public void unlinkVideoFromAllUsers(String videoId) {
+        log.debug("Unlinking video {} from all users", videoId);
+        repo.deleteAllByVideoId(videoId);
+        evictCache(videoId);
     }
 
     @Override

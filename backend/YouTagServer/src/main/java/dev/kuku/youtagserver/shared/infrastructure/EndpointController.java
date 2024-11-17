@@ -6,10 +6,10 @@ import dev.kuku.youtagserver.auth.api.exceptions.NoAuthenticatedYouTagUser;
 import dev.kuku.youtagserver.auth.api.services.AuthService;
 import dev.kuku.youtagserver.auth.application.GoogleOAuthService;
 import dev.kuku.youtagserver.auth.application.JwtService;
-import dev.kuku.youtagserver.tag.api.dtos.TagDTO;
-import dev.kuku.youtagserver.tag.api.services.TagService;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
 import dev.kuku.youtagserver.shared.models.VideoInfoTagDTO;
+import dev.kuku.youtagserver.tag.api.dtos.TagDTO;
+import dev.kuku.youtagserver.tag.api.services.TagService;
 import dev.kuku.youtagserver.user.api.dto.UserDTO;
 import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
 import dev.kuku.youtagserver.user.api.exceptions.UserDTOHasNullValues;
@@ -129,7 +129,7 @@ class EndpointController {
 
             /// Get video of user by id
             @GetMapping("/{id}")
-            ResponseEntity<ResponseModel<VideoInfoTagDTO>> getVideosOfUser(@PathVariable String id) throws NoAuthenticatedYouTagUser, UserVideoNotFound {
+            ResponseEntity<ResponseModel<VideoInfoTagDTO>> getVideosOfUser(@PathVariable String id) throws NoAuthenticatedYouTagUser {
                 String userId = getCurrentUserId();
                 userVideoService.isVideoLinkedWithUser(userId, id); //Checking if the video is linked to user. Will throw exception if not linked
                 return ResponseEntity.ok(ResponseModel.build(createVideoInfoTagDTO(id), null));
@@ -218,11 +218,11 @@ class EndpointController {
 
                     //If no videos are passed. Get all videos with the given tag
                     if (videosRaw == null || videosRaw.split(",").length == 0) {
-                        tagService.deleteTagsFromAllVideos(userId, Arrays.stream(tagsRaw.split(",")).toList());
+                        tagService.DeleteTagsFromAllVideosOfUser(userId, Arrays.stream(tagsRaw.split(",")).toList());
                     } else {
 
                         //If videos are passed. Delete tags from the given videos
-                        tagService.deleteTagsFromVideos(userId, Arrays.stream(tagsRaw.split(",")).toList(), Arrays.stream(videosRaw.split(",")).toList());
+                        tagService.deleteTagsFromVideosOfUser(userId, Arrays.stream(tagsRaw.split(",")).toList(), Arrays.stream(videosRaw.split(",")).toList());
                     }
                     return ResponseEntity.ok(null);
                 } else {

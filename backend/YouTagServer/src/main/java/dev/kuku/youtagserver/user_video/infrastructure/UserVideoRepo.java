@@ -16,4 +16,6 @@ public interface UserVideoRepo extends CrudRepository<UserVideo, String> {
 
     void deleteByUserId(String userId);
 
+    void deleteAllByVideoId(String videoId);
+
 }
