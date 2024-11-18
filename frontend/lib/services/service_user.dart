@@ -6,12 +6,11 @@ import 'package:frontend/services/service_storage.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/exceptions/exception_no_jwt_token_found.dart';
-import '../models/exceptions/exception_response.dart';
 import '../models/model_user.dart';
 import '../util/constants.dart';
 
 class ServiceUser {
-  final _url = "${Constants.serverUrl}/authenticated/user/";
+  final _url = "${Constants.serverUrl}/authenticated/auth/user";
   final ServiceStorage serviceStorage;
   ModelUser? currentUser;
 
@@ -48,12 +47,16 @@ class ServiceUser {
     }
   }
 
-  Future<ModelUser> getUserInfo() async {
+  Future<ModelUser?> getUserInfo() async {
     if (currentUser != null) {
       if (kDebugMode) {
         print("Existing User : ${currentUser?.email}, ${currentUser?.name}");
       }
       return currentUser!;
+    }
+
+    if (kDebugMode) {
+      print("No existing user found. Getting from server");
     }
 
     final token = await serviceStorage.getValue("token");
@@ -65,38 +68,35 @@ class ServiceUser {
       print("getting user info from server $_url and token $token");
     }
 
-    var response = await http
-        .get(Uri.parse(_url), headers: {"Authorization": 'Bearer $token'});
+    try {
+      var response = await http
+          .get(Uri.parse(_url), headers: {"Authorization": 'Bearer $token'});
 
-    if (response.statusCode == 200) {
-      var parsedBody = json.decode(response.body);
-      String email = parsedBody['data']["email"];
-      String name = parsedBody['data']['name'];
-      String thumbnailUrl = parsedBody['data']['pic'];
+      if (response.statusCode == 200) {
+        var parsedBody = json.decode(response.body);
+        String email = parsedBody['data']["email"];
+        String name = parsedBody['data']['name'];
+        String thumbnailUrl = parsedBody['data']['pic'];
 
-      if (kDebugMode) {
-        print("Loading user data: $email, $name");
-        print("Loading thumbnail from: $thumbnailUrl");
+        final thumbnailData = await _loadImageFromUrl(thumbnailUrl);
+
+        currentUser = ModelUser(
+          thumbnail: thumbnailData,
+          email: email,
+          name: name,
+        );
+
+        return currentUser!;
+      } else if (response.statusCode == 401) {
+        // Token is expired or invalid
+        currentUser = null;
       }
-
-      // Load the image data with fallback to default image
-      final thumbnailData = await _loadImageFromUrl(thumbnailUrl);
-
-      // Create and cache the user
-      currentUser = ModelUser(
-        thumbnail: thumbnailData,
-        email: email,
-        name: name,
-      );
-
+    } catch (e) {
+      // Handle other network or parsing errors
       if (kDebugMode) {
-        print(
-            "User loaded successfully with ${thumbnailData.length} bytes of image data");
+        print('Error getting user info: $e');
       }
-
-      return currentUser!;
     }
-
-    throw ExceptionResponse(response.body, response.statusCode);
+    return null;
   }
 }

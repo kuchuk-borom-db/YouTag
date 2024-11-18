@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/page/page_profile.dart';
+import 'package:frontend/services/service_user.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../models/model_video.dart';
@@ -18,12 +19,22 @@ class ConfigRouter {
     debugLogDiagnostics: true,
     redirect: (context, state) async {
       var storageService = getIt<ServiceStorage>();
+      ServiceUser userService = getIt<ServiceUser>();
 
       if (state.uri.path == '/splash') {
         return null;
       }
 
+      final isInRedirectPath =
+          state.uri.path == "/api/public/auth/redirect/google";
+
+      // Don't redirect if we're in the Google redirect path
+      if (isInRedirectPath) {
+        return null;
+      }
+
       final isLoggedIn = await storageService.hasValue("token");
+
       if (kDebugMode) {
         print('Current path: ${state.uri.path}');
         print('Is logged in: $isLoggedIn');
@@ -33,21 +44,39 @@ class ConfigRouter {
         }
       }
 
-      final isGoingToLogin = state.uri.path == '/login' ||
-          state.uri.path == "/api/public/auth/redirect/google";
+      // Check if token is valid and user info can be retrieved
+      if (isLoggedIn) {
+        try {
+          final user = await userService.getUserInfo();
+          if (user == null) {
+            // Token is invalid or expired
+            await storageService
+                .removeValue("token"); // Clear the invalid token
+            if (!isInRedirectPath) {
+              return '/login';
+            }
+          }
+        } catch (e) {
+          // Handle any errors during user info retrieval
+          await storageService.removeValue("token");
+          if (!isInRedirectPath) {
+            return '/login';
+          }
+        }
+      }
 
-      if (!isLoggedIn && !isGoingToLogin) {
+      //If attempting to access login page when logged in. Push back to home page
+      if (state.uri.path == '/login' ||
+          state.uri.path == '/api/public/auth/redirect/google') {
+        return '/';
+      }
+
+      // Regular auth flow
+      if (!isLoggedIn && !isInRedirectPath) {
         if (kDebugMode) {
           print('Redirecting to login because not logged in');
         }
         return '/login';
-      }
-
-      if (isLoggedIn && isGoingToLogin) {
-        if (kDebugMode) {
-          print('Redirecting to home because already logged in');
-        }
-        return '/';
       }
 
       return null;

@@ -224,3 +224,7 @@ public class SecurityConfig {
 #### Development vs Production
 - Development: CORS allowed from all origins
 - Production: Strict CORS policy with specific origins, headers, and methods
+  [Previous sections remain the same...]
+
+## API Endpoints
+### WIP

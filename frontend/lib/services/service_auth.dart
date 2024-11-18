@@ -19,7 +19,7 @@ class ServiceAuth {
     }
   }
 
-  Future<String> exchangeGoogleTokenForJWTToken(
+  Future<String?> exchangeGoogleTokenForJWTToken(
       String code, String state) async {
     try {
       final uri = Uri.parse('$_url/public/auth/redirect/google')
@@ -49,26 +49,32 @@ class ServiceAuth {
         if (kDebugMode) {
           print('Decoded response: $decodedResponse');
         }
-        return decodedResponse["data"] as String;
+
+        // Safely handle potential null or missing data
+        final token = decodedResponse["data"] as String?;
+        return token; // Returns null if token is null
       } else {
-        String errorMessage =
-            'Failed to exchange token. Status: ${response.statusCode}.';
-        try {
-          if (response.body.isNotEmpty) {
-            final decoded = json.decode(response.body);
-            errorMessage +=
-                ' Message: ${decoded["msg"] ?? decoded["message"] ?? "Unknown error"}';
+        if (kDebugMode) {
+          String errorMessage =
+              'Failed to exchange token. Status: ${response.statusCode}.';
+          try {
+            if (response.body.isNotEmpty) {
+              final decoded = json.decode(response.body);
+              errorMessage +=
+                  ' Message: ${decoded["msg"] ?? decoded["message"] ?? "Unknown error"}';
+            }
+          } catch (e) {
+            errorMessage += ' Raw response: ${response.body}';
           }
-        } catch (e) {
-          errorMessage += ' Raw response: ${response.body}';
+          print(errorMessage);
         }
-        throw Exception(errorMessage);
+        return null; // Return null instead of throwing on error
       }
     } catch (e) {
       if (kDebugMode) {
         print('Error during token exchange: $e');
       }
-      rethrow; // Use rethrow to preserve the stack trace
+      return null; // Return null on any error
     }
   }
 }

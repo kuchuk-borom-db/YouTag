@@ -1,5 +1,6 @@
 package dev.kuku.youtagserver.shared.exceptions;
 
+import dev.kuku.youtagserver.auth.api.exceptions.JWTVerificationFailed;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -44,5 +45,12 @@ class ResponseExceptionHandler {
         log.error(Arrays.toString(e.getStackTrace()));
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ResponseModel<>(null, e.getMessage()));
+    }
+
+    @ExceptionHandler(JWTVerificationFailed.class)
+    ResponseEntity<ResponseModel<Object>> handleCredentialsExpiredException(CredentialsExpiredException e) {
+        log.error("Credential expired: {}", e.getMessage());
+        log.error(Arrays.toString(e.getStackTrace()));
+        return ResponseEntity.status(401).body(new ResponseModel<>(null, e.getMessage()));
     }
 }

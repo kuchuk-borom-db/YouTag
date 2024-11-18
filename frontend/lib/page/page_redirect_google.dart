@@ -32,6 +32,8 @@ class _PageRedirectGoogleState extends State<PageRedirectGoogle> {
 
   Future<void> _exchangeToken() async {
     var auth = getIt<ServiceAuth>();
+    var storage = getIt<ServiceStorage>();
+
     if (widget.queryParameters["code"] == null ||
         widget.queryParameters["state"] == null) {
       setState(() {
@@ -42,19 +44,34 @@ class _PageRedirectGoogleState extends State<PageRedirectGoogle> {
     }
 
     try {
+      // Clear any existing token first
+      await storage.removeValue("token");
+
       final token = await auth.exchangeGoogleTokenForJWTToken(
           widget.queryParameters["code"]!, widget.queryParameters["state"]!);
 
-      // Save the token
-      await getIt<ServiceStorage>().saveValue("token", token);
-      if (kDebugMode) {
-        // Immediately verify if the token was saved
-        final savedToken = await getIt<ServiceStorage>().getValue("token");
-        print('Token saved: $token');
-        print('Token retrieved: $savedToken');
+      if (token == null || token.isEmpty) {
+        throw Exception("Received empty token from server");
       }
+
+      // Save the token
+      await storage.saveValue("token", token);
+
+      // Verify token was saved correctly
+      final savedToken = await storage.getValue("token");
+      if (savedToken != token) {
+        throw Exception("Token verification failed after save");
+      }
+
+      if (kDebugMode) {
+        print('Token saved successfully: ${savedToken == token}');
+      }
+
       // Get user info and store it
-      await getIt<ServiceUser>().getUserInfo();
+      final user = await getIt<ServiceUser>().getUserInfo();
+      if (user == null) {
+        throw Exception("Failed to fetch user info with new token");
+      }
 
       // Update state to show success
       setState(() {
@@ -67,17 +84,22 @@ class _PageRedirectGoogleState extends State<PageRedirectGoogle> {
 
       // Navigate to home page after a brief delay to show success message
       Future.delayed(const Duration(seconds: 1), () {
-        // Check if the widget is still mounted before navigating
         if (mounted) {
-          context.go('/'); // Using GoRouter to navigate to the home route
+          context.go('/');
         }
       });
     } catch (e) {
       if (kDebugMode) {
         print('Error during token exchange: $e');
       }
+
+      // Clear token on error
+      await storage.removeValue("token");
+
       setState(() {
-        _error = 'An error occurred while connecting to the server.';
+        _error = e.toString().contains('Exception:')
+            ? e.toString().split('Exception: ')[1]
+            : 'An error occurred while connecting to the server.';
         _isLoading = false;
       });
     }
