@@ -20,6 +20,11 @@ class _PageHomeState extends State<PageHome>
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   final ScrollController _tagsScrollController = ScrollController();
+  final TextEditingController _tagsController = TextEditingController();
+  final TextEditingController _linkController = TextEditingController();
+  bool _isSaving = false;
+  String? _saveError;
+  bool _saved = false;
   final ServiceVideo videoService = getIt<ServiceVideo>();
 
   List<ModelVideo> videos = [];
@@ -89,44 +94,246 @@ class _PageHomeState extends State<PageHome>
   }
 
   void _showModal() {
+    _tagsController.clear();
+    _linkController.clear();
+    _saved = false;
+    _saveError = null;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.8,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: Column(
-            children: [
-              Container(
-                margin: const EdgeInsets.only(top: 8),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.8,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
                 ),
               ),
-              const Expanded(
-                child: Center(
-                  child: Text(
-                    'Modal Content (Coming Soon)',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Handle bar at top
+                    Center(
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
                     ),
-                  ),
+
+                    const Text(
+                      'Add New Video',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // YouTube Link Input
+                    TextField(
+                      controller: _linkController,
+                      decoration: InputDecoration(
+                        labelText: 'YouTube Link',
+                        hintText: 'Enter YouTube video URL or ID',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        prefixIcon: const Icon(Icons.link),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Tags Input
+                    TextField(
+                      controller: _tagsController,
+                      decoration: InputDecoration(
+                        fillColor: Colors.amberAccent,
+                        labelText: 'Tags',
+                        hintText: 'Enter tags separated by commas',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        prefixIcon: const Icon(Icons.tag),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Helper text for tags
+                    Text(
+                      'Example: music, tutorial, education',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Error message if any
+                    if (_saveError != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Text(
+                          _saveError!,
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+
+                    // Save Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: _isSaving || _saved
+                            ? null
+                            : () async {
+                                setModalState(() {
+                                  _isSaving = true;
+                                  _saveError = null;
+                                });
+
+                                // Extract video ID
+                                final videoId = videoService
+                                    .extractVideoId(_linkController.text);
+                                if (videoId == null) {
+                                  setModalState(() {
+                                    _saveError =
+                                        'Invalid YouTube URL or video ID';
+                                    _isSaving = false;
+                                  });
+                                  return;
+                                }
+
+                                // Process tags
+                                final tags = _tagsController.text
+                                    .split(',')
+                                    .map((tag) => tag.trim())
+                                    .where((tag) => tag.isNotEmpty)
+                                    .toList();
+
+                                if (tags.isEmpty) {
+                                  setModalState(() {
+                                    _saveError =
+                                        'Please enter at least one tag';
+                                    _isSaving = false;
+                                  });
+                                  return;
+                                }
+
+                                try {
+                                  var success = await videoService.saveVideo(
+                                      videoId, tags);
+
+                                  if (success) {
+                                    setModalState(() {
+                                      _saved = true;
+                                      _isSaving = false;
+                                    });
+
+                                    // Show success message and close modal after delay
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Row(
+                                          children: [
+                                            Icon(Icons.check_circle,
+                                                color: Colors.white),
+                                            SizedBox(width: 8),
+                                            Text('Video saved successfully!'),
+                                          ],
+                                        ),
+                                        backgroundColor: Colors.green,
+                                        duration: Duration(seconds: 2),
+                                      ),
+                                    );
+
+                                    // Refresh videos after saving
+                                    setState(() {
+                                      currentPage = 1;
+                                    });
+                                    await _loadVideos();
+
+                                    // Close modal after a short delay
+                                    Future.delayed(const Duration(seconds: 2),
+                                        () {
+                                      Navigator.pop(context);
+                                    });
+                                  } else {
+                                    setModalState(() {
+                                      _saveError =
+                                          'Failed to save video. Please try again.';
+                                      _isSaving = false;
+                                    });
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Row(
+                                          children: [
+                                            Icon(Icons.error,
+                                                color: Colors.white),
+                                            SizedBox(width: 8),
+                                            Text('Failed to save video'),
+                                          ],
+                                        ),
+                                        backgroundColor: Colors.red,
+                                        duration: Duration(seconds: 3),
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  setModalState(() {
+                                    _saveError =
+                                        'Error saving video: ${e.toString()}';
+                                    _isSaving = false;
+                                  });
+                                }
+                              },
+                        child: _isSaving
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                ),
+                              )
+                            : _saved
+                                ? const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.check),
+                                      SizedBox(width: 8),
+                                      Text('Saved!'),
+                                    ],
+                                  )
+                                : const Text('Save Video'),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -136,6 +343,10 @@ class _PageHomeState extends State<PageHome>
   void dispose() {
     _controller.dispose();
     _tagsScrollController.dispose();
+
+    _tagsController.dispose();
+    _linkController.dispose();
+
     super.dispose();
   }
 
