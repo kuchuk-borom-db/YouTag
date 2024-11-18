@@ -1,3 +1,6 @@
+/*
+ Spring modulith table for persist event
+ */
 create table if not exists event_publication
 (
     id               uuid not null
@@ -8,7 +11,9 @@ create table if not exists event_publication
     publication_date timestamp(6) with time zone,
     serialized_event text
 );
-
+/*
+ Holds user info
+ */
 create table if not exists users
 (
     id            varchar(250) not null
@@ -17,7 +22,9 @@ create table if not exists users
     updated       timestamp(6) not null,
     name          varchar(250) not null
 );
-
+/*
+ Holds video info
+ */
 create table if not exists videos
 (
     id            VARCHAR(50) PRIMARY KEY,
@@ -26,9 +33,9 @@ create table if not exists videos
     thumbnail_url VARCHAR(500),
     updated       TIMESTAMP(6) NOT NULL
 );
-
-create index if not exists idx_videos_title on videos(title);
-
+/*
+ Holds which video is saved for which user. One to many relation. One user can have multiple videos saved. Correct me if i am wrong about one to many
+ */
 create table if not exists user_video
 (
     id       VARCHAR(255) PRIMARY KEY,
@@ -36,35 +43,60 @@ create table if not exists user_video
     video_id VARCHAR(50)  NOT NULL,
     unique (user_id, video_id)
 );
-
-create index if not exists idx_user_videos_video on user_video (video_id);
-create index if not exists idx_user_videos_composite on user_video (user_id, video_id);
-
-create table if not exists tags
+/*
+ Holds which users have which tag. One to many again. One use can have many tags. Correct me if i am wrong
+ */
+create table if not exists user_tags
 (
     id       VARCHAR(255) PRIMARY KEY,
-    user_id  VARCHAR(255) NOT NULL,
-    video_id VARCHAR(255) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
     tag      VARCHAR(255) NOT NULL,
-    unique (user_id, video_id, tag)
+    unique(user_id, tag)
+);
+/*
+ Holds which user's video has which tag
+ */
+create table if not exists user_video_tag (
+    id VARCHAR(255) PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    video_id VARCHAR(255) NOT NULL,
+    tag_id VARCHAR(255) NOT NULL,
+    unique(user_id,video_id,tag_id)
 );
 
-create index if not exists idx_tags_user_video_tag on tags (user_id, video_id, tag);
-create index if not exists idx_tags_user_tag ON tags (user_id, tag);
+-- Users table indexes
+-- Purpose: Improve search and filtering by name
+CREATE INDEX IF NOT EXISTS idx_users_name ON users(name);
 
-/* Index Coverage for Common Queries:
-1. Find by user_id:
-   - Uses prefix of idx_tags_user_video_tag or idx_tags_user_tag
+-- Videos table indexes
+-- Purpose: Enable fast text search on video titles and filter by update time
+CREATE INDEX IF NOT EXISTS idx_videos_title ON videos(title);
+CREATE INDEX IF NOT EXISTS idx_videos_updated ON videos(updated);
+-- Enable fast lookup of videos for a specific user
+CREATE INDEX IF NOT EXISTS idx_user_video_user_video ON user_video(user_id, video_id);
 
-2. Find by user_id + video_id:
-   - Uses prefix of idx_tags_user_video_tag
+-- User-Video table indexes
+-- Purpose: Optimize retrieval of videos for a specific user and vice versa
+CREATE INDEX IF NOT EXISTS idx_user_video_user_id ON user_video(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_video_video_id ON user_video(video_id);
 
-3. Find by user_id + tag:
-   - Uses idx_tags_user_tag
+-- User Tags table indexes
+-- Purpose: Fast lookup of tags by user and searching tags
+-- Get/Delete tags of a user
+CREATE INDEX IF NOT EXISTS idx_user_tags_user_id ON user_tags(user_id);
+-- Get/Delete user using a tag
+CREATE INDEX IF NOT EXISTS idx_user_tags_tag ON user_tags(tag);
+-- Get/Delete specific tag of a user
+CREATE INDEX IF NOT EXISTS idx_user_tags_user_tag ON user_tags(user_id, tag);
 
-4. Find by user_id + video_id + tag:
-   - Uses full idx_tags_user_video_tag
-
-5. Find videos by video_id (in user_videos):
-   - Uses idx_user_videos_video
-*/
+-- User Video Tag table indexes
+-- Get/Delete all tags&vids of user
+CREATE INDEX IF NOT EXISTS idx_user_video_tag_user_id ON user_video_tag(user_id);
+-- Get/Delete all tag&vids with vid for ALL user
+CREATE INDEX IF NOT EXISTS idx_user_video_tag_video_id ON user_video_tag(video_id);
+-- Get/Delete all tag&vids using tag for ALL user
+CREATE INDEX IF NOT EXISTS idx_user_video_tag_tag_id ON user_video_tag(tag_id);
+-- Get/Delete all tags used in specific video of a user
+CREATE INDEX IF NOT EXISTS idx_user_video_tag_video_user ON user_video_tag( user_id,video_id);
+-- Get/Delete all tag&vids using tag T of user U
+CREATE INDEX IF NOT EXISTS idx_user_video_tag_user_tag ON user_video_tag(user_id, tag_id);

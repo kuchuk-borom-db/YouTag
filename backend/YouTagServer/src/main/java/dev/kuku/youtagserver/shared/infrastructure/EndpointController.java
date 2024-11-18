@@ -230,6 +230,9 @@ class VideoTagController extends BaseController {
         }
     }
 
+    /**
+     * Get all or tags containing certain words
+     */
     @GetMapping("/")
     ResponseEntity<ResponseModel<List<String>>> getAllTagsOfUser(
             @RequestParam(required = false, defaultValue = "0") int skip,

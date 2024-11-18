@@ -51,3 +51,14 @@ Endpoints:-
 1. Get all videos of current user
 2. Get all videos with tags T1,T2,T3 of user
  */
+
+/*
+ * Operations we are going to have
+ * 1. Get videos of user (user_video table)
+ * 2. Get video info with tags (video table for info, user_video_tag table for tags)
+ * 3. Get videos using tag (user_video_tag table)
+ * 4. Get tags containing certain word (tags table)
+ * 5. Get tags of user (tags table)
+ * 6. get tags of a video (user_video_tag table)
+ * 7. Get videos with similar title (video table and user_video table)
+ */
