@@ -173,7 +173,7 @@ class VideoTagController extends BaseController {
     @PostMapping("/{videoId}")
     ResponseEntity<Object> addTagsToVideo(
             @PathVariable String videoId,
-            @RequestParam(required = false) String tagRaw
+            @RequestParam(value = "tags", required = false) String tagRaw
     ) throws InvalidVideoId, VideoAlreadyExists, NoAuthenticatedYouTagUser {
         log.debug("Adding tags {} to video {}", tagRaw, videoId);
         String userId = getCurrentUserId();
