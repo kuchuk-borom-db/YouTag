@@ -15,7 +15,7 @@ import java.util.Arrays;
 
 @EnableWebSecurity
 @Configuration
-class Config {
+class  Config {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationProvider jwtAuthenticationProvider) throws Exception {
