@@ -1,5 +1,6 @@
 package dev.kuku.youtagserver.tag.application;
 
+import dev.kuku.youtagserver.shared.constants.DbConst;
 import dev.kuku.youtagserver.tag.api.dtos.TagDTO;
 import dev.kuku.youtagserver.tag.api.events.*;
 import dev.kuku.youtagserver.tag.api.exceptions.TagDTOHasNullValues;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,9 +29,13 @@ public class TagServiceImpl implements TagService {
     private final ApplicationEventPublisher eventPublisher;
     private final Map<String, List<TagDTO>> cache = new ConcurrentHashMap<>();
 
-    private String generateCacheKey(String userId, List<String> videos, List<String> tags, int skip, int limit) {
-        return userId + ":" + (videos != null ? videos.toString() : "") + ":" +
-                (tags != null ? tags.toString() : "") + ":" + skip + ":" + limit;
+    private String generateCacheKey(String userId, List<String> videos, List<String> tags, int skip, int limit, String containing) {
+        return userId + ":" +
+                (videos != null ? videos.toString() : "") + ":" +
+                (tags != null ? tags.toString() : "") + ":" +
+                skip + ":" +
+                limit + ":" +
+                (containing != null ? containing : "");
     }
 
     private void evictCache(String userId) {
@@ -79,11 +85,22 @@ public class TagServiceImpl implements TagService {
     @Override
     public List<TagDTO> getAllTagsOfUser(String userId, int skip, int limit) {
         log.debug("Getting tags of user {} skip {} and limit {}", userId, skip, limit);
-        String cacheKey = generateCacheKey(userId, null, null, skip, limit);
+        String cacheKey = generateCacheKey(userId, null, null, skip, limit, null);
 
         return cache.computeIfAbsent(cacheKey, _ -> {
             int pageNum = skip / limit;
-            List<Tag> tags = repo.findAllByUserId(userId, PageRequest.of(pageNum, limit));
+            List<Tag> tags = repo.findAllByUserId(userId, PageRequest.of(pageNum, limit), Sort.by(DbConst.Tag.TAG).descending());
+            return toDtoList(tags);
+        });
+    }
+
+    @Override
+    public List<TagDTO> getAllTagsOfUserContaining(String userId, String containing, int skip, int limit) {
+        log.debug("Getting tags containing {} for user {}. Skipping {} and Limit {}", containing, userId, skip, limit);
+        String cacheKey = generateCacheKey(userId, null, null, skip, limit, containing);
+        return cache.computeIfAbsent(cacheKey, _ -> {
+            int pageNum = skip / limit;
+            List<Tag> tags = repo.findAllByUserIdAndTagContaining(userId, containing, PageRequest.of(pageNum, limit), Sort.by(DbConst.Tag.TAG).descending());
             return toDtoList(tags);
         });
     }
@@ -91,7 +108,7 @@ public class TagServiceImpl implements TagService {
     @Override
     public List<TagDTO> getTagsOfVideo(String userId, String videoId) {
         log.debug("Getting tags of video {}", videoId);
-        String cacheKey = generateCacheKey(userId, Collections.singletonList(videoId), null, 0, 0);
+        String cacheKey = generateCacheKey(userId, Collections.singletonList(videoId), null, 0, 0, null);
 
         return cache.computeIfAbsent(cacheKey, _ -> {
             List<Tag> tags = repo.findAllByUserIdAndVideoId(userId, videoId);
@@ -102,7 +119,7 @@ public class TagServiceImpl implements TagService {
     @Override
     public List<TagDTO> getVideosWithTag(String userId, List<String> tags, int skip, int limit) {
         log.debug("Getting videos of user {} with tag {}, skipping {} and limit to {}", userId, tags, skip, limit);
-        String cacheKey = generateCacheKey(userId, null, tags, skip, limit);
+        String cacheKey = generateCacheKey(userId, null, tags, skip, limit, null);
         List<String> finalTags = validateAndProcessTags(tags);
         return cache.computeIfAbsent(cacheKey, _ -> {
             int pageNumber = skip / limit;

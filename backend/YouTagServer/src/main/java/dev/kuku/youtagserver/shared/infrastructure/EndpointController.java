@@ -233,15 +233,21 @@ class VideoTagController extends BaseController {
     @GetMapping("/")
     ResponseEntity<ResponseModel<List<String>>> getAllTagsOfUser(
             @RequestParam(required = false, defaultValue = "0") int skip,
-            @RequestParam(required = false, defaultValue = "10") int limit
+            @RequestParam(required = false, defaultValue = "10") int limit,
+            @RequestParam(required = false, value = "containing") String containing
     ) throws NoAuthenticatedYouTagUser {
-        log.debug("Getting all tags of user skip {} and limit {}", skip, limit);
+        log.debug("Getting all tags or containing {} of user skip {} and limit {}", containing, skip, limit);
         String userId = getCurrentUserId();
-        List<String> tags = tagService.getAllTagsOfUser(userId, skip, limit)
-                .stream()
+        List<TagDTO> tags;
+        if (containing == null || containing.isEmpty()) {
+            tags = tagService.getAllTagsOfUser(userId, skip, limit);
+        } else {
+            tags = tagService.getAllTagsOfUserContaining(userId, containing, skip, limit);
+        }
+
+        return ResponseEntity.ok(ResponseModel.build(tags.stream()
                 .map(TagDTO::getTag)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(ResponseModel.build(tags, null));
+                .toList(), null));
     }
 
     @GetMapping("/{videoId}")

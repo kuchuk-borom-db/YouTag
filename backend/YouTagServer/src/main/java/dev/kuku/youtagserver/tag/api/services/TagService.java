@@ -12,6 +12,8 @@ public interface TagService extends Service<Tag, TagDTO> {
 
     List<TagDTO> getAllTagsOfUser(String userId, int skip, int limit);
 
+    List<TagDTO> getAllTagsOfUserContaining(String userId, String containing, int skip, int limit);
+
     List<TagDTO> getTagsOfVideo(String userId, String videoId);
 
     List<TagDTO> getVideosWithTag(String userId, List<String> tags, int skip, int limit);
