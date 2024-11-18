@@ -52,6 +52,7 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
-//TODO Autocomplete for search fields
-//TODO Environment variables for url of server
-//TODO
+//TODO Show suggestions when adding tags to videos
+//TODO Add button to bulk select videos in home page for bulk tag adding or deleting. Make sure it supports multi page. Show selected videos in a scrollable list too
+//TODO Add option beside video widget to delete it or add tags to it using modal
+//TODO In Video Page add option to delete and add tags to it. Use common modal for deleting and tags for all of the mentioned todo
