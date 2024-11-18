@@ -1,6 +1,6 @@
 package dev.kuku.youtagserver.shared.application.event_listeners;
 
-import dev.kuku.youtagserver.tag.api.services.TagService;
+import dev.kuku.youtagserver.user_tag.api.services.TagService;
 import dev.kuku.youtagserver.user_video.api.events.LinkedVideoToUser;
 import dev.kuku.youtagserver.user_video.api.events.UnlinkedAllVideosFromUser;
 import dev.kuku.youtagserver.user_video.api.events.UnlinkedVideoFromUser;

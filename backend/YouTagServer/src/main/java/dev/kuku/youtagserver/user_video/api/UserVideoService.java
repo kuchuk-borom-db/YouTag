@@ -10,16 +10,20 @@ import java.util.List;
 
 public interface UserVideoService extends Service<UserVideo, UserVideoDTO> {
 
-    void linkVideoToUser(String userId, String videoId) throws UserVideoAlreadyLinked;
+    void saveVideoToUser(String userId, String videoId) throws UserVideoAlreadyLinked;
 
-    void unlinkVideoFromUser(String userId, String videoId) throws UserVideoNotFound;
+    void disconnectVidFromUser(String userId, String videoId) throws UserVideoNotFound;
 
-    void unlinkAllVideosFromUser(String userId);
+    void removeAllConnectionOfUser(String userId);
 
-    void unlinkVideoFromAllUsers(String videoId);
+    void removeConnectionFromAllUsers(String videoId);
 
-    List<UserVideoDTO> getVideosOfUser(String userId, int skip, int limit);
+    List<UserVideoDTO> getAllSavedVideosOfUser(String userId, int skip, int limit);
 
-    boolean isVideoLinkedWithUser(String userId, String videoId);
+    List<UserVideoDTO> getSavedVideosOfUser(String currentUser, List<String> videoIds);
+
+    boolean isVidSavedToUser(String userId, String videoId);
+
+    void removeSavedVideosFromUser(String currentUser, List<String> videoIds);
 
 }

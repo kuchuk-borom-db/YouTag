@@ -1,8 +1,8 @@
-package dev.kuku.youtagserver.tag.api.services;
+package dev.kuku.youtagserver.user_tag.api.services;
 
 import dev.kuku.youtagserver.shared.application.Service;
-import dev.kuku.youtagserver.tag.api.dtos.TagDTO;
-import dev.kuku.youtagserver.tag.domain.Tag;
+import dev.kuku.youtagserver.user_tag.api.dtos.TagDTO;
+import dev.kuku.youtagserver.user_tag.domain.Tag;
 
 import java.util.List;
 

@@ -1,21 +1,13 @@
 package dev.kuku.youtagserver.shared.infrastructure;
 
-import com.nimbusds.jose.JOSEException;
-import dev.kuku.youtagserver.auth.api.exceptions.InvalidOAuthRedirect;
 import dev.kuku.youtagserver.auth.api.exceptions.NoAuthenticatedYouTagUser;
 import dev.kuku.youtagserver.auth.api.services.AuthService;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
 import dev.kuku.youtagserver.shared.models.VideoInfoTagDTO;
-import dev.kuku.youtagserver.tag.api.dtos.TagDTO;
-import dev.kuku.youtagserver.tag.api.services.TagService;
-import dev.kuku.youtagserver.user.api.dto.UserDTO;
-import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
-import dev.kuku.youtagserver.user.api.exceptions.UserDTOHasNullValues;
-import dev.kuku.youtagserver.user.api.services.UserService;
-import dev.kuku.youtagserver.user_video.api.UserVideoDTO;
+import dev.kuku.youtagserver.user_tag.api.dtos.TagDTO;
+import dev.kuku.youtagserver.user_tag.api.services.TagService;
 import dev.kuku.youtagserver.user_video.api.UserVideoService;
 import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoAlreadyLinked;
-import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoNotFound;
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
@@ -32,9 +24,32 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+
+/**
+ * <h1>Endpoints</h1>
+ *
+ * <h2>Auth</h2>
+ * - Get google login link (public)
+ * - Get jwt token from request token (public)
+ * - Get user info
+ *
+ * <h2>Video</h2>
+ * - Save video(s) (to user)
+ * - Remove video(s) (from user)
+ * - Get all videos of user
+ * - Get all videos containing title "X" (of user) (For searching)
+ *
+ * <h2>Tags</h2>
+ * - Add tag(s) to saved video(s) (of user)
+ * - Remove tag(s) from video(s) (of user)
+ * - Remove all tags from video(s) (of user)
+ * - Remove tag(s) from All videos (of user)
+ * - Get videos with tag(s) (of user)
+ * - Get tags of video(s) (of user)
+ * - Get tags containing "X" (of user)
+ */
 
 @Slf4j
 @RequiredArgsConstructor
@@ -43,107 +58,6 @@ abstract class BaseController {
 
     protected String getCurrentUserId() throws NoAuthenticatedYouTagUser {
         return authService.getCurrentUser().email();
-    }
-}
-
-@RestController
-@RequestMapping("/api/public/auth")
-@RequiredArgsConstructor
-@Slf4j
-class PublicAuthController {
-    private final AuthService authService;
-
-    @GetMapping("/login/google")
-    ResponseEntity<ResponseModel<String>> getGoogleLogin() {
-        return ResponseEntity.ok(new ResponseModel<>(authService.getGoogleAuthorizationURL(), "Success"));
-    }
-
-    @GetMapping("/redirect/google")
-    ResponseEntity<ResponseModel<String>> googleRedirectEndpoint(
-            @RequestParam(required = false) String code,
-            @RequestParam(required = false) String state
-    ) throws InvalidOAuthRedirect, JOSEException {
-        log.debug("Redirect google oauth with state {} and code {}", state, code);
-
-        if (code == null || state == null) {
-            throw new InvalidOAuthRedirect("Invalid Google OAuth redirect because code and/or state is null");
-        }
-
-        var user = authService.getUserFromGoogleToken(code, state);
-        String token = authService.generateJwtTokenForUser(user.email(), new HashMap<>());
-
-        return ResponseEntity.ok(new ResponseModel<>(token, ""));
-    }
-}
-
-@RestController
-@RequestMapping("/api/authenticated/auth")
-@Slf4j
-class AuthenticatedAuthController extends BaseController {
-    private final UserService userService;
-
-    AuthenticatedAuthController(AuthService authService, UserService userService) {
-        super(authService);
-        this.userService = userService;
-    }
-
-    @GetMapping("/user")
-    ResponseEntity<ResponseModel<UserDTO>> getUserInfo() throws UserDTOHasNullValues, EmailNotFound, NoAuthenticatedYouTagUser {
-        String userId = getCurrentUserId();
-        log.debug("Getting user info {}", userId);
-        return ResponseEntity.ok(ResponseModel.build(userService.getUser(userId), ""));
-    }
-}
-
-@RestController
-@RequestMapping("/api/authenticated/video")
-@Slf4j
-class VideoController extends BaseController {
-    private final UserVideoService userVideoService;
-    private final VideoHelperService videoHelperService;
-
-    VideoController(
-            AuthService authService,
-            UserVideoService userVideoService,
-            VideoHelperService videoHelperService
-    ) {
-        super(authService);
-        this.userVideoService = userVideoService;
-        this.videoHelperService = videoHelperService;
-    }
-
-    @GetMapping("/")
-    ResponseEntity<ResponseModel<List<VideoInfoTagDTO>>> getVideosOfUser(
-            @RequestParam(value = "skip", defaultValue = "0") int skip,
-            @RequestParam(value = "limit", defaultValue = "10") int limit
-    ) throws NoAuthenticatedYouTagUser {
-        String userId = getCurrentUserId();
-        List<String> videoIds = userVideoService.getVideosOfUser(userId, skip, limit)
-                .stream()
-                .map(UserVideoDTO::videoId)
-                .toList();
-        return ResponseEntity.ok(ResponseModel.build(videoHelperService.createVideoInfoTagDTO(videoIds), null));
-    }
-
-    @GetMapping("/{id}")
-    ResponseEntity<ResponseModel<VideoInfoTagDTO>> getVideosOfUser(@PathVariable String id) throws NoAuthenticatedYouTagUser {
-        String userId = getCurrentUserId();
-        userVideoService.isVideoLinkedWithUser(userId, id);
-        return ResponseEntity.ok(ResponseModel.build(videoHelperService.createVideoInfoTagDTO(id), null));
-    }
-
-    @DeleteMapping("/{id}")
-    ResponseEntity<ResponseModel<Object>> deleteVideoOfUser(@PathVariable String id) throws NoAuthenticatedYouTagUser, UserVideoNotFound {
-        String userId = getCurrentUserId();
-        userVideoService.unlinkVideoFromUser(userId, id);
-        return ResponseEntity.ok(null);
-    }
-
-    @DeleteMapping("/")
-    ResponseEntity<Object> deleteAllVideosOfUser() throws NoAuthenticatedYouTagUser {
-        String userId = getCurrentUserId();
-        userVideoService.unlinkAllVideosFromUser(userId);
-        return ResponseEntity.ok(null);
     }
 }
 
@@ -187,7 +101,7 @@ class VideoTagController extends BaseController {
         }
 
         try {
-            userVideoService.linkVideoToUser(userId, videoId);
+            userVideoService.saveVideoToUser(userId, videoId);
         } catch (UserVideoAlreadyLinked e) {
             log.debug("Video already linked.");
         }

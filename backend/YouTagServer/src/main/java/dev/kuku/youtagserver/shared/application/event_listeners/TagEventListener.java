@@ -1,6 +1,6 @@
 package dev.kuku.youtagserver.shared.application.event_listeners;
 
-import dev.kuku.youtagserver.tag.api.events.*;
+import dev.kuku.youtagserver.user_tag.api.events.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;

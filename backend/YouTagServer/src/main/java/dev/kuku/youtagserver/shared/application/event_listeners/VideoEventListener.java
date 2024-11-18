@@ -1,6 +1,6 @@
 package dev.kuku.youtagserver.shared.application.event_listeners;
 
-import dev.kuku.youtagserver.tag.api.services.TagService;
+import dev.kuku.youtagserver.user_tag.api.services.TagService;
 import dev.kuku.youtagserver.user_video.api.UserVideoService;
 import dev.kuku.youtagserver.video.api.events.VideoAddedEvent;
 import dev.kuku.youtagserver.video.api.events.VideoDeletedEvent;
@@ -42,7 +42,7 @@ public class VideoEventListener {
     void on(VideoDeletedEvent event) {
         log.debug("Video Deleted Event : {}", event);
         log.debug("Deleting entries in user_video table with videoID {}", event.id());
-        userVideoService.unlinkVideoFromAllUsers(event.id());
+        userVideoService.removeConnectionFromAllUsers(event.id());
         log.debug("Deleting entries in tags table with videoID {}", event.id());
         tagService.deleteAllTagsOfAllUsersOfVideo(event.id());
     }

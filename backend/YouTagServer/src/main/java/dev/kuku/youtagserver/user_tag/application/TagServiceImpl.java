@@ -1,11 +1,11 @@
-package dev.kuku.youtagserver.tag.application;
+package dev.kuku.youtagserver.user_tag.application;
 
-import dev.kuku.youtagserver.tag.api.dtos.TagDTO;
-import dev.kuku.youtagserver.tag.api.events.*;
-import dev.kuku.youtagserver.tag.api.exceptions.TagDTOHasNullValues;
-import dev.kuku.youtagserver.tag.api.services.TagService;
-import dev.kuku.youtagserver.tag.domain.Tag;
-import dev.kuku.youtagserver.tag.infrastructure.TagRepo;
+import dev.kuku.youtagserver.user_tag.api.dtos.TagDTO;
+import dev.kuku.youtagserver.user_tag.api.events.*;
+import dev.kuku.youtagserver.user_tag.api.exceptions.TagDTOHasNullValues;
+import dev.kuku.youtagserver.user_tag.api.services.TagService;
+import dev.kuku.youtagserver.user_tag.domain.Tag;
+import dev.kuku.youtagserver.user_tag.infrastructure.TagRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

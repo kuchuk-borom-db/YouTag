@@ -67,10 +67,10 @@ public class UserVideoServiceImpl implements UserVideoService {
     }
 
     @Override
-    public void linkVideoToUser(String userId, String videoId) throws UserVideoAlreadyLinked {
+    public void saveVideoToUser(String userId, String videoId) throws UserVideoAlreadyLinked {
         log.debug("Attempting Linking Video {} -> {}", videoId, userId);
 
-        if (isVideoLinkedWithUser(userId, videoId)) {
+        if (isVidSavedToUser(userId, videoId)) {
             throw new UserVideoAlreadyLinked(userId, videoId);
         } else {
             log.debug("No existing link found. Proceeding to link...");
@@ -81,8 +81,8 @@ public class UserVideoServiceImpl implements UserVideoService {
     }
 
     @Override
-    public void unlinkVideoFromUser(String userId, String videoId) {
-        isVideoLinkedWithUser(userId, videoId);
+    public void disconnectVidFromUser(String userId, String videoId) {
+        isVidSavedToUser(userId, videoId);
         log.debug("Deleting link between {}->{}", userId, videoId);
         repo.deleteByUserIdAndVideoId(userId, videoId);
         evictCache(userId, videoId);
@@ -90,7 +90,7 @@ public class UserVideoServiceImpl implements UserVideoService {
     }
 
     @Override
-    public void unlinkAllVideosFromUser(String userId) {
+    public void removeAllConnectionOfUser(String userId) {
         log.debug("Unlinking All Videos from user {}", userId);
         repo.deleteByUserId(userId);
         evictCache(userId);
@@ -98,14 +98,14 @@ public class UserVideoServiceImpl implements UserVideoService {
     }
 
     @Override
-    public void unlinkVideoFromAllUsers(String videoId) {
+    public void removeConnectionFromAllUsers(String videoId) {
         log.debug("Unlinking video {} from all users", videoId);
         repo.deleteAllByVideoId(videoId);
         evictCache(videoId);
     }
 
     @Override
-    public List<UserVideoDTO> getVideosOfUser(String userId, int skip, int limit) {
+    public List<UserVideoDTO> getAllSavedVideosOfUser(String userId, int skip, int limit) {
         log.debug("Getting videos of user {}, skipping {} and limit {}", userId, skip, limit);
         String cacheKey = generateVideoListCacheKey(userId, skip, limit);
 
@@ -118,16 +118,10 @@ public class UserVideoServiceImpl implements UserVideoService {
     }
 
     @Override
-    public boolean isVideoLinkedWithUser(String userId, String videoId) {
+    public boolean isVidSavedToUser(String userId, String videoId) {
         log.debug("Getting video with userID {} and videoID {}", userId, videoId);
         String cacheKey = generateLinkExistsCacheKey(userId, videoId);
-
-        return linkExistsCache.computeIfAbsent(cacheKey, _ -> {
-            var video = repo.getByUserIdAndVideoId(userId, videoId);
-            boolean exists = video != null;
-            log.debug("Found video link exists: {}", exists);
-            return exists;
-        });
+        return linkExistsCache.containsKey(cacheKey);
     }
 
     @Override

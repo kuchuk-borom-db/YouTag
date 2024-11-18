@@ -1,6 +1,6 @@
-package dev.kuku.youtagserver.tag.api.dtos;
+package dev.kuku.youtagserver.user_tag.api.dtos;
 
-import dev.kuku.youtagserver.tag.api.exceptions.TagDTOHasNullValues;
+import dev.kuku.youtagserver.user_tag.api.exceptions.TagDTOHasNullValues;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
