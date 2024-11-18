@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:frontend/services/service_video.dart';
 import 'package:go_router/go_router.dart';
 
@@ -36,6 +37,11 @@ class _PageHomeState extends State<PageHome>
   int currentPage = 1;
   final int limit = 2;
 
+  // Extract tags into class variable
+  Set<String> availableTags = <String>{};
+  List<String> tagSuggestions = [];
+  bool _showSuggestions = false;
+
   @override
   void initState() {
     super.initState();
@@ -48,8 +54,16 @@ class _PageHomeState extends State<PageHome>
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
 
+    _tagsController.addListener(_onTagInput);
+
     _controller.forward();
     _loadVideos();
+  }
+
+  void _updateAvailableTags() {
+    availableTags = Set<String>.from(
+      videos.expand((video) => video.tags),
+    );
   }
 
   Future<void> _loadVideos() async {
@@ -74,7 +88,7 @@ class _PageHomeState extends State<PageHome>
       setState(() {
         if (newVideos.isEmpty) {
           if (currentPage > 1) {
-            currentPage--; // Go back to previous page if we've gone too far
+            currentPage--;
             noMoreVideosMessage = 'End of videos reached';
           } else {
             noMoreVideosMessage = 'No videos available';
@@ -85,12 +99,77 @@ class _PageHomeState extends State<PageHome>
         }
         isLoading = false;
       });
+
+      _updateAvailableTags(); // Update available tags after loading videos
     } catch (e) {
       setState(() {
         error = e.toString();
         isLoading = false;
       });
     }
+  }
+  void _onTagInput() {
+    final String input = _tagsController.text;
+    if (input.isEmpty) {
+      setState(() {
+        tagSuggestions = [];
+        _showSuggestions = false;
+      });
+      return;
+    }
+
+    // Get the current tag being typed (after the last comma)
+    final String currentTag = input.split(',').last.trim().toLowerCase();
+
+    if (currentTag.isEmpty) {
+      setState(() {
+        tagSuggestions = [];
+        _showSuggestions = false;
+      });
+      return;
+    }
+
+    // Filter suggestions based on the current input
+    setState(() {
+      tagSuggestions = availableTags
+          .where((tag) => tag.toLowerCase().startsWith(currentTag))
+          .toList()
+        ..sort();
+      _showSuggestions = tagSuggestions.isNotEmpty;
+    });
+  }
+
+  void _selectSuggestion(String suggestion) {
+    final currentTags = _tagsController.text.split(',');
+    currentTags.removeLast(); // Remove the partial tag
+    currentTags.add(suggestion); // Add the selected suggestion
+
+    final newText = currentTags.where((tag) => tag.isNotEmpty).join(', ');
+    _tagsController.value = TextEditingValue(
+      text: newText.isEmpty ? suggestion : '$newText, ',
+      selection: TextSelection.collapsed(
+        offset: (newText.isEmpty ? suggestion : '$newText, ').length,
+      ),
+    );
+
+    setState(() {
+      _showSuggestions = false;
+    });
+  }
+
+  // Tag validation function
+  bool _isValidTag(String tag) {
+    // Only allow alphanumeric characters and hyphens, no spaces
+    final RegExp validTagRegex = RegExp(r'^[a-zA-Z0-9-]+$');
+    return validTagRegex.hasMatch(tag);
+  }
+
+  List<String> _validateAndFormatTags(String input) {
+    return input
+        .split(',')
+        .map((tag) => tag.trim())
+        .where((tag) => tag.isNotEmpty && _isValidTag(tag))
+        .toList();
   }
 
   void _showModal() {
@@ -102,14 +181,14 @@ class _PageHomeState extends State<PageHome>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.redAccent,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
             return Container(
               height: MediaQuery.of(context).size.height * 0.8,
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: Colors.redAccent,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(20),
                   topRight: Radius.circular(20),
@@ -142,7 +221,6 @@ class _PageHomeState extends State<PageHome>
                     ),
                     const SizedBox(height: 24),
 
-                    // YouTube Link Input
                     TextField(
                       controller: _linkController,
                       decoration: InputDecoration(
@@ -167,19 +245,39 @@ class _PageHomeState extends State<PageHome>
                           borderRadius: BorderRadius.circular(8),
                         ),
                         prefixIcon: const Icon(Icons.tag),
+                        helperText: 'Use only letters, numbers, and hyphens',
+                        errorText: _tagsController.text.isNotEmpty &&
+                            !_validateAndFormatTags(_tagsController.text)
+                                .any((tag) => tag == _tagsController.text.split(',').last.trim())
+                            ? 'Invalid tag format'
+                            : null,
                       ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9-,]')),
+                      ],
                     ),
                     const SizedBox(height: 8),
 
-                    // Helper text for tags
-                    Text(
-                      'Example: music, tutorial, education',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 12,
+                    // Tag Suggestions
+                    if (_showSuggestions)
+                      Container(
+                        height: 100,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: tagSuggestions.length,
+                          itemBuilder: (context, index) {
+                            return ListTile(
+                              dense: true,
+                              title: Text(tagSuggestions[index]),
+                              onTap: () => _selectSuggestion(tagSuggestions[index]),
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
 
                     // Error message if any
                     if (_saveError != null)
@@ -343,10 +441,8 @@ class _PageHomeState extends State<PageHome>
   void dispose() {
     _controller.dispose();
     _tagsScrollController.dispose();
-
     _tagsController.dispose();
     _linkController.dispose();
-
     super.dispose();
   }
 
@@ -423,6 +519,7 @@ class _PageHomeState extends State<PageHome>
                     controller: _tagsScrollController,
                     scrollDirection: Axis.horizontal,
                     physics: const AlwaysScrollableScrollPhysics(),
+                    //TODO Extract these tags into a class level variable so that it can be used for save video modal tag suggestion
                     child: Row(
                       children: Set<String>.from(
                         videos.expand((video) => video.tags),
