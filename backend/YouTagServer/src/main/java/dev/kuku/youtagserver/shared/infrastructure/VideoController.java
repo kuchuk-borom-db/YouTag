@@ -27,7 +27,7 @@ import java.util.List;
  * - Save video(s) (to user)
  * - Remove video(s) (from user)
  * - Get all videos of user
- * - Get all videos containing title "X" (of user) (For searching)
+ * - Get all videos containing title "X" (of user) (For searching) LATER
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -146,7 +146,6 @@ public class VideoController {
                 videoInfoTagDTOS.add(new VideoInfoTagDTO(videoDTO, videoTags));
             } catch (VideoNotFound _) {
                 //TODO Store in a local list so that the saved video can be removed from user by event publishing
-                return;
             } catch (NoAuthenticatedYouTagUser _) {
                 //Can ignore. This should never happen as we already do this check at the start of the function.
             }
