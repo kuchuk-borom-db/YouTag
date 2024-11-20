@@ -2,7 +2,6 @@ package dev.kuku.youtagserver.user.application;
 
 import dev.kuku.youtagserver.user.api.dto.UserDTO;
 import dev.kuku.youtagserver.user.api.events.UserAddedEvent;
-import dev.kuku.youtagserver.user.api.events.UserDeletedEvent;
 import dev.kuku.youtagserver.user.api.events.UserUpdatedEvent;
 import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
 import dev.kuku.youtagserver.user.api.exceptions.InvalidUser;
@@ -66,7 +65,7 @@ public class UserServiceImpl implements UserService {
             throw new EmailNotFound(email);
         }
 
-        UserDTO userDTO = toDTO(user);
+        UserDTO userDTO = toDto(user);
         cache.put(cacheKey, userDTO);
         return userDTO;
     }
@@ -108,12 +107,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUser(String email) throws EmailNotFound, UserDTOHasNullValues {
-        getUser(email);
-        log.info("Delete user {}", email);
-        userRepo.deleteById(email);
-        evictCache(email); // Evict cached entry after deletion
-        eventPublisher.publishEvent(new UserDeletedEvent(email));
+    public void deleteUser(String email) {
+        //TODO
     }
 
     @Override
@@ -129,11 +124,12 @@ public class UserServiceImpl implements UserService {
                 || !dbUser.getThumbUrl().equals(userDTO.pic());
     }
 
-    private UserDTO toDTO(User user) {
-        return new UserDTO(user.getEmail(), user.getUsername(), user.getThumbUrl(), user.getUpdated());
-    }
-
     private User toEntity(UserDTO userDTO) {
         return new User(userDTO.email(), userDTO.name(), userDTO.pic(), userDTO.created());
+    }
+
+    @Override
+    public UserDTO toDto(User e) {
+        return new UserDTO(e.getEmail(), e.getUsername(), e.getThumbUrl(), e.getUpdated());
     }
 }

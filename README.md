@@ -2,7 +2,7 @@
 
 **Organize and Access Your Favorite YouTube Videos with Ease**
 
-YouTag is a personal video library tool designed to help you save, tag, and search YouTube videos effortlessly. By adding custom tags to each video, you can create a personalized catalog that simplifies finding the videos you want when you need them.
+YouTag is a personal video library tool designed to help you save, userTag, and search YouTube videos effortlessly. By adding custom userTags to each video, you can create a personalized catalog that simplifies finding the videos you want when you need them.
 
 ## Key Features
 
@@ -13,7 +13,7 @@ YouTag is a personal video library tool designed to help you save, tag, and sear
    Just paste a YouTube link to save a video to your library, making it quick and hassle-free.
 
 3. **Tag and Organize Videos**  
-   Add custom tags to each saved video, allowing you to categorize and label them according to your preferences. This makes searching for specific videos a breeze, even in a large collection.
+   Add custom userTags to each saved video, allowing you to categorize and label them according to your preferences. This makes searching for specific videos a breeze, even in a large collection.
 
 ## Benefits
 
@@ -21,7 +21,7 @@ YouTag is a personal video library tool designed to help you save, tag, and sear
   Say goodbye to endless scrolling. YouTag’s tagging system lets you sort and find your videos easily, tailored to your own organization style.
 
 - **Personalized Organization**  
-  Your tags are unique to you, providing a flexible way to categorize videos for study, work, entertainment, and more.
+  Your userTags are unique to you, providing a flexible way to categorize videos for study, work, entertainment, and more.
 
 - **Quick Access Anytime**  
   With YouTag, your favorite videos are just a search away, thanks to a fully customized tagging system.
@@ -39,14 +39,14 @@ YouTag is a personal video library tool designed to help you save, tag, and sear
 - [Getting Started](#getting-started)
 
 ### Overview
-YouTags is a platform that allows users to organize their YouTube videos using custom tags. Users can authenticate with their Google account, add YouTube videos to their collection, and manage them with personalized tags for better organization and searchability.
+YouTags is a platform that allows users to organize their YouTube videos using custom userTags. Users can authenticate with their Google account, add YouTube videos to their collection, and manage them with personalized userTags for better organization and searchability.
 
 ### Architecture
 The application follows a modular monolith architecture using Spring Modulith with clear boundaries between different domains:
 
 ```
 ├── auth          # Authentication and authorization
-├── tag           # Tag management
+├── userTag           # Tag management
 ├── user          # User management
 ├── video         # Video information
 ├── user_video    # User-video relationships
@@ -160,7 +160,7 @@ erDiagram
         varchar(255) id PK
         varchar(255) user_id FK
         varchar(255) video_id FK
-        varchar(255) tag
+        varchar(255) userTag
     }
 ```
 
@@ -180,15 +180,15 @@ The database schema includes carefully designed indexes for optimal query perfor
 
 3. **Tag Operations**:
    ```sql
-   create index idx_tags_user_video_tag on tags (user_id, video_id, tag);
-   create index idx_tags_user_tag ON tags (user_id, tag);
+   create index idx_tags_user_video_tag on userTags (user_id, video_id, userTag);
+   create index idx_tags_user_tag ON userTags (user_id, userTag);
    ```
 
 #### Index Coverage for Common Queries
 1. Find by user_id: Uses prefix of idx_tags_user_video_tag or idx_tags_user_tag
 2. Find by user_id + video_id: Uses prefix of idx_tags_user_video_tag
-3. Find by user_id + tag: Uses idx_tags_user_tag
-4. Find by user_id + video_id + tag: Uses full idx_tags_user_video_tag
+3. Find by user_id + userTag: Uses idx_tags_user_tag
+4. Find by user_id + video_id + userTag: Uses full idx_tags_user_video_tag
 5. Find videos by video_id: Uses idx_user_videos_video
 
 ### Authentication & Authorization

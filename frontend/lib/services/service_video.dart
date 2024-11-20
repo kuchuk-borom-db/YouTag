@@ -33,14 +33,14 @@ class ServiceVideo {
       List<ModelVideo> videos = [];
       for (var element in videosRAW) {
         var videoDTO = element['videoDTO'];
-        List<dynamic> tags = element["tags"];
+        List<dynamic> userTags = element["userTags"];
 
         String id = videoDTO['id'];
         String title = videoDTO['title'];
         String description = videoDTO['description'];
         String thumbnailUrl = videoDTO['thumbnail'];
         List<String> tagsList = [];
-        for (var t in tags) {
+        for (var t in userTags) {
           tagsList.add(t as String);
         }
 
@@ -48,7 +48,7 @@ class ServiceVideo {
             id: id,
             title: title,
             description: description,
-            tags: tagsList,
+            userTags: tagsList,
             thumbnailUrl: thumbnailUrl));
       }
       return videos;
@@ -56,15 +56,15 @@ class ServiceVideo {
     throw ExceptionResponse(response.body, response.statusCode);
   }
 
-  Future<bool> saveVideo(String videoId, List<String> tags) async {
+  Future<bool> saveVideo(String videoId, List<String> userTags) async {
     if (kDebugMode) {
-      print(("Saving video $videoId with tags $tags"));
+      print(("Saving video $videoId with userTags $userTags"));
     }
     final String? token = await storageService.getValue("token");
     if (token == null) throw ExceptionNoJwtTokenFound();
-    var finalUrl = '$_url/video-tag/$videoId';
-    if (tags.isNotEmpty) {
-      finalUrl = "$finalUrl?tags=${tags.join(",")}";
+    var finalUrl = '$_url/video-userTag/$videoId';
+    if (userTags.isNotEmpty) {
+      finalUrl = "$finalUrl?userTags=${userTags.join(",")}";
     }
 
     var response = await http

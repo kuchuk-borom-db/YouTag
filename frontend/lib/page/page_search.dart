@@ -23,7 +23,7 @@ class PageSearch extends StatefulWidget {
 }
 
 class _PageSearchState extends State<PageSearch> with TickerProviderStateMixin {
-  late final List<String> tags;
+  late final List<String> userTags;
   late final List<String> titles;
   late final List<String> ids;
   final TextEditingController _tagController = TextEditingController();
@@ -41,7 +41,7 @@ class _PageSearchState extends State<PageSearch> with TickerProviderStateMixin {
       title: 'Search Result ${index + 1}: Amazing Discovery',
       description: 'This is a placeholder description for video ${index + 1}',
       thumbnailUrl: 'https://picsum.photos/seed/${index + 100}/300/200',
-      tags: ['nature', 'adventure', 'discovery'],
+      userTags: ['nature', 'adventure', 'discovery'],
     ),
   );
 
@@ -52,7 +52,7 @@ class _PageSearchState extends State<PageSearch> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     // Initialize lists with initial values
-    tags = List.from(widget.initialTags);
+    userTags = List.from(widget.initialTags);
     titles = List.from(widget.initialTitles);
     ids = List.from(widget.initialIds);
 
@@ -89,7 +89,7 @@ class _PageSearchState extends State<PageSearch> with TickerProviderStateMixin {
 
   void _updateUrl() {
     final queryParams = <String, String>{};
-    if (tags.isNotEmpty) queryParams['tags'] = tags.join(',');
+    if (userTags.isNotEmpty) queryParams['userTags'] = userTags.join(',');
     if (titles.isNotEmpty) queryParams['titles'] = titles.join(',');
     if (ids.isNotEmpty) queryParams['ids'] = ids.join(',');
 
@@ -180,9 +180,9 @@ class _PageSearchState extends State<PageSearch> with TickerProviderStateMixin {
                         // Tags Field
                         _buildSearchField(
                           'Tags',
-                          'Add tags to search',
+                          'Add userTags to search',
                           _tagController,
-                          tags,
+                          userTags,
                           Icons.local_offer_outlined,
                         ),
                         const SizedBox(height: 16),
@@ -334,7 +334,7 @@ class _PageSearchState extends State<PageSearch> with TickerProviderStateMixin {
                                       Uri.encodeComponent(video.thumbnailUrl),
                                   'description':
                                       Uri.encodeComponent(video.description),
-                                  'tags': video.tags.join(','),
+                                  'userTags': video.userTags.join(','),
                                 };
 
                                 final queryString =

@@ -132,9 +132,9 @@ class ConfigRouter {
                     state.uri.queryParameters['thumbnailUrl'] ?? ''),
                 description: Uri.decodeComponent(
                     state.uri.queryParameters['description'] ?? ''),
-                tags: (state.uri.queryParameters['tags'] ?? '')
+                userTags: (state.uri.queryParameters['userTags'] ?? '')
                     .split(',')
-                    .where((tag) => tag.isNotEmpty)
+                    .where((userTag) => userTag.isNotEmpty)
                     .toList(),
               );
             } catch (e) {
@@ -160,9 +160,9 @@ class ConfigRouter {
         path: '/search',
         builder: (context, state) {
           final params = state.uri.queryParameters;
-          final tags = params['tags']
+          final userTags = params['userTags']
                   ?.split(',')
-                  .where((tag) => tag.isNotEmpty)
+                  .where((userTag) => userTag.isNotEmpty)
                   .toList() ??
               [];
           final titles = params['titles']
@@ -175,10 +175,10 @@ class ConfigRouter {
                   [];
 
           return PageSearch(
-            initialTags: tags,
+            initialTags: userTags,
             initialTitles: titles,
             initialIds: ids,
-            autoSearch: tags.isNotEmpty || titles.isNotEmpty || ids.isNotEmpty,
+            autoSearch: userTags.isNotEmpty || titles.isNotEmpty || ids.isNotEmpty,
           );
         },
       ),

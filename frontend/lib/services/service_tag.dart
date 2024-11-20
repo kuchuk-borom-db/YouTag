@@ -8,14 +8,14 @@ import 'package:http/http.dart' as http;
 import '../util/constants.dart';
 
 class ServiceTag {
-  final _url = '${Constants.serverUrl}/authenticated/video-tag/';
+  final _url = '${Constants.serverUrl}/authenticated/video-userTag/';
   final ServiceStorage storageService = getIt<ServiceStorage>();
 
   Future<List<String>?> getTags(int skip, int limit,
       {String containing = ""}) async {
     if (kDebugMode) {
       print(
-          "Getting all tags or containing $containing with skip $skip and limit $limit");
+          "Getting all userTags or containing $containing with skip $skip and limit $limit");
     }
     String? token = await storageService.getValue("token");
     if (token == null) {

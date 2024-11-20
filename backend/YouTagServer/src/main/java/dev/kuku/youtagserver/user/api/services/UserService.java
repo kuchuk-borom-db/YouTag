@@ -1,12 +1,14 @@
 package dev.kuku.youtagserver.user.api.services;
 
+import dev.kuku.youtagserver.shared.application.Service;
 import dev.kuku.youtagserver.user.api.dto.UserDTO;
 import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
 import dev.kuku.youtagserver.user.api.exceptions.InvalidUser;
 import dev.kuku.youtagserver.user.api.exceptions.UserAlreadyExists;
 import dev.kuku.youtagserver.user.api.exceptions.UserDTOHasNullValues;
+import dev.kuku.youtagserver.user.domain.User;
 
-public interface UserService {
+public interface UserService extends Service<User, UserDTO> {
     UserDTO getUser(String email) throws EmailNotFound, UserDTOHasNullValues;
 
     void addUser(String email, String name, String thumbnail) throws UserAlreadyExists, InvalidUser;

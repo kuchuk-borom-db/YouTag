@@ -37,7 +37,7 @@ class _PageHomeState extends State<PageHome>
   int currentPage = 1;
   final int limit = 2;
 
-  // Extract tags into class variable
+  // Extract userTags into class variable
   Set<String> availableTags = <String>{};
   List<String> tagSuggestions = [];
   bool _showSuggestions = false;
@@ -62,7 +62,7 @@ class _PageHomeState extends State<PageHome>
 
   void _updateAvailableTags() {
     availableTags = Set<String>.from(
-      videos.expand((video) => video.tags),
+      videos.expand((video) => video.userTags),
     );
   }
 
@@ -100,7 +100,7 @@ class _PageHomeState extends State<PageHome>
         isLoading = false;
       });
 
-      _updateAvailableTags(); // Update available tags after loading videos
+      _updateAvailableTags(); // Update available userTags after loading videos
     } catch (e) {
       setState(() {
         error = e.toString();
@@ -118,7 +118,7 @@ class _PageHomeState extends State<PageHome>
       return;
     }
 
-    // Get the current tag being typed (after the last comma)
+    // Get the current userTag being typed (after the last comma)
     final String currentTag = input.split(',').last.trim().toLowerCase();
 
     if (currentTag.isEmpty) {
@@ -132,7 +132,7 @@ class _PageHomeState extends State<PageHome>
     // Filter suggestions based on the current input
     setState(() {
       tagSuggestions = availableTags
-          .where((tag) => tag.toLowerCase().startsWith(currentTag))
+          .where((userTag) => userTag.toLowerCase().startsWith(currentTag))
           .toList()
         ..sort();
       _showSuggestions = tagSuggestions.isNotEmpty;
@@ -141,10 +141,10 @@ class _PageHomeState extends State<PageHome>
 
   void _selectSuggestion(String suggestion) {
     final currentTags = _tagsController.text.split(',');
-    currentTags.removeLast(); // Remove the partial tag
+    currentTags.removeLast(); // Remove the partial userTag
     currentTags.add(suggestion); // Add the selected suggestion
 
-    final newText = currentTags.where((tag) => tag.isNotEmpty).join(', ');
+    final newText = currentTags.where((userTag) => userTag.isNotEmpty).join(', ');
     _tagsController.value = TextEditingValue(
       text: newText.isEmpty ? suggestion : '$newText, ',
       selection: TextSelection.collapsed(
@@ -158,17 +158,17 @@ class _PageHomeState extends State<PageHome>
   }
 
   // Tag validation function
-  bool _isValidTag(String tag) {
+  bool _isValidTag(String userTag) {
     // Only allow alphanumeric characters and hyphens, no spaces
     final RegExp validTagRegex = RegExp(r'^[a-zA-Z0-9-]+$');
-    return validTagRegex.hasMatch(tag);
+    return validTagRegex.hasMatch(userTag);
   }
 
   List<String> _validateAndFormatTags(String input) {
     return input
         .split(',')
-        .map((tag) => tag.trim())
-        .where((tag) => tag.isNotEmpty && _isValidTag(tag))
+        .map((userTag) => userTag.trim())
+        .where((userTag) => userTag.isNotEmpty && _isValidTag(userTag))
         .toList();
   }
 
@@ -240,16 +240,16 @@ class _PageHomeState extends State<PageHome>
                       decoration: InputDecoration(
                         fillColor: Colors.amberAccent,
                         labelText: 'Tags',
-                        hintText: 'Enter tags separated by commas',
+                        hintText: 'Enter userTags separated by commas',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        prefixIcon: const Icon(Icons.tag),
+                        prefixIcon: const Icon(Icons.userTag),
                         helperText: 'Use only letters, numbers, and hyphens',
                         errorText: _tagsController.text.isNotEmpty &&
                             !_validateAndFormatTags(_tagsController.text)
-                                .any((tag) => tag == _tagsController.text.split(',').last.trim())
-                            ? 'Invalid tag format'
+                                .any((userTag) => userTag == _tagsController.text.split(',').last.trim())
+                            ? 'Invalid userTag format'
                             : null,
                       ),
                       inputFormatters: [
@@ -322,17 +322,17 @@ class _PageHomeState extends State<PageHome>
                                   return;
                                 }
 
-                                // Process tags
-                                final tags = _tagsController.text
+                                // Process userTags
+                                final userTags = _tagsController.text
                                     .split(',')
-                                    .map((tag) => tag.trim())
-                                    .where((tag) => tag.isNotEmpty)
+                                    .map((userTag) => userTag.trim())
+                                    .where((userTag) => userTag.isNotEmpty)
                                     .toList();
 
-                                if (tags.isEmpty) {
+                                if (userTags.isEmpty) {
                                   setModalState(() {
                                     _saveError =
-                                        'Please enter at least one tag';
+                                        'Please enter at least one userTag';
                                     _isSaving = false;
                                   });
                                   return;
@@ -340,7 +340,7 @@ class _PageHomeState extends State<PageHome>
 
                                 try {
                                   var success = await videoService.saveVideo(
-                                      videoId, tags);
+                                      videoId, userTags);
 
                                   if (success) {
                                     setModalState(() {
@@ -519,12 +519,12 @@ class _PageHomeState extends State<PageHome>
                     controller: _tagsScrollController,
                     scrollDirection: Axis.horizontal,
                     physics: const AlwaysScrollableScrollPhysics(),
-                    //TODO Extract these tags into a class level variable so that it can be used for save video modal tag suggestion
+                    //TODO Extract these userTags into a class level variable so that it can be used for save video modal userTag suggestion
                     child: Row(
                       children: Set<String>.from(
-                        videos.expand((video) => video.tags),
+                        videos.expand((video) => video.userTags),
                       )
-                          .map((tag) => Padding(
+                          .map((userTag) => Padding(
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 8,
                                   horizontal: 4,
@@ -540,7 +540,7 @@ class _PageHomeState extends State<PageHome>
                                         vertical: 6,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.primaries[tag.hashCode %
+                                        color: Colors.primaries[userTag.hashCode %
                                             Colors.primaries.length][100],
                                         borderRadius: BorderRadius.circular(20),
                                         boxShadow: [
@@ -552,9 +552,9 @@ class _PageHomeState extends State<PageHome>
                                         ],
                                       ),
                                       child: Text(
-                                        tag,
+                                        userTag,
                                         style: TextStyle(
-                                          color: Colors.primaries[tag.hashCode %
+                                          color: Colors.primaries[userTag.hashCode %
                                               Colors.primaries.length][900],
                                           fontWeight: FontWeight.w500,
                                         ),

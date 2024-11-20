@@ -53,8 +53,8 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-//TODO Show suggestions when adding tags to videos
-//TODO Add button to bulk select videos in home page for bulk tag adding or deleting. Make sure it supports multi page. Show selected videos in a scrollable list too :
-//TODO Add option beside video widget to delete it or add tags to it using modal
-//TODO In Video Page add option to delete and add tags to it. Use common modal for deleting and tags for all of the mentioned todo
-//TODO Get all tags of user and view as a list in homepage
+//TODO Show suggestions when adding userTags to videos
+//TODO Add button to bulk select videos in home page for bulk userTag adding or deleting. Make sure it supports multi page. Show selected videos in a scrollable list too :
+//TODO Add option beside video widget to delete it or add userTags to it using modal
+//TODO In Video Page add option to delete and add userTags to it. Use common modal for deleting and userTags for all of the mentioned todo
+//TODO Get all userTags of user and view as a list in homepage

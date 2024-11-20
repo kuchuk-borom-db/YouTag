@@ -20,6 +20,9 @@ public class DbConst {
     public static class CommonColumn {
         public static final String ID = "id";
         public static final String UPDATED = "updated";
+        public static final String USER_ID = "user_id";
+        public static final String VIDEO_ID = "video_id";
+        public static final String TAG_ID = "tag_id";
 
     }
 
@@ -30,10 +33,14 @@ public class DbConst {
     }
 
 
-    public static class Tag {
-        public static final String TABLE_NAME = "tags";
+    public static class UserTag {
+        public static final String TABLE_NAME = "user_tag";
         public static final String USER_ID = "user_id";
         public static final String VIDEO_ID = "video_id";
         public static final String TAG = "tag";
+    }
+
+    public static class UserVideoTag {
+        public static final String TABLE_NAME = "user_video_tag";
     }
 }

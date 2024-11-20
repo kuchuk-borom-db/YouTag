@@ -23,7 +23,7 @@
     <scm>
         <connection/>
         <developerConnection/>
-        <tag/>
+        <userTag/>
         <url/>
     </scm>
     <properties>

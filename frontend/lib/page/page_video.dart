@@ -131,7 +131,7 @@ class _PageVideoState extends State<PageVideo>
                       child: Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: widget.video.tags.map((tag) {
+                        children: widget.video.userTags.map((userTag) {
                           return Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
@@ -145,7 +145,7 @@ class _PageVideoState extends State<PageVideo>
                               ),
                             ),
                             child: Text(
-                              '#$tag',
+                              '#$userTag',
                               style: const TextStyle(
                                 color: Colors.red,
                                 fontWeight: FontWeight.w500,

@@ -3,8 +3,6 @@ package dev.kuku.youtagserver.user_video.application;
 import dev.kuku.youtagserver.user_video.api.UserVideoDTO;
 import dev.kuku.youtagserver.user_video.api.UserVideoService;
 import dev.kuku.youtagserver.user_video.api.events.LinkedVideoToUser;
-import dev.kuku.youtagserver.user_video.api.events.UnlinkedAllVideosFromUser;
-import dev.kuku.youtagserver.user_video.api.events.UnlinkedVideoFromUser;
 import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoAlreadyLinked;
 import dev.kuku.youtagserver.user_video.domain.UserVideo;
 import dev.kuku.youtagserver.user_video.infrastructure.UserVideoRepo;
@@ -81,40 +79,32 @@ public class UserVideoServiceImpl implements UserVideoService {
     }
 
     @Override
-    public void disconnectVidFromUser(String userId, String videoId) {
-        isVidSavedToUser(userId, videoId);
-        log.debug("Deleting link between {}->{}", userId, videoId);
-        repo.deleteByUserIdAndVideoId(userId, videoId);
-        evictCache(userId, videoId);
-        eventPublisher.publishEvent(new UnlinkedVideoFromUser(userId, videoId));
+    public void saveVideosToUser(String userId, List<String> videoIds) {
+
     }
 
     @Override
-    public void removeAllConnectionOfUser(String userId) {
-        log.debug("Unlinking All Videos from user {}", userId);
-        repo.deleteByUserId(userId);
-        evictCache(userId);
-        eventPublisher.publishEvent(new UnlinkedAllVideosFromUser(userId));
+    public void removeSavedVideosFromUser(String userId, List<String> videoIds) {
+
     }
 
     @Override
-    public void removeConnectionFromAllUsers(String videoId) {
-        log.debug("Unlinking video {} from all users", videoId);
-        repo.deleteAllByVideoId(videoId);
-        evictCache(videoId);
-    }
-
-    @Override
-    public List<UserVideoDTO> getAllSavedVideosOfUser(String userId, int skip, int limit) {
+    public List<String> getAllSavedVideosOfUser(String userId, int skip, int limit) {
         log.debug("Getting videos of user {}, skipping {} and limit {}", userId, skip, limit);
         String cacheKey = generateVideoListCacheKey(userId, skip, limit);
 
-        return videosCache.computeIfAbsent(cacheKey, _ -> {
+        List<UserVideoDTO> savedDtos = videosCache.computeIfAbsent(cacheKey, _ -> {
             int pageNumber = skip / limit;
             List<UserVideo> videos = repo.getAllByUserId(userId, PageRequest.of(pageNumber, limit));
             log.debug("Found {} videos of user {}", videos, userId);
             return videos.stream().map(this::toDto).toList();
         });
+        return savedDtos.stream().map(UserVideoDTO::videoId).toList();
+    }
+
+    @Override
+    public List<String> getSavedVideosOfUser(String userId, List<String> videoIds) {
+        return List.of();
     }
 
     @Override
@@ -122,6 +112,11 @@ public class UserVideoServiceImpl implements UserVideoService {
         log.debug("Getting video with userID {} and videoID {}", userId, videoId);
         String cacheKey = generateLinkExistsCacheKey(userId, videoId);
         return linkExistsCache.containsKey(cacheKey);
+    }
+
+    @Override
+    public boolean doesTagsExistForVideos(String userId, List<String> tags, List<String> videoIds) {
+        return false;
     }
 
     @Override

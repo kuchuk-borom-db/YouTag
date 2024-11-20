@@ -33,7 +33,7 @@ class _WidgetVideoState extends State<WidgetVideo> {
             'title': widget.video.title,
             'thumbnail': widget.video.thumbnailUrl,
             'description': widget.video.description,
-            'tags': widget.video.tags.join(','),
+            'userTags': widget.video.userTags.join(','),
             // Join list into comma-separated string
           }).query;
 
@@ -109,8 +109,8 @@ class _WidgetVideoState extends State<WidgetVideo> {
                     child: Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: widget.video.tags
-                          .map((tag) => Container(
+                      children: widget.video.userTags
+                          .map((userTag) => Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
                                   vertical: 4,
@@ -120,7 +120,7 @@ class _WidgetVideoState extends State<WidgetVideo> {
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Text(
-                                  '#$tag',
+                                  '#$userTag',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 12,

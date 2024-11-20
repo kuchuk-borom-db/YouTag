@@ -1,6 +1,6 @@
 package dev.kuku.youtagserver.user_tag.infrastructure;
 
-import dev.kuku.youtagserver.user_tag.domain.Tag;
+import dev.kuku.youtagserver.user_tag.domain.UserTag;
 import dev.kuku.youtagserver.user_video.api.UserVideoDTO;
 import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoAlreadyLinked;
 import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoNotFound;
@@ -9,7 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
 
-public interface TagRepo extends CrudRepository<Tag, String> {
+public interface TagRepo extends CrudRepository<UserTag, String> {
     /*
     It is possible to have return type of delete as List to get a list of deleted items back.
      */
@@ -23,15 +23,15 @@ public interface TagRepo extends CrudRepository<Tag, String> {
 
     void deleteAllByVideoId(String videoId);
 
-    List<Tag> findAllByUserId(String userId, Pageable pageRequest);
+    List<UserTag> findAllByUserId(String userId, Pageable pageRequest);
 
-    List<Tag> findAllByUserIdAndTagIn(String userId, List<String> tags, Pageable of);
+    List<UserTag> findAllByUserIdAndTagIn(String userId, List<String> tags, Pageable of);
 
-    List<Tag> findAllByUserIdAndVideoId(String userId, String videoId);
+    List<UserTag> findAllByUserIdAndVideoId(String userId, String videoId);
 
-    List<Tag> findAllByVideoId(String videoId);
+    List<UserTag> findAllByVideoId(String videoId);
 
-    List<Tag> findAllByUserIdAndTagContaining(String userId, String tag, Pageable page);
+    List<UserTag> findAllByUserIdAndTagContaining(String userId, String tag, Pageable page);
 
 
 

@@ -2,11 +2,12 @@ package dev.kuku.youtagserver.shared.infrastructure;
 
 import dev.kuku.youtagserver.auth.api.exceptions.NoAuthenticatedYouTagUser;
 import dev.kuku.youtagserver.auth.api.services.AuthService;
+import dev.kuku.youtagserver.shared.events.UpdateVideoInfoOrder;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
 import dev.kuku.youtagserver.shared.models.VideoInfoTagDTO;
-import dev.kuku.youtagserver.user_video.api.UserVideoDTO;
 import dev.kuku.youtagserver.user_video.api.UserVideoService;
 import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoAlreadyLinked;
+import dev.kuku.youtagserver.user_video_tag.api.services.UserVideoTagService;
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
@@ -15,6 +16,7 @@ import dev.kuku.youtagserver.webscraper.api.exceptions.InvalidVideoId;
 import dev.kuku.youtagserver.webscraper.api.services.YoutubeScrapperService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,6 +41,7 @@ public class VideoController {
     private final AuthService authService;
     private final YoutubeScrapperService scrapperService;
     private final UserVideoTagService userVideoTagService;
+    private final ApplicationEventPublisher eventPublisher;
 
     private String getCurrentUser() throws NoAuthenticatedYouTagUser {
         return authService.getCurrentUser().email();
@@ -73,8 +76,7 @@ public class VideoController {
             } else {
                 //repo data is outdated and needs updating.
                 log.debug("Existing video found but requires updating. Updating....");
-                //TODO Use event dispatcher for this operation as it doesn't need to be updated instantly
-                videoService.updateVideo(new VideoDTO(videoId, scrappedVideoInfo.title(), scrappedVideoInfo.description(), scrappedVideoInfo.thumbnail()));
+                eventPublisher.publishEvent(new UpdateVideoInfoOrder(new VideoDTO(videoId, scrappedVideoInfo.title(), scrappedVideoInfo.description(), scrappedVideoInfo.thumbnail())));
             }
         } catch (VideoNotFound e) {
             //Existing video was not found in database.
@@ -120,29 +122,25 @@ public class VideoController {
      * @param videosRaw list of video infos to get. Will not be retrieved if it's not saved for user
      */
     @GetMapping("/")
-    ResponseEntity<ResponseModel<List<VideoInfoTagDTO>>> getAllSavedVideosOfUser(
-            @RequestParam(value = "skip", defaultValue = "0") int skip,
-            @RequestParam(value = "limit", defaultValue = "10") int limit,
-            @RequestParam(value = "videos", defaultValue = "") String videosRaw
-    ) throws NoAuthenticatedYouTagUser {
-        List<UserVideoDTO> userVideoDTOS;
+    ResponseEntity<ResponseModel<List<VideoInfoTagDTO>>> getAllSavedVideosOfUser(@RequestParam(value = "skip", defaultValue = "0") int skip, @RequestParam(value = "limit", defaultValue = "10") int limit, @RequestParam(value = "videos", defaultValue = "") String videosRaw) throws NoAuthenticatedYouTagUser {
+        List<String> savedVideoIdsOfUser;
         if (videosRaw == null || videosRaw.isEmpty()) {
             log.debug("Getting all saved video of user {}", getCurrentUser());
             //Get saved videos
-            userVideoDTOS = userVideoService.getAllSavedVideosOfUser(getCurrentUser(), skip, limit);
+            savedVideoIdsOfUser = userVideoService.getAllSavedVideosOfUser(getCurrentUser(), skip, limit);
         } else {
             log.debug("Getting videos {} saved for user {}", videosRaw, getCurrentUser());
             List<String> videoIds = Arrays.stream(videosRaw.split(",")).map(s -> s.trim().toLowerCase()).toList();
-            userVideoDTOS = userVideoService.getSavedVideosOfUser(getCurrentUser(), videoIds);
+            savedVideoIdsOfUser = userVideoService.getSavedVideosOfUser(getCurrentUser(), videoIds);
         }
 
         //Get info of the videos and tags, save them in a list and return it.
         List<VideoInfoTagDTO> videoInfoTagDTOS = new ArrayList<>();
-        userVideoDTOS.forEach(userVideoDTO -> {
+        savedVideoIdsOfUser.forEach(videoId -> {
             //Get info of the video
             try {
-                VideoDTO videoDTO = videoService.getVideoInfo(userVideoDTO.id());
-                List<String> videoTags = userVideoTagService.getTagsOfVideoOfUser(getCurrentUser(), videoDTO.getId());
+                VideoDTO videoDTO = videoService.getVideoInfo(videoId);
+                List<String> videoTags = userVideoTagService.getTagsOfSavedVideoOfUser(getCurrentUser(), videoDTO.getId());
                 videoInfoTagDTOS.add(new VideoInfoTagDTO(videoDTO, videoTags));
             } catch (VideoNotFound _) {
                 //TODO Store in a local list so that the saved video can be removed from user by event publishing

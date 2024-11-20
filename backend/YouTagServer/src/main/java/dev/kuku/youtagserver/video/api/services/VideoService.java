@@ -21,13 +21,4 @@ public interface VideoService extends Service<Video, VideoDTO> {
      * @throws VideoNotFound if video doesn't exist in repo
      */
     void updateVideo(VideoDTO video) throws VideoNotFound;
-
-    /**
-     * Delete a video from repo
-     *
-     * @param id id of the video to delete
-     * @throws VideoNotFound if video doesn't exist in repo
-     */
-    void deleteVideo(String id) throws VideoNotFound;
-
 }

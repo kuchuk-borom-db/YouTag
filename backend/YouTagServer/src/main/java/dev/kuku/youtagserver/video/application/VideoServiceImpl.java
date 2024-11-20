@@ -1,9 +1,8 @@
 package dev.kuku.youtagserver.video.application;
 
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
-import dev.kuku.youtagserver.video.api.events.VideoAddedEvent;
-import dev.kuku.youtagserver.video.api.events.VideoDeletedEvent;
-import dev.kuku.youtagserver.video.api.events.VideoUpdatedEvent;
+import dev.kuku.youtagserver.video.api.events.AddVideoEvent;
+import dev.kuku.youtagserver.video.api.events.UpdateVideoEvent;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
 import dev.kuku.youtagserver.video.api.services.VideoService;
@@ -86,7 +85,7 @@ public class VideoServiceImpl implements VideoService {
             );
             videoRepo.save(newVideo);
             evictCache(video.getId());
-            eventPublisher.publishEvent(new VideoAddedEvent(video));
+            eventPublisher.publishEvent(new AddVideoEvent(video));
         }
     }
 
@@ -112,26 +111,9 @@ public class VideoServiceImpl implements VideoService {
         log.debug("Updated video with id {} saved and cache evicted", video.getId());
 
         // Publish event for video update
-        eventPublisher.publishEvent(new VideoUpdatedEvent(video));
+        eventPublisher.publishEvent(new UpdateVideoEvent(video));
     }
 
-    @Override
-    public void deleteVideo(String id) throws VideoNotFound {
-        log.debug("Deleting video with id {}", id);
-
-        // Ensure video exists before deletion
-        getVideoInfo(id);
-
-        // Delete video entry
-        videoRepo.deleteById(id);
-
-        // Evict from cache
-        evictCache(id);
-        log.debug("Video with id {} deleted and removed from cache", id);
-
-        // Publish deletion event
-        eventPublisher.publishEvent(new VideoDeletedEvent(id));
-    }
 
     @Override
     public VideoDTO toDto(Video e) {
