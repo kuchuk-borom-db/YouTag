@@ -1,6 +1,7 @@
 package dev.kuku.youtagserver.user_tag.application;
 
 import dev.kuku.youtagserver.user_tag.api.dtos.UserTagDTO;
+import dev.kuku.youtagserver.user_tag.api.events.TagsAddedForUser;
 import dev.kuku.youtagserver.user_tag.api.exceptions.TagDTOHasNullValues;
 import dev.kuku.youtagserver.user_tag.api.services.UserTagService;
 import dev.kuku.youtagserver.user_tag.domain.UserTag;
@@ -8,12 +9,14 @@ import dev.kuku.youtagserver.user_tag.infrastructure.TagRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -60,15 +63,33 @@ public class UserTagServiceImpl implements UserTagService {
                 .collect(Collectors.toList());
     }
 
-    private List<String> validateAndProcessTags(List<String> tags) {
-        return tags.stream()
-                .map(String::trim)
-                .map(String::toLowerCase)
-                .collect(Collectors.toList());
+    @Override
+    public void addTagsToUser(String userId, List<String> tags) {
+        /*
+        Only add tags that are missing.
+         */
+        log.debug("Adding tags to user {}", userId);
+        List<String> existingTags = repo.findAllByUserIdAndTagIn(userId, tags)
+                .stream()
+                .map(UserTag::getTag)
+                .toList();
+
+        List<UserTag> missingTags = tags.stream()
+                .filter(t -> !existingTags.contains(t))
+                .map(t -> new UserTag(UUID.randomUUID().toString(), t, userId)).toList();
+        log.debug("Tags missing from user {} -> {}", userId, missingTags);
+        repo.saveAll(missingTags);
+        eventPublisher.publishEvent(new TagsAddedForUser(userId, missingTags));
     }
 
     @Override
     public List<String> getAllTagsOfUser(String userId, int skip, int limit) {
-        //TODO complete
+        log.debug("Getting all tags of user {}", userId);
+        int pageNumber = skip / limit;
+        List<String> userTags = repo.findAllByUserId(userId, PageRequest.of(pageNumber, limit))
+                .stream()
+                .map(UserTag::getTag).toList();
+        log.debug("Tags retrieved for user {} is {}", userId, userTags);
+        return userTags;
     }
 }

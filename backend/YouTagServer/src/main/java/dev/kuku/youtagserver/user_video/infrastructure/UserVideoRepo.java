@@ -10,12 +10,13 @@ public interface UserVideoRepo extends CrudRepository<UserVideo, String> {
 
     List<UserVideo> getAllByUserId(String userId, Pageable pageable);
 
-    UserVideo getByUserIdAndVideoId(String userId, String videoId);
+    /**
+     * Get all entries with matching userId and VideoID
+     *
+     * @param userId   userId
+     * @param videoIds videoIds to look for
+     */
+    List<UserVideo> findAllByUserIdAndVideoIdIn(String userId, List<String> videoIds);
 
-    void deleteByUserIdAndVideoId(String userId, String videoId);
-
-    void deleteByUserId(String userId);
-
-    void deleteAllByVideoId(String videoId);
-
+    void deleteAllByUserIdAndVideoIdIn(String userId, List<String> videoIds);
 }

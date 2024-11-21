@@ -4,8 +4,7 @@ import dev.kuku.youtagserver.auth.api.exceptions.NoAuthenticatedYouTagUser;
 import dev.kuku.youtagserver.auth.api.services.AuthService;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
 import dev.kuku.youtagserver.user_tag.api.services.UserTagService;
-import dev.kuku.youtagserver.user_video.api.UserVideoDTO;
-import dev.kuku.youtagserver.user_video.api.UserVideoService;
+import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
 import dev.kuku.youtagserver.user_video_tag.api.services.UserVideoTagService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,8 +52,9 @@ public class TagController {
         //Save the videos in user table
         List<String> videoIds = Arrays.stream(videosRaw.split(",")).map(String::trim).toList();
         userVideoService.saveVideosToUser(getCurrentUserId(), videoIds);
-        //Save the tags in user_video_tag table
+        //Save the tags in user_video_tag table as well as in user_tag table
         List<String> tags = Arrays.stream(tagsRaw.split(",")).map(s -> s.trim().toLowerCase()).toList();
+        userTagService.addTagsToUser(getCurrentUserId(), tags);
         userVideoTagService.addTagsForSavedVideosOfUser(getCurrentUserId(), tags, videoIds);
         return ResponseEntity.ok(ResponseModel.build(null, String.format("Saved tags %s for videos %s of user %s", tags, videoIds, getCurrentUserId())));
     }

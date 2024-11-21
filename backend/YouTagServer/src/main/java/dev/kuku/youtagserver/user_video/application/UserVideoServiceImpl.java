@@ -1,9 +1,11 @@
 package dev.kuku.youtagserver.user_video.application;
 
-import dev.kuku.youtagserver.user_video.api.UserVideoDTO;
-import dev.kuku.youtagserver.user_video.api.UserVideoService;
+import dev.kuku.youtagserver.user_video.api.dtos.UserVideoDTO;
 import dev.kuku.youtagserver.user_video.api.events.LinkedVideoToUser;
+import dev.kuku.youtagserver.user_video.api.events.VideosRemovedFromUser;
+import dev.kuku.youtagserver.user_video.api.events.VideosSavedToUser;
 import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoAlreadyLinked;
+import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
 import dev.kuku.youtagserver.user_video.domain.UserVideo;
 import dev.kuku.youtagserver.user_video.infrastructure.UserVideoRepo;
 import lombok.RequiredArgsConstructor;
@@ -80,12 +82,26 @@ public class UserVideoServiceImpl implements UserVideoService {
 
     @Override
     public void saveVideosToUser(String userId, List<String> videoIds) {
+        log.debug("Saving videos to user {} -> {}", userId, videoIds);
+        /*
+        Only add videos that are not present.
+         */
+        List<String> existingVideoIds = repo.findAllByUserIdAndVideoIdIn(userId, videoIds).stream().map(UserVideo::getVideoId).toList();
+        List<UserVideo> missingVideos = videoIds.stream()
+                .filter(videoId -> !existingVideoIds.contains(videoId))
+                .map(videoId -> new UserVideo(UUID.randomUUID().toString(), userId, videoId))
+                .toList();
 
+        repo.saveAll(missingVideos);
+        log.debug("Added missing videos for user {} -> {}", userId, missingVideos);
+        eventPublisher.publishEvent(new VideosSavedToUser(userId, missingVideos));
     }
 
     @Override
     public void removeSavedVideosFromUser(String userId, List<String> videoIds) {
-
+        log.debug("Removing videos from user {} -> {}", userId, videoIds);
+        repo.deleteAllByUserIdAndVideoIdIn(userId,videoIds);
+        eventPublisher.publishEvent(new VideosRemovedFromUser(userId,videoIds));
     }
 
     @Override

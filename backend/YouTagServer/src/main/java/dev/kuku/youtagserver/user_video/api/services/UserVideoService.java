@@ -1,7 +1,8 @@
-package dev.kuku.youtagserver.user_video.api;
+package dev.kuku.youtagserver.user_video.api.services;
 
 
 import dev.kuku.youtagserver.shared.application.Service;
+import dev.kuku.youtagserver.user_video.api.dtos.UserVideoDTO;
 import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoAlreadyLinked;
 import dev.kuku.youtagserver.user_video.domain.UserVideo;
 
@@ -18,7 +19,7 @@ public interface UserVideoService extends Service<UserVideo, UserVideoDTO> {
     void saveVideoToUser(String userId, String videoId) throws UserVideoAlreadyLinked;
 
     /**
-     * Save videos to user
+     * Save videos to user. Ignores if video is already saved for user
      *
      * @param userId   userId
      * @param videoIds videos to save to the user
