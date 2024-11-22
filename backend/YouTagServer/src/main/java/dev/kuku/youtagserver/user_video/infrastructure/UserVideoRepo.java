@@ -18,5 +18,8 @@ public interface UserVideoRepo extends CrudRepository<UserVideo, String> {
      */
     List<UserVideo> findAllByUserIdAndVideoIdIn(String userId, List<String> videoIds);
 
+    UserVideo findByUserIdAndVideoId(String userId, String videoId);
+
     void deleteAllByUserIdAndVideoIdIn(String userId, List<String> videoIds);
+
 }

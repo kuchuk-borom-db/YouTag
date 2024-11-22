@@ -46,7 +46,7 @@ public interface UserVideoService extends Service<UserVideo, UserVideoDTO> {
     List<String> getAllSavedVideosOfUser(String userId, int skip, int limit);
 
     /**
-     * get list of videos saved for the user from the given videoIds.
+     * get list of videos saved for the user from the given videoIds. If the video is not saved for the user it will be ignored.
      *
      * @param userId   userId
      * @param videoIds video Ids to check
@@ -63,13 +63,5 @@ public interface UserVideoService extends Service<UserVideo, UserVideoDTO> {
     boolean isVidSavedToUser(String userId, String videoId);
 
 
-    /**
-     * Check if the tags are present in the videos. If even one is missing then it will return false.
-     *
-     * @param userId   userId
-     * @param tags     tags to check
-     * @param videoIds videos to check
-     * @return true if tags exist for the given video Ids
-     */
-    boolean doesTagsExistForVideos(String userId, List<String> tags, List<String> videoIds);
+
 }

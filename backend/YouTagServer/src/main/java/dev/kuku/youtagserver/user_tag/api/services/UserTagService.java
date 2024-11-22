@@ -12,6 +12,7 @@ public interface UserTagService extends Service<UserTag, UserTagDTO> {
      *
      * @param userId userId
      * @param tags   tags to add to user
+     * @Return Added user Tag
      */
     void addTagsToUser(String userId, List<String> tags);
 
@@ -23,5 +24,7 @@ public interface UserTagService extends Service<UserTag, UserTagDTO> {
      * @param limit  how many to limit to
      * @return tags of user
      */
-    List<String> getAllTagsOfUser(String userId, int skip, int limit);
+    List<UserTagDTO> getAllTagsOfUser(String userId, int skip, int limit);
+
+    List<UserTagDTO> getTagsOfUser(String currentUserId, List<String> tags);
 }

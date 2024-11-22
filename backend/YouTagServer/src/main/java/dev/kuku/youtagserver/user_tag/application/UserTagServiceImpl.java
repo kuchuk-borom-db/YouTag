@@ -46,7 +46,7 @@ public class UserTagServiceImpl implements UserTagService {
 
     @Override
     public UserTagDTO toDto(UserTag e) throws TagDTOHasNullValues {
-        return new UserTagDTO(e.getUserId(), e.getTag());
+        return new UserTagDTO(e.getId(), e.getUserId(), e.getTag());
     }
 
     private List<UserTagDTO> toDtoList(List<UserTag> userTags) {
@@ -83,13 +83,20 @@ public class UserTagServiceImpl implements UserTagService {
     }
 
     @Override
-    public List<String> getAllTagsOfUser(String userId, int skip, int limit) {
+    public List<UserTagDTO> getAllTagsOfUser(String userId, int skip, int limit) {
         log.debug("Getting all tags of user {}", userId);
         int pageNumber = skip / limit;
-        List<String> userTags = repo.findAllByUserId(userId, PageRequest.of(pageNumber, limit))
-                .stream()
-                .map(UserTag::getTag).toList();
+        List<UserTagDTO> userTags = repo.findAllByUserId(userId, PageRequest.of(pageNumber, limit))
+                .stream().map(userTag -> new UserTagDTO(userTag.getId(), userTag.getUserId(), userTag.getTag())).toList();
         log.debug("Tags retrieved for user {} is {}", userId, userTags);
         return userTags;
+    }
+
+    @Override
+    public List<UserTagDTO> getTagsOfUser(String currentUserId, List<String> tags) {
+        log.debug("Getting tags {} of user {}", tags, currentUserId);
+        List<UserTag> tagDtos = repo.findAllByUserIdAndTagIn(currentUserId, tags);
+        log.debug("Gotten tags {}", tagDtos);
+        return toDtoList(tagDtos);
     }
 }

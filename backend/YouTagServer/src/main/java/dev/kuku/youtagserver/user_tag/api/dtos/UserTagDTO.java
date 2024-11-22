@@ -10,6 +10,7 @@ import lombok.ToString;
 @ToString
 @RequiredArgsConstructor
 public class UserTagDTO {
+    final String id;
     final String userId;
     final String tag;
 }

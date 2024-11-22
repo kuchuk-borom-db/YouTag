@@ -100,13 +100,13 @@ public class UserVideoServiceImpl implements UserVideoService {
     @Override
     public void removeSavedVideosFromUser(String userId, List<String> videoIds) {
         log.debug("Removing videos from user {} -> {}", userId, videoIds);
-        repo.deleteAllByUserIdAndVideoIdIn(userId,videoIds);
-        eventPublisher.publishEvent(new VideosRemovedFromUser(userId,videoIds));
+        repo.deleteAllByUserIdAndVideoIdIn(userId, videoIds);
+        eventPublisher.publishEvent(new VideosRemovedFromUser(userId, videoIds));
     }
 
     @Override
     public List<String> getAllSavedVideosOfUser(String userId, int skip, int limit) {
-        log.debug("Getting videos of user {}, skipping {} and limit {}", userId, skip, limit);
+        log.debug("Getting ALL videos of user {}, skipping {} and limit {}", userId, skip, limit);
         String cacheKey = generateVideoListCacheKey(userId, skip, limit);
 
         List<UserVideoDTO> savedDtos = videosCache.computeIfAbsent(cacheKey, _ -> {
@@ -120,19 +120,14 @@ public class UserVideoServiceImpl implements UserVideoService {
 
     @Override
     public List<String> getSavedVideosOfUser(String userId, List<String> videoIds) {
-        return List.of();
+        log.debug("Getting saved videos of user {} -> {}", userId, videoIds);
+        return repo.findAllByUserIdAndVideoIdIn(userId, videoIds).stream().map(UserVideo::getVideoId).toList();
     }
 
     @Override
     public boolean isVidSavedToUser(String userId, String videoId) {
         log.debug("Getting video with userID {} and videoID {}", userId, videoId);
-        String cacheKey = generateLinkExistsCacheKey(userId, videoId);
-        return linkExistsCache.containsKey(cacheKey);
-    }
-
-    @Override
-    public boolean doesTagsExistForVideos(String userId, List<String> tags, List<String> videoIds) {
-        return false;
+        return repo.findByUserIdAndVideoId(userId, videoId) != null;
     }
 
     @Override

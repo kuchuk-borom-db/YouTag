@@ -7,6 +7,7 @@ import dev.kuku.youtagserver.shared.models.ResponseModel;
 import dev.kuku.youtagserver.shared.models.VideoInfoTagDTO;
 import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
 import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoAlreadyLinked;
+import dev.kuku.youtagserver.user_video_tag.api.dtos.UserVideoTagDTO;
 import dev.kuku.youtagserver.user_video_tag.api.services.UserVideoTagService;
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
@@ -140,7 +141,7 @@ public class VideoController {
             //Get info of the video
             try {
                 VideoDTO videoDTO = videoService.getVideoInfo(videoId);
-                List<String> videoTags = userVideoTagService.getTagsOfSavedVideoOfUser(getCurrentUser(), videoDTO.getId());
+                List<UserVideoTagDTO> videoTags = userVideoTagService.getTagsOfSavedVideoOfUser(getCurrentUser(), videoDTO.getId());
                 videoInfoTagDTOS.add(new VideoInfoTagDTO(videoDTO, videoTags));
             } catch (VideoNotFound _) {
                 //TODO Store in a local list so that the saved video can be removed from user by event publishing

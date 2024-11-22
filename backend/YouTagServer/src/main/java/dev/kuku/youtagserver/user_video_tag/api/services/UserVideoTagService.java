@@ -1,6 +1,8 @@
 package dev.kuku.youtagserver.user_video_tag.api.services;
 
 
+import dev.kuku.youtagserver.user_video_tag.api.dtos.UserVideoTagDTO;
+
 import java.util.List;
 import java.util.Set;
 
@@ -10,18 +12,18 @@ public interface UserVideoTagService {
      *
      * @param userId  userID of the user
      * @param videoId video to get the tags of
-     * @return list of tags of the video
+     * @return list of tag Ids of the video
      */
-    List<String> getTagsOfSavedVideoOfUser(String userId, String videoId);
+    List<UserVideoTagDTO> getTagsOfSavedVideoOfUser(String userId, String videoId);
 
     /**
-     * Add tags to videos saved by the user.
+     * Add tagIds to videos saved by the user.
      *
      * @param userId   userId
-     * @param tags     tags to save
-     * @param videoIds videos to save the tags to
+     * @param tagIds   tag Ids to save
+     * @param videoIds videos to save the tagIds to
      */
-    void addTagsForSavedVideosOfUser(String userId, List<String> tags, List<String> videoIds);
+    void addTagsForSavedVideosOfUser(String userId, List<String> tagIds, List<String> videoIds);
 
     /**
      * Delete tags from videos
@@ -69,4 +71,14 @@ public interface UserVideoTagService {
      * @return tags present in all the videos combined
      */
     Set<String> getAllTagsOfVideos(String userId, List<String> videoIds, int skip, int limit);
+
+    /**
+     * Check if the tags are present in the videos. If even one is missing then it will return false.
+     *
+     * @param userId   userId
+     * @param tags     tags to check
+     * @param videoIds videos to check
+     * @return true if tags exist for the given video Ids
+     */
+    boolean doesTagsExistForVideos(String userId, List<String> tags, List<String> videoIds);
 }
