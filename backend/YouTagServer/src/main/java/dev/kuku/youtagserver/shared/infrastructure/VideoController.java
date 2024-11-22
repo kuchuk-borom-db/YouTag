@@ -6,8 +6,7 @@ import dev.kuku.youtagserver.shared.api.events.UpdateVideoInfoOrder;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
 import dev.kuku.youtagserver.shared.models.VideoInfoTagDTO;
 import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
-import dev.kuku.youtagserver.user_video_tag.api.dtos.UserVideoTagDTO;
-import dev.kuku.youtagserver.user_video_tag.api.services.UserVideoTagService;
+import dev.kuku.youtagserver.user_video_tag.api.UserVideoTagService;
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
@@ -91,7 +90,7 @@ public class VideoController {
         }
 
         //Save the video to the user
-        userVideoService.saveVideoToUser(getCurrentUser(), videoId);
+        userVideoService.saveVideoToUser(getCurrentUser(), List.of(videoId));
 
         return ResponseEntity.ok(ResponseModel.build(null, String.format("Saved video %s to user %s", videoId, getCurrentUser())));
     }
@@ -119,7 +118,9 @@ public class VideoController {
      * @param videosRaw list of video infos to get. Will not be retrieved if it's not saved for user
      */
     @GetMapping("/")
-    ResponseEntity<ResponseModel<List<VideoInfoTagDTO>>> getAllSavedVideosOfUser(@RequestParam(value = "skip", defaultValue = "0") int skip, @RequestParam(value = "limit", defaultValue = "10") int limit, @RequestParam(value = "videos", defaultValue = "") String videosRaw) throws NoAuthenticatedYouTagUser {
+    ResponseEntity<ResponseModel<List<VideoInfoTagDTO>>> getAllSavedVideosOfUser(@RequestParam(value = "skip", defaultValue = "0") int skip,
+                                                                                 @RequestParam(value = "limit", defaultValue = "10") int limit,
+                                                                                 @RequestParam(value = "videos", defaultValue = "") String videosRaw) throws NoAuthenticatedYouTagUser {
         List<String> savedVideoIdsOfUser;
         if (videosRaw == null || videosRaw.isEmpty()) {
             log.debug("Getting all saved video of user {}", getCurrentUser());
@@ -137,7 +138,7 @@ public class VideoController {
             //Get info of the video
             try {
                 VideoDTO videoDTO = videoService.getVideoInfo(videoId);
-                List<UserVideoTagDTO> videoTags = userVideoTagService.getTagsOfSavedVideoOfUser(getCurrentUser(), videoDTO.getId());
+                List<String> videoTags = userVideoTagService.getTagsOfSavedVideoOfUser(getCurrentUser(), videoDTO.getId());
                 videoInfoTagDTOS.add(new VideoInfoTagDTO(videoDTO, videoTags));
             } catch (VideoNotFound _) {
                 //TODO Store in a local list so that the saved video can be removed from user by event publishing
@@ -147,6 +148,5 @@ public class VideoController {
         });
         return ResponseEntity.ok(ResponseModel.build(videoInfoTagDTOS, null));
     }
-
 }
 

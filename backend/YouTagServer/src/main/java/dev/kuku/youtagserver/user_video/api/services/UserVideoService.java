@@ -11,10 +11,10 @@ public interface UserVideoService extends Service<UserVideo, UserVideoDTO> {
     /**
      * Save a video to a user.
      *
-     * @param userId  userId
-     * @param videoId ID of the video to save
+     * @param userId   userId
+     * @param videoIds ID of the video to save
      */
-    void saveVideoToUser(String userId, String videoId);
+    void saveVideoToUser(String userId, List<String> videoIds);
 
     /**
      * Remove saved video from user
