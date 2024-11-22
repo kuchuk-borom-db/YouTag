@@ -2,7 +2,6 @@ package dev.kuku.youtagserver.user.application;
 
 import dev.kuku.youtagserver.user.api.dto.UserDTO;
 import dev.kuku.youtagserver.user.api.events.UserAddedEvent;
-import dev.kuku.youtagserver.user.api.events.UserDeletedEvent;
 import dev.kuku.youtagserver.user.api.events.UserUpdatedEvent;
 import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
 import dev.kuku.youtagserver.user.api.exceptions.InvalidUser;

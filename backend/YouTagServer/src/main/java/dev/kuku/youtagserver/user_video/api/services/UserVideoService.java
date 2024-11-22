@@ -1,67 +1,45 @@
 package dev.kuku.youtagserver.user_video.api.services;
 
-
-import dev.kuku.youtagserver.shared.application.Service;
-import dev.kuku.youtagserver.user_video.api.dtos.UserVideoDTO;
-import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoAlreadyLinked;
+import dev.kuku.youtagserver.shared.api.services.Service;
+import dev.kuku.youtagserver.user_video.api.dto.UserVideoDTO;
 import dev.kuku.youtagserver.user_video.domain.UserVideo;
 
 import java.util.List;
 
 public interface UserVideoService extends Service<UserVideo, UserVideoDTO> {
+
     /**
-     * Save a video to the user
+     * Save a video to a user.
      *
      * @param userId  userId
-     * @param videoId video to save for the user
-     * @throws UserVideoAlreadyLinked if video is already linked
+     * @param videoId ID of the video to save
      */
-    void saveVideoToUser(String userId, String videoId) throws UserVideoAlreadyLinked;
+    void saveVideoToUser(String userId, String videoId);
 
     /**
-     * Save videos to user. Ignores if video is already saved for user
+     * Remove saved video from user
      *
-     * @param userId   userId
-     * @param videoIds videos to save to the user
+     * @param userId  userId
+     * @param videoId videoId to remove
      */
-    void saveVideosToUser(String userId, List<String> videoIds);
-
+    void removeSavedVideosFromUser(String userId, List<String> videoId);
 
     /**
-     * Remove saved videos from user
-     *
-     * @param userId   userId
-     * @param videoIds video Ids to remove
-     */
-    void removeSavedVideosFromUser(String userId, List<String> videoIds);
-
-    /**
-     * Get all videos saved for the user
+     * get all saved videos of a user
      *
      * @param userId userId
      * @param skip   how many to skip
      * @param limit  how many to limit
-     * @return video Ids saved for the user
+     * @return all videos of the user
      */
     List<String> getAllSavedVideosOfUser(String userId, int skip, int limit);
 
     /**
-     * get list of videos saved for the user from the given videoIds. If the video is not saved for the user it will be ignored.
+     * Get specified videos of the user if they are saved for user
      *
      * @param userId   userId
-     * @param videoIds video Ids to check
-     * @return list of videos saved for the user from the given list
+     * @param videoIds ID of videos to get
+     * @return valid saved specified videos of the user
      */
-    List<String> getSavedVideosOfUser(String userId, List<String> videoIds);
-
-    /**
-     * Check if a video is saved for user
-     * @param userId userId
-     * @param videoId videoId to check
-     * @return true if video is saved for user
-     */
-    boolean isVidSavedToUser(String userId, String videoId);
-
-
-
+    List<String> getSpecificSavedVideosOfUser(String userId, List<String> videoIds);
 }

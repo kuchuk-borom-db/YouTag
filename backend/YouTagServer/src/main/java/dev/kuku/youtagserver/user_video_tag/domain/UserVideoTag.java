@@ -1,30 +1,27 @@
 package dev.kuku.youtagserver.user_video_tag.domain;
 
-
-import dev.kuku.youtagserver.shared.constants.DbConst;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import dev.kuku.youtagserver.shared.api.constants.DbConst;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Entity
+@Table(name = DbConst.UserVideoTag.TABLE_NAME)
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
 @ToString
-@Table(name = DbConst.UserVideoTag.TABLE_NAME)
+@IdClass(UserVideoTagId.class)
 public class UserVideoTag {
     @Id
-    @Column(name = DbConst.CommonColumn.ID)
-    String id;
     @Column(name = DbConst.CommonColumn.USER_ID)
     String userId;
+    @Id
     @Column(name = DbConst.CommonColumn.VIDEO_ID)
     String videoId;
-    @Column(name = DbConst.CommonColumn.TAG_ID)
-    String tagId;
+    @Id
+    @Column(name = DbConst.CommonColumn.TAG)
+    String tag;
 }

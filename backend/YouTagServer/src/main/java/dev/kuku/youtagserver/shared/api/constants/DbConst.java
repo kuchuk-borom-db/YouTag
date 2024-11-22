@@ -1,4 +1,4 @@
-package dev.kuku.youtagserver.shared.constants;
+package dev.kuku.youtagserver.shared.api.constants;
 
 
 public class DbConst {
@@ -22,22 +22,16 @@ public class DbConst {
         public static final String UPDATED = "updated";
         public static final String USER_ID = "user_id";
         public static final String VIDEO_ID = "video_id";
-        public static final String TAG_ID = "tag_id";
-
+        public static final String TAG = "tag";
     }
 
     public static class UserVideo {
         public static final String TABLE_NAME = "user_video";
-        public static final String USER_ID = "user_id";
-        public static final String VIDEO_ID = "video_id";
     }
 
 
     public static class UserTag {
         public static final String TABLE_NAME = "user_tag";
-        public static final String USER_ID = "user_id";
-        public static final String VIDEO_ID = "video_id";
-        public static final String TAG = "tag";
     }
 
     public static class UserVideoTag {

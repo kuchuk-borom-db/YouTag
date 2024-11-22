@@ -3,10 +3,7 @@ package dev.kuku.youtagserver.shared.infrastructure;
 import dev.kuku.youtagserver.auth.api.exceptions.NoAuthenticatedYouTagUser;
 import dev.kuku.youtagserver.auth.api.services.AuthService;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
-import dev.kuku.youtagserver.user_tag.api.dtos.UserTagDTO;
 import dev.kuku.youtagserver.user_tag.api.services.UserTagService;
-import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
-import dev.kuku.youtagserver.user_video_tag.api.services.UserVideoTagService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -57,11 +54,8 @@ public class TagController {
         //Save the tags in user_tag table if it doesn't exist yet.
         List<String> tags = Arrays.stream(tagsRaw.split(",")).map(s -> s.trim().toLowerCase()).toList();
         userTagService.addTagsToUser(getCurrentUserId(), tags);
-
-        //Get tag Ids of the tags we want to add
-        List<String> tagIds = userTagService.getTagsOfUser(getCurrentUserId(), tags).stream().map(UserTagDTO::getId).toList();
         //Save the tagIds to userVideoTag table
-        userVideoTagService.addTagsForSavedVideosOfUser(getCurrentUserId(), tagIds, videoIds);
+        userVideoTagService.addTagsForSavedVideosOfUser(getCurrentUserId(), tags, videoIds);
         return ResponseEntity.ok(ResponseModel.build(null, String.format("Saved tags %s(%s) for videos %s of user %s", tags, tagIds, videoIds, getCurrentUserId())));
     }
 

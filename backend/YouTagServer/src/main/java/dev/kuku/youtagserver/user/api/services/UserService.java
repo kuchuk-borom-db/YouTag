@@ -1,6 +1,6 @@
 package dev.kuku.youtagserver.user.api.services;
 
-import dev.kuku.youtagserver.shared.application.Service;
+import dev.kuku.youtagserver.shared.api.services.Service;
 import dev.kuku.youtagserver.user.api.dto.UserDTO;
 import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
 import dev.kuku.youtagserver.user.api.exceptions.InvalidUser;

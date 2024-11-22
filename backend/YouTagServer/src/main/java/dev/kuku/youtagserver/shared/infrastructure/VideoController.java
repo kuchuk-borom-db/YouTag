@@ -2,11 +2,10 @@ package dev.kuku.youtagserver.shared.infrastructure;
 
 import dev.kuku.youtagserver.auth.api.exceptions.NoAuthenticatedYouTagUser;
 import dev.kuku.youtagserver.auth.api.services.AuthService;
-import dev.kuku.youtagserver.shared.events.UpdateVideoInfoOrder;
+import dev.kuku.youtagserver.shared.api.events.UpdateVideoInfoOrder;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
 import dev.kuku.youtagserver.shared.models.VideoInfoTagDTO;
 import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
-import dev.kuku.youtagserver.user_video.api.exceptions.UserVideoAlreadyLinked;
 import dev.kuku.youtagserver.user_video_tag.api.dtos.UserVideoTagDTO;
 import dev.kuku.youtagserver.user_video_tag.api.services.UserVideoTagService;
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
@@ -62,7 +61,7 @@ public class VideoController {
     ResponseEntity<ResponseModel<Object>> saveVideo(@PathVariable String videoId) throws NoAuthenticatedYouTagUser, InvalidVideoId {
         log.debug("Saving video {} to user {}", videoId, getCurrentUser());
         //Check if it's already saved for the user
-        if (userVideoService.isVidSavedToUser(getCurrentUser(), videoId)) {
+        if (userVideoService.getSpecificSavedVideosOfUser(getCurrentUser(), List.of(videoId)).isEmpty()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseModel.build(null, String.format("Video %s already saved to user %s", videoId, getCurrentUser())));
         }
 
@@ -92,11 +91,8 @@ public class VideoController {
         }
 
         //Save the video to the user
-        try {
-            userVideoService.saveVideoToUser(getCurrentUser(), videoId);
-        } catch (UserVideoAlreadyLinked e) {
-            log.error("This should not have happened...... {}", e.getMessage());
-        }
+        userVideoService.saveVideoToUser(getCurrentUser(), videoId);
+
         return ResponseEntity.ok(ResponseModel.build(null, String.format("Saved video %s to user %s", videoId, getCurrentUser())));
     }
 
@@ -132,7 +128,7 @@ public class VideoController {
         } else {
             log.debug("Getting videos {} saved for user {}", videosRaw, getCurrentUser());
             List<String> videoIds = Arrays.stream(videosRaw.split(",")).map(s -> s.trim().toLowerCase()).toList();
-            savedVideoIdsOfUser = userVideoService.getSavedVideosOfUser(getCurrentUser(), videoIds);
+            savedVideoIdsOfUser = userVideoService.getSpecificSavedVideosOfUser(getCurrentUser(), videoIds);
         }
 
         //Get info of the videos and tags, save them in a list and return it.

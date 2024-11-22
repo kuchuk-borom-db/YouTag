@@ -1,4 +1,4 @@
-package dev.kuku.youtagserver.shared.application;
+package dev.kuku.youtagserver.shared.api.services;
 
 import dev.kuku.youtagserver.shared.exceptions.ResponseException;
 

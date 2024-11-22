@@ -1,7 +1,7 @@
 package dev.kuku.youtagserver.video.api.services;
 
 
-import dev.kuku.youtagserver.shared.application.Service;
+import dev.kuku.youtagserver.shared.api.services.Service;
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;

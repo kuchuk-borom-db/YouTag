@@ -1,4 +1,4 @@
-package dev.kuku.youtagserver.shared.application.event_listeners;
+package dev.kuku.youtagserver.shared.api.event_listeners;
 
 import dev.kuku.youtagserver.auth.api.events.GotUserFromTokenEvent;
 import dev.kuku.youtagserver.user.api.dto.UserDTO;

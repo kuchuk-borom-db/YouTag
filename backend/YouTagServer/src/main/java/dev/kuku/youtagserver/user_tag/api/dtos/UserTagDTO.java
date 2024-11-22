@@ -1,16 +1,4 @@
 package dev.kuku.youtagserver.user_tag.api.dtos;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-
-@Getter
-@Setter
-@ToString
-@RequiredArgsConstructor
-public class UserTagDTO {
-    final String id;
-    final String userId;
-    final String tag;
+public record UserTagDTO(String userId, String tag) {
 }

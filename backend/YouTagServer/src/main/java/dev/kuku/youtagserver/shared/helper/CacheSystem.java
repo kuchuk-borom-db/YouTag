@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @RequiredArgsConstructor
 public class CacheSystem {
+    //TODO Cache system with limit
     private final ConcurrentHashMap<String, Map<String, Object>> cacheStore = new ConcurrentHashMap<>();
 
     public void cache(String uniqueKey, Object objectToCache) {
