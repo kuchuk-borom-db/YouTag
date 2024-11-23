@@ -2,6 +2,7 @@ package dev.kuku.youtagserver.shared.infrastructure;
 
 import dev.kuku.youtagserver.auth.api.exceptions.NoAuthenticatedYouTagUser;
 import dev.kuku.youtagserver.auth.api.services.AuthService;
+import dev.kuku.youtagserver.shared.api.events.RemoveVideosOrder;
 import dev.kuku.youtagserver.shared.api.events.UpdateVideoInfoOrder;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
 import dev.kuku.youtagserver.shared.models.VideoInfoTagDTO;
@@ -20,9 +21,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * - Save video(s) (to user)
@@ -59,19 +61,20 @@ public class VideoController {
     @PostMapping("/{videoId}")
     ResponseEntity<ResponseModel<Object>> saveVideo(@PathVariable String videoId) throws NoAuthenticatedYouTagUser, InvalidVideoId {
         log.debug("Saving video {} to user {}", videoId, getCurrentUser());
+
         //Check if it's already saved for the user
-        if (userVideoService.getSpecificSavedVideosOfUser(getCurrentUser(), List.of(videoId)).isEmpty()) {
+        if (userVideoService.getSpecificSavedVideosOfUser(getCurrentUser(), List.of(videoId)).size() == 1) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseModel.build(null, String.format("Video %s already saved to user %s", videoId, getCurrentUser())));
         }
 
         //Check if video is already saved in videos table with updated values or doesn't exist yet.
         try {
             //Video exists in repository
-            var repoDb = videoService.getVideoInfo(videoId);
+            var videoInfoDb = videoService.getVideoInfo(videoId);
             //Compare latest scrapped data and data from repository
             var scrappedVideoInfo = scrapperService.getYoutubeVideoInfo(videoId);
-            if (repoDb.getDescription().equals(scrappedVideoInfo.description()) && repoDb.getTitle().equals(scrappedVideoInfo.title())) {
-                log.debug("Existing video {} found and doesn't require updating {}", repoDb, scrappedVideoInfo);
+            if (videoInfoDb.getDescription().equals(scrappedVideoInfo.description()) && videoInfoDb.getTitle().equals(scrappedVideoInfo.title())) {
+                log.debug("Existing video {} found and doesn't require updating {}", videoInfoDb, scrappedVideoInfo);
             } else {
                 //repo data is outdated and needs updating.
                 log.debug("Existing video found but requires updating. Updating....");
@@ -91,7 +94,6 @@ public class VideoController {
 
         //Save the video to the user
         userVideoService.saveVideoToUser(getCurrentUser(), List.of(videoId));
-
         return ResponseEntity.ok(ResponseModel.build(null, String.format("Saved video %s to user %s", videoId, getCurrentUser())));
     }
 
@@ -118,9 +120,9 @@ public class VideoController {
      * @param videosRaw list of video infos to get. Will not be retrieved if it's not saved for user
      */
     @GetMapping("/")
-    ResponseEntity<ResponseModel<List<VideoInfoTagDTO>>> getAllSavedVideosOfUser(@RequestParam(value = "skip", defaultValue = "0") int skip,
-                                                                                 @RequestParam(value = "limit", defaultValue = "10") int limit,
-                                                                                 @RequestParam(value = "videos", defaultValue = "") String videosRaw) throws NoAuthenticatedYouTagUser {
+    ResponseEntity<ResponseModel<Set<VideoInfoTagDTO>>> getAllSavedVideosOfUser(@RequestParam(value = "skip", defaultValue = "0") int skip,
+                                                                                @RequestParam(value = "limit", defaultValue = "10") int limit,
+                                                                                @RequestParam(value = "videos", defaultValue = "") String videosRaw) throws NoAuthenticatedYouTagUser {
         List<String> savedVideoIdsOfUser;
         if (videosRaw == null || videosRaw.isEmpty()) {
             log.debug("Getting all saved video of user {}", getCurrentUser());
@@ -133,19 +135,21 @@ public class VideoController {
         }
 
         //Get info of the videos and tags, save them in a list and return it.
-        List<VideoInfoTagDTO> videoInfoTagDTOS = new ArrayList<>();
+        Set<String> invalidVideos = new HashSet<>();
+        Set<VideoInfoTagDTO> videoInfoTagDTOS = new HashSet<>();
         savedVideoIdsOfUser.forEach(videoId -> {
             //Get info of the video
             try {
                 VideoDTO videoDTO = videoService.getVideoInfo(videoId);
-                List<String> videoTags = userVideoTagService.getTagsOfSavedVideoOfUser(getCurrentUser(), videoDTO.getId());
+                Set<String> videoTags = userVideoTagService.getTagsOfSavedVideoOfUser(getCurrentUser(), videoDTO.getId());
                 videoInfoTagDTOS.add(new VideoInfoTagDTO(videoDTO, videoTags));
             } catch (VideoNotFound _) {
-                //TODO Store in a local list so that the saved video can be removed from user by event publishing
+                invalidVideos.add(videoId);
             } catch (NoAuthenticatedYouTagUser _) {
                 //Can ignore. This should never happen as we already do this check at the start of the function.
             }
         });
+        eventPublisher.publishEvent(new RemoveVideosOrder(invalidVideos));
         return ResponseEntity.ok(ResponseModel.build(videoInfoTagDTOS, null));
     }
 }

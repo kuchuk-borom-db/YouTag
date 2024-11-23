@@ -1,12 +1,14 @@
 package dev.kuku.youtagserver.user_video.application;
 
 import dev.kuku.youtagserver.user_video.api.dto.UserVideoDTO;
+import dev.kuku.youtagserver.user_video.api.events.RemoveSavedVideosFromUser;
 import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
 import dev.kuku.youtagserver.user_video.domain.UserVideo;
 import dev.kuku.youtagserver.user_video.infrastructure.UserVideoRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserVideoServiceImpl implements UserVideoService {
     final UserVideoRepo repo;
+    final ApplicationEventPublisher eventPublisher;
 
     @Override
     public UserVideoDTO toDto(UserVideo e) {
@@ -38,6 +41,7 @@ public class UserVideoServiceImpl implements UserVideoService {
         log.debug("Remove saved video {} from user {}", videoIds, userId);
         repo.deleteAllByUserIdAndVideoIdIn(userId, videoIds);
         //TODO cache evict
+        eventPublisher.publishEvent(new RemoveSavedVideosFromUser(userId, videoIds));
     }
 
     @Override
