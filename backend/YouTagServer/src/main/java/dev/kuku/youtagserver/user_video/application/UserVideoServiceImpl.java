@@ -41,6 +41,7 @@ public class UserVideoServiceImpl implements UserVideoService {
         log.debug("Remove saved video {} from user {}", videoIds, userId);
         repo.deleteAllByUserIdAndVideoIdIn(userId, videoIds);
         //TODO cache evict
+        //Remove entry or entries from user_video_tag table with userId and videoIds
         eventPublisher.publishEvent(new RemoveSavedVideosFromUser(userId, videoIds));
     }
 

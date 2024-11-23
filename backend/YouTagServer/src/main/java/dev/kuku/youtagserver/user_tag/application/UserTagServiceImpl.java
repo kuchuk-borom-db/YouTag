@@ -8,6 +8,7 @@ import dev.kuku.youtagserver.user_tag.infrastructure.UserTagRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +23,7 @@ public class UserTagServiceImpl implements UserTagService {
     final UserTagRepo repo;
     final CacheSystem cacheSystem;
     final String cacheStorageName = "user_tag";
-
+    final ApplicationEventPublisher eventPublisher;
 
     @Override
     public void addTagsToUser(String userId, List<String> tags) {
