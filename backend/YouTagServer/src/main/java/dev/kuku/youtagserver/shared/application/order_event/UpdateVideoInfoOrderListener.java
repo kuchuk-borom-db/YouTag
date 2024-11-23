@@ -1,4 +1,4 @@
-package dev.kuku.youtagserver.shared.api.event_listeners.order;
+package dev.kuku.youtagserver.shared.application.order_event;
 
 import dev.kuku.youtagserver.shared.api.events.UpdateVideoInfoOrder;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;

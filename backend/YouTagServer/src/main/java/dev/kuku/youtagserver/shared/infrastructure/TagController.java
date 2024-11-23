@@ -49,35 +49,45 @@ public class TagController {
             @RequestParam(value = "videos", defaultValue = "") String videosRaw
     ) throws NoAuthenticatedYouTagUser {
         log.debug("Adding tags {} to saved video {} of user {}", tagsRaw, videosRaw, getCurrentUserId());
-        //Save the videos in user table
         List<String> videoIds = Arrays.stream(videosRaw.split(",")).map(String::trim).toList();
-        userVideoService.saveVideoToUser(getCurrentUserId(), videoIds);
+        List<String> tags = Arrays.stream(tagsRaw.split(",")).map(s -> s.trim().toLowerCase()).toList();
+
+        //Check if the video is saved for user
+        videoIds = userVideoService.getSpecificSavedVideosOfUser(getCurrentUserId(), videoIds);
+        if (videoIds.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(ResponseModel.build(null, "videos provided in query parameters are not saved to user"));
+        }
 
         //Save the tags in user_tag table if it doesn't exist yet.
-        List<String> tags = Arrays.stream(tagsRaw.split(",")).map(s -> s.trim().toLowerCase()).toList();
         userTagService.addTagsToUser(getCurrentUserId(), tags);
         //Save the tagIds to userVideoTag table
-        userVideoTagService.addTagsToSavedVideosOfUser(getCurrentUserId(), tags, videoIds);
+        userVideoTagService.addTagsToSpecificSavedVideosOfUser(getCurrentUserId(), tags, videoIds);
         return ResponseEntity.ok(ResponseModel.build(null, String.format("Saved tags %s for videos %s of user %s", tags, videoIds, getCurrentUserId())));
     }
 
     @DeleteMapping("/")
     ResponseEntity<ResponseModel<Object>> removeTagsFromSavedVideosOfUser(
             @RequestParam(value = "tags", defaultValue = "") String tagsRaw,
-            @RequestParam(value = "tags", defaultValue = "") String videosRaw
+            @RequestParam(value = "videos", defaultValue = "") String videosRaw
     ) throws NoAuthenticatedYouTagUser {
-        if (tagsRaw.isEmpty() && videosRaw.isEmpty()) {
+
+        /*
+        If both are null it's invalid
+         */
+        if (tagsRaw.isBlank() && videosRaw.isBlank()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseModel.build(null, "tags and/or videos query parameters are missing"));
         }
-        List<String> tags = Arrays.stream(tagsRaw.split(",")).map(s -> s.trim().toLowerCase()).toList();
-        List<String> videoIds = Arrays.stream(videosRaw.split(",")).map(String::trim).toList();
+        List<String> tags = Arrays.stream(tagsRaw.trim().split(",")).map(s -> s.trim().toLowerCase()).toList();
+        List<String> videoIds = Arrays.stream(videosRaw.trim().split(",")).map(String::trim).toList();
 
+        String msg = "";
         /*
         If both tags and videos are present delete tags from the video
          */
-        if (!tagsRaw.isEmpty() && !videosRaw.isEmpty()) {
+        if (!tagsRaw.isBlank() && !videosRaw.isBlank()) {
 
             userVideoTagService.deleteSpecificTagsFromSavedVideosOfUser(getCurrentUserId(), videoIds, tags);
+            msg = String.format("Deleted tags %s from videos %s", tags, videoIds);
         }
 
         /*
@@ -85,15 +95,17 @@ public class TagController {
          */
         if (!tagsRaw.isBlank() && videosRaw.isBlank()) {
             userVideoTagService.deleteSpecificTagsFromAllSavedVideosOfUser(getCurrentUserId(), tags);
+            msg = String.format("Deleted tags %s from all videos", tags);
         }
 
         /*
         If videos are present but not tags then delete all tags from the videos
          */
-        if (tagsRaw.isEmpty() && !videosRaw.isEmpty()) {
+        if (tagsRaw.isBlank() && !videosRaw.isBlank()) {
             userVideoTagService.deleteAllTagsFromSpecificSavedVideosOfUser(getCurrentUserId(), videoIds);
+            msg = String.format("Deleted all tags from videos %s", videoIds);
         }
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok(ResponseModel.build(null, msg));
     }
 
     @GetMapping("/")
@@ -139,8 +151,6 @@ public class TagController {
          */
         log.debug("Getting all tags from videos {} saved for user {}", tags, getCurrentUserId());
         Set<String> tagsOfVideos = userVideoTagService.getAllTagsOfSavedVideosOfUser(getCurrentUserId(), videoIds, skip, limit);
-        //TODO get video info tag from it.
-        return ResponseEntity.ok(ResponseModel.build(userVideoTagDTOS, null));
-
+        return ResponseEntity.ok(ResponseModel.build(tagsOfVideos, null));
     }
 }

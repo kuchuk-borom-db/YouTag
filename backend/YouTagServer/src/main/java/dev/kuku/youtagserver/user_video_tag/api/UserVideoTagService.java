@@ -23,7 +23,7 @@ public interface UserVideoTagService extends Service<UserVideoTag, UserVideoTagD
      * @param videoIds videos to add the tags to
      * @param tags     tags to add
      */
-    void addTagsToSavedVideosOfUser(String userId, List<String> videoIds, List<String> tags);
+    void addTagsToSpecificSavedVideosOfUser(String userId, List<String> videoIds, List<String> tags);
 
     /**
      * Delete specified tags from saved videos of user
