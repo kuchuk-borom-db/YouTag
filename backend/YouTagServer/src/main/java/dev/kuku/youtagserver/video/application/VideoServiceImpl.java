@@ -1,8 +1,6 @@
 package dev.kuku.youtagserver.video.application;
 
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
-import dev.kuku.youtagserver.video.api.events.AddVideoEvent;
-import dev.kuku.youtagserver.video.api.events.UpdateVideoEvent;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
 import dev.kuku.youtagserver.video.api.services.VideoService;
@@ -85,7 +83,6 @@ public class VideoServiceImpl implements VideoService {
             );
             videoRepo.save(newVideo);
             evictCache(video.getId());
-            eventPublisher.publishEvent(new AddVideoEvent(video));
         }
     }
 
@@ -109,9 +106,6 @@ public class VideoServiceImpl implements VideoService {
         // Evict the cached entry
         evictCache(video.getId());
         log.debug("Updated video with id {} saved and cache evicted", video.getId());
-
-        // Publish event for video update
-        eventPublisher.publishEvent(new UpdateVideoEvent(video));
     }
 
 
