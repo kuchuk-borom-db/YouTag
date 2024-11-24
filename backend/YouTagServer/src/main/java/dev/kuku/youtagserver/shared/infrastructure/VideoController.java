@@ -108,7 +108,7 @@ public class VideoController {
         }
         log.debug("Deleting videos {} from user {}", videosRaw, getCurrentUser());
         List<String> videoIds = Arrays.stream(videosRaw.split(",")).map(s -> s.trim().toLowerCase()).toList();
-        userVideoService.removeSavedVideosFromUser(getCurrentUser(), videoIds);
+        userVideoService.removeSpecificSavedVideosFromUser(getCurrentUser(), videoIds);
         return ResponseEntity.ok(ResponseModel.build(null, String.format("Deleted videos from user %s", getCurrentUser())));
     }
 

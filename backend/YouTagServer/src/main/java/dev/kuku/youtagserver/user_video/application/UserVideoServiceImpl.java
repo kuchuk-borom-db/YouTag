@@ -1,6 +1,7 @@
 package dev.kuku.youtagserver.user_video.application;
 
 import dev.kuku.youtagserver.user_video.api.dto.UserVideoDTO;
+import dev.kuku.youtagserver.user_video.api.events.RemoveAllSavedVideosFromUser;
 import dev.kuku.youtagserver.user_video.api.events.RemoveSavedVideosFromUser;
 import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
 import dev.kuku.youtagserver.user_video.domain.UserVideo;
@@ -37,7 +38,7 @@ public class UserVideoServiceImpl implements UserVideoService {
     }
 
     @Override
-    public void removeSavedVideosFromUser(String userId, List<String> videoIds) {
+    public void removeSpecificSavedVideosFromUser(String userId, List<String> videoIds) {
         log.debug("Remove saved video {} from user {}", videoIds, userId);
         repo.deleteAllByUserIdAndVideoIdIn(userId, videoIds);
         //TODO cache evict
@@ -61,5 +62,12 @@ public class UserVideoServiceImpl implements UserVideoService {
         log.debug("Got saved videos {} for user {}", userVideos, userId);
         return userVideos.stream().map(UserVideo::getVideoId).collect(Collectors.toList());
         //TODO cache
+    }
+
+    @Override
+    public void deleteAllSavedVideosFromUser(String userId) {
+        log.debug("Removing all videos saved from user {}", userId);
+        repo.deleteAllByUserId(userId);
+        eventPublisher.publishEvent(new RemoveAllSavedVideosFromUser(userId));
     }
 }

@@ -47,7 +47,6 @@ public class UserVideoTagServiceImpl implements UserVideoTagService {
         List<UserVideoTag> entriesToSave = new ArrayList<>();
         videoIds.forEach(videoId -> tags.forEach(tag -> entriesToSave.add(new UserVideoTag(userId, videoId, tag))));
         repo.saveAll(entriesToSave);
-        //TODO Publish event
     }
 
     @Override
@@ -72,6 +71,12 @@ public class UserVideoTagServiceImpl implements UserVideoTagService {
         repo.deleteAllByUserIdAndVideoIdIn(userId, videoIds);
         //Event needs to remove tags from user if they are not used in any other saved video
         eventPublisher.publishEvent(new DeleteAllTagsFromSpecificSavedVideosOfUser(userId, videoIds));
+    }
+
+    @Override
+    public void deleteAllTagsFromAllVideosOfUser(String userId) {
+        log.debug("Deleting all tags from all videos saved for user {}", userId);
+        repo.deleteAllByUserId(userId);
     }
 
     @Override

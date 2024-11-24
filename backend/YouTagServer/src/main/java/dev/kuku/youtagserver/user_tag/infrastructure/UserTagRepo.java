@@ -11,4 +11,6 @@ public interface UserTagRepo extends CrudRepository<UserTag, UserTagId> {
     List<UserTag> findAllByUserIdAndTagIn(String userId, List<String> tags);
 
     List<UserTag> findAllByUserId(String userId, PageRequest of);
+
+    void deleteAllByUserId(String userId);
 }

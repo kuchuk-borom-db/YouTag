@@ -51,6 +51,13 @@ public interface UserVideoTagService extends Service<UserVideoTag, UserVideoTagD
     void deleteAllTagsFromSpecificSavedVideosOfUser(String userId, List<String> videoIds);
 
     /**
+     * Delete all entries of with matching userId. Essentially removing tags from all videos of user
+     *
+     * @param userId userId
+     */
+    void deleteAllTagsFromAllVideosOfUser(String userId);
+
+    /**
      * Get all the video Ids which have the following tag
      *
      * @param userId userId
@@ -71,4 +78,6 @@ public interface UserVideoTagService extends Service<UserVideoTag, UserVideoTagD
      * @return set of tags present in all the videos
      */
     Set<String> getAllTagsOfSavedVideosOfUser(String userId, List<String> videoIds, int skip, int limit);
+
+
 }

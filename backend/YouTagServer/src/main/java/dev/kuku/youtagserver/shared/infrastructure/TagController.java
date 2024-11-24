@@ -142,7 +142,6 @@ public class TagController {
         if (!tagsRaw.isEmpty() && videosRaw.isEmpty()) {
             log.debug("Getting all videos with tag {} for user {}", tags, getCurrentUserId());
             Set<String> videoIdsWithTags = userVideoTagService.getAllSavedVideosOfUserWithTags(getCurrentUserId(), tags, skip, limit);
-            //TODO get video info tag from it.
             return ResponseEntity.ok(ResponseModel.build(videoIdsWithTags, null));
         }
 

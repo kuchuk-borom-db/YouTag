@@ -35,4 +35,10 @@ public interface UserTagService extends Service<UserTag, UserTagDTO> {
      * @return list of tags of user
      */
     List<String> getAllTagsOfUser(String userId, int skip, int limit);
+
+    /**
+     * Remove all tags of user
+     * @param userId userId
+     */
+    void deleteAllTagsOfUser(String userId);
 }

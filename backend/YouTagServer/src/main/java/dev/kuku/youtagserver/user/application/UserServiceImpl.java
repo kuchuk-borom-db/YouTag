@@ -1,8 +1,7 @@
 package dev.kuku.youtagserver.user.application;
 
 import dev.kuku.youtagserver.user.api.dto.UserDTO;
-import dev.kuku.youtagserver.user.api.events.UserAddedEvent;
-import dev.kuku.youtagserver.user.api.events.UserUpdatedEvent;
+import dev.kuku.youtagserver.user.api.events.UserDeletedEvent;
 import dev.kuku.youtagserver.user.api.exceptions.EmailNotFound;
 import dev.kuku.youtagserver.user.api.exceptions.InvalidUser;
 import dev.kuku.youtagserver.user.api.exceptions.UserAlreadyExists;
@@ -26,8 +25,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Transactional
 public class UserServiceImpl implements UserService {
     final UserRepo userRepo;
-    final ApplicationEventPublisher eventPublisher;
     private final Map<String, UserDTO> cache = new ConcurrentHashMap<>();
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Generates a cache key for a user based on their email.
@@ -86,7 +85,6 @@ public class UserServiceImpl implements UserService {
             User savedUser = userRepo.save(user);
             log.info("Saved user {}", savedUser);
             evictCache(email); // Evict any existing cache entry
-            eventPublisher.publishEvent(new UserAddedEvent(savedUser));
         } catch (UserDTOHasNullValues e) {
             throw new RuntimeException(e);
         }
@@ -103,12 +101,13 @@ public class UserServiceImpl implements UserService {
         user.setUpdated(LocalDateTime.now());
         userRepo.save(user);
         evictCache(user.getEmail()); // Evict cached entry after update
-        eventPublisher.publishEvent(new UserUpdatedEvent(user));
     }
 
     @Override
     public void deleteUser(String email) {
-        //TODO
+        //TODO Option to delete account
+        userRepo.deleteById(email);
+        eventPublisher.publishEvent(new UserDeletedEvent(email));
     }
 
     @Override

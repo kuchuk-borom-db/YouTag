@@ -1,6 +1,7 @@
 package dev.kuku.youtagserver.user_tag.application;
 
 import dev.kuku.youtagserver.shared.helper.CacheSystem;
+import dev.kuku.youtagserver.user_tag.api.api.events.RemoveAllTagsOfUser;
 import dev.kuku.youtagserver.user_tag.api.dtos.UserTagDTO;
 import dev.kuku.youtagserver.user_tag.api.services.UserTagService;
 import dev.kuku.youtagserver.user_tag.domain.UserTag;
@@ -51,6 +52,13 @@ public class UserTagServiceImpl implements UserTagService {
         log.debug("Got all tags {} for user {}", tags, userId);
         //TODO cache the result based on limit
         return tags;
+    }
+
+    @Override
+    public void deleteAllTagsOfUser(String userId) {
+        log.debug("Removing all tags from user {}", userId);
+        repo.deleteAllByUserId(userId);
+        eventPublisher.publishEvent(new RemoveAllTagsOfUser(userId));
     }
 
     @Override

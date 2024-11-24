@@ -22,7 +22,7 @@ public interface UserVideoService extends Service<UserVideo, UserVideoDTO> {
      * @param userId  userId
      * @param videoId videoId to remove
      */
-    void removeSavedVideosFromUser(String userId, List<String> videoId);
+    void removeSpecificSavedVideosFromUser(String userId, List<String> videoId);
 
     /**
      * get all saved videos of a user
@@ -42,4 +42,9 @@ public interface UserVideoService extends Service<UserVideo, UserVideoDTO> {
      * @return valid saved specified videos of the user
      */
     List<String> getSpecificSavedVideosOfUser(String userId, List<String> videoIds);
+
+    /**
+     * Removes all videos of user
+     */
+    void deleteAllSavedVideosFromUser(String userId);
 }
