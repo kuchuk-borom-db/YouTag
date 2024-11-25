@@ -5,6 +5,7 @@ import dev.kuku.youtagserver.user_tag.domain.UserTagId;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface UserTagRepo extends CrudRepository<UserTag, UserTagId> {
@@ -13,4 +14,6 @@ public interface UserTagRepo extends CrudRepository<UserTag, UserTagId> {
     List<UserTag> findAllByUserId(String userId, PageRequest of);
 
     void deleteAllByUserId(String userId);
+
+    void deleteAllByUserIdInAndTagIn(Collection<String> userIds, Collection<String> tags);
 }

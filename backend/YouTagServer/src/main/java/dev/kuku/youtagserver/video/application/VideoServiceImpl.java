@@ -1,6 +1,7 @@
 package dev.kuku.youtagserver.video.application;
 
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
+import dev.kuku.youtagserver.video.api.events.DeleteSpecifiedVideos;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
 import dev.kuku.youtagserver.video.api.services.VideoService;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -106,6 +108,13 @@ public class VideoServiceImpl implements VideoService {
         // Evict the cached entry
         evictCache(video.getId());
         log.debug("Updated video with id {} saved and cache evicted", video.getId());
+    }
+
+    @Override
+    public void deleteSpecifiedVideos(List<String> videoIds) {
+        log.debug("Deleting videos {}", videoIds);
+        videoRepo.deleteAllById(videoIds);
+        eventPublisher.publishEvent(new DeleteSpecifiedVideos(videoIds));
     }
 
 

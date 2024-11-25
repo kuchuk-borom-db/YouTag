@@ -1,10 +1,13 @@
 package dev.kuku.youtagserver.user_tag.application;
 
 import dev.kuku.youtagserver.shared.helper.CacheSystem;
-import dev.kuku.youtagserver.user_tag.api.api.events.RemoveAllTagsOfUser;
 import dev.kuku.youtagserver.user_tag.api.dtos.UserTagDTO;
+import dev.kuku.youtagserver.user_tag.api.events.DeleteSpecifiedTagsOfUsers;
+import dev.kuku.youtagserver.user_tag.api.events.DeleteAllTagsOfUser;
+import dev.kuku.youtagserver.user_tag.api.events.DeleteSpecifiedTagsOfUser;
 import dev.kuku.youtagserver.user_tag.api.services.UserTagService;
 import dev.kuku.youtagserver.user_tag.domain.UserTag;
+import dev.kuku.youtagserver.user_tag.domain.UserTagId;
 import dev.kuku.youtagserver.user_tag.infrastructure.UserTagRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +61,21 @@ public class UserTagServiceImpl implements UserTagService {
     public void deleteAllTagsOfUser(String userId) {
         log.debug("Removing all tags from user {}", userId);
         repo.deleteAllByUserId(userId);
-        eventPublisher.publishEvent(new RemoveAllTagsOfUser(userId));
+        eventPublisher.publishEvent(new DeleteAllTagsOfUser(userId));
+    }
+
+    @Override
+    public void deleteSpecifiedTagsOfUser(String userId, List<String> tagsToDelete) {
+        log.debug("Deleting specified tags {} from user {}", tagsToDelete, userId);
+        repo.deleteAllById(tagsToDelete.stream().map(tag -> new UserTagId(userId, tag)).collect(Collectors.toList()));
+        eventPublisher.publishEvent(new DeleteSpecifiedTagsOfUser(userId, tagsToDelete));
+    }
+
+    @Override
+    public void deleteSpecifiedTagsOfUsers(List<String> userIds, List<String> tags) {
+        log.debug("Deleting specified tags {} from users {}", tags, userIds);
+        repo.deleteAllByUserIdInAndTagIn(userIds, tags);
+        eventPublisher.publishEvent(new DeleteSpecifiedTagsOfUsers(userIds, tags));
     }
 
     @Override

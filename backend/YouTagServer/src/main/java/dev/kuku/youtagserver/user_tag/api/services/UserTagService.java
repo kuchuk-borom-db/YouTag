@@ -38,7 +38,22 @@ public interface UserTagService extends Service<UserTag, UserTagDTO> {
 
     /**
      * Remove all tags of user
+     *
      * @param userId userId
      */
     void deleteAllTagsOfUser(String userId);
+
+    /**
+     * Delete specified tags from user
+     * @param userId userId
+     * @param tagsToDelete tags to delete
+     */
+    void deleteSpecifiedTagsOfUser(String userId, List<String> tagsToDelete);
+
+    /**
+     * Delete specified tags from users
+     * @param userIds userIds to delete the tags from
+     * @param tags tags to delete
+     */
+    void deleteSpecifiedTagsOfUsers(List<String> userIds, List<String> tags);
 }

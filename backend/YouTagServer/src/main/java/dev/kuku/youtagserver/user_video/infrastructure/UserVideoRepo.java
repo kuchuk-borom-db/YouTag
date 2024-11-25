@@ -12,7 +12,11 @@ public interface UserVideoRepo extends CrudRepository<UserVideo, UserVideoId> {
 
     List<UserVideo> findAllByUserIdAndVideoIdIn(String userId, List<String> videoIds);
 
+    List<UserVideo> findAllByVideoIdIn(List<String> videoIds);
+
     void deleteAllByUserIdAndVideoIdIn(String userId, List<String> videoIds);
 
-    void deleteAllByUserId(String userId);
+    List<UserVideo> deleteAllByUserId(String userId);
+
+    List<UserVideo> deleteAllByVideoIdIn(List<String> videoIds);
 }

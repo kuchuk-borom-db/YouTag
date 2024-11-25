@@ -15,7 +15,7 @@ public interface UserVideoTagRepo extends CrudRepository<UserVideoTag, UserVideo
 
     void deleteAllByUserIdAndTagIn(String userId, Collection<String> tags);
 
-    void deleteAllByUserIdAndVideoIdIn(String userId, Collection<String> videoIds);
+    List<UserVideoTag> deleteAllByUserIdAndVideoIdIn(String userId, Collection<String> videoIds);
 
     void deleteAllByUserId(String userId);
 
@@ -23,4 +23,7 @@ public interface UserVideoTagRepo extends CrudRepository<UserVideoTag, UserVideo
 
     List<UserVideoTag> findAllByUserIdAndVideoIdIn(String userId, Collection<String> videoIds, Pageable of);
 
+    List<UserVideoTag> deleteAllByVideoIdIn(List<String> videoIds);
+
+    List<UserVideoTag> deleteAllByUserIdInAndVideoIdIn(List<String> userIds, List<String> videoIds);
 }

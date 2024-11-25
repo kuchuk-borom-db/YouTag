@@ -2,9 +2,7 @@ package dev.kuku.youtagserver.user_video_tag.application;
 
 import dev.kuku.youtagserver.user_video_tag.api.UserVideoTagDTO;
 import dev.kuku.youtagserver.user_video_tag.api.UserVideoTagService;
-import dev.kuku.youtagserver.user_video_tag.api.events.DeleteAllTagsFromSpecificSavedVideosOfUser;
-import dev.kuku.youtagserver.user_video_tag.api.events.DeleteSpecificTagsFromAllSavedVideos;
-import dev.kuku.youtagserver.user_video_tag.api.events.DeleteTagsFromSpecificSavedVideos;
+import dev.kuku.youtagserver.user_video_tag.api.events.*;
 import dev.kuku.youtagserver.user_video_tag.domain.UserVideoTag;
 import dev.kuku.youtagserver.user_video_tag.infrastructure.UserVideoTagRepo;
 import jakarta.transaction.Transactional;
@@ -66,11 +64,12 @@ public class UserVideoTagServiceImpl implements UserVideoTagService {
     }
 
     @Override
-    public void deleteAllTagsFromSpecificSavedVideosOfUser(String userId, List<String> videoIds) {
+    public List<String> deleteAllTagsFromSpecificSavedVideosOfUser(String userId, List<String> videoIds) {
         log.debug("Deleting all tags from saved videos {} of user {}", videoIds, userId);
-        repo.deleteAllByUserIdAndVideoIdIn(userId, videoIds);
+        var deleted = repo.deleteAllByUserIdAndVideoIdIn(userId, videoIds);
         //Event needs to remove tags from user if they are not used in any other saved video
         eventPublisher.publishEvent(new DeleteAllTagsFromSpecificSavedVideosOfUser(userId, videoIds));
+        return deleted.stream().map(UserVideoTag::getTag).collect(Collectors.toList());
     }
 
     @Override
@@ -93,5 +92,20 @@ public class UserVideoTagServiceImpl implements UserVideoTagService {
         Set<String> tags = repo.findAllByUserIdAndVideoIdIn(userId, videoIds, PageRequest.of(skip / limit, limit)).stream().map(UserVideoTag::getTag).collect(Collectors.toSet());
         log.debug("Got tags {} for saved videos {}", tags, videoIds);
         return tags;
+    }
+
+    @Override
+    public void deleteAllTagsFromSpecificSavedVideosForAllUser(List<String> videoIds) {
+        log.debug("Deleting all tags from videos {} for all users", videoIds);
+        Set<String> affectedUsers = repo.deleteAllByVideoIdIn(videoIds).stream().map(UserVideoTag::getUserId).collect(Collectors.toSet());
+        eventPublisher.publishEvent(new DeleteAllTagsFromSpecificSavedVideosForAllUsers(affectedUsers.stream().toList(), videoIds));
+    }
+
+    @Override
+    public List<String> deleteAllTagsFromSpecificSavedVideosOfUsers(List<String> userIds, List<String> videoIds) {
+        log.debug("Deleting all tags from videos {} for users {}", videoIds, userIds);
+        List<UserVideoTag> deleted = repo.deleteAllByUserIdInAndVideoIdIn(userIds, videoIds);
+        eventPublisher.publishEvent(new DeleteAllTagsFromSpecifiedSavedVideosOfUsers(userIds, videoIds));
+        return deleted.stream().map(UserVideoTag::getTag).collect(Collectors.toList());
     }
 }
