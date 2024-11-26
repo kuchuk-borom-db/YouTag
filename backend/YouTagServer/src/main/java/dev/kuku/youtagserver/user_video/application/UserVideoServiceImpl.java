@@ -2,8 +2,6 @@ package dev.kuku.youtagserver.user_video.application;
 
 import dev.kuku.youtagserver.user_video.api.dto.UserVideoDTO;
 import dev.kuku.youtagserver.user_video.api.events.DeleteSpecificVideosFromAllUsers;
-import dev.kuku.youtagserver.user_video.api.events.DeleteAllSavedVideosFromUser;
-import dev.kuku.youtagserver.user_video.api.events.DeleteSavedVideosFromUser;
 import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
 import dev.kuku.youtagserver.user_video.domain.UserVideo;
 import dev.kuku.youtagserver.user_video.infrastructure.UserVideoRepo;
@@ -15,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,12 +38,9 @@ public class UserVideoServiceImpl implements UserVideoService {
     }
 
     @Override
-    public void deleteSpecificSavedVideosFromUser(String userId, List<String> videoIds) {
+    public void deleteSpecificSavedVideosFromUser(String userId, Set<String> videoIds) {
         log.debug("Remove saved video {} from user {}", videoIds, userId);
-        repo.deleteAllByUserIdAndVideoIdIn(userId, videoIds);
-        //TODO cache evict
-        //Remove entry or entries from user_video_tag table with userId and videoIds
-        eventPublisher.publishEvent(new DeleteSavedVideosFromUser(userId, videoIds));
+        repo.deleteAllByUserIdAndVideoIdIn(userId, videoIds.stream().toList());
     }
 
     @Override
@@ -66,26 +62,23 @@ public class UserVideoServiceImpl implements UserVideoService {
     }
 
     @Override
-    public List<String> getSpecificSavedVideosForAllUser(List<String> videoIds) {
+    public Set<String> getUnusedVideosFromSet(Set<String> videoIds) {
         log.debug("Getting videos {} saved by any users", videoIds);
-        var found = repo.findAllByVideoIdIn(videoIds);
+        var found = repo.findAllByVideoIdIn(videoIds.stream().toList()).stream().map(UserVideo::getVideoId).collect(Collectors.toSet());
         log.debug("Found videos {}", found);
-        return found.stream().map(UserVideo::getVideoId).collect(Collectors.toList());
+        return videoIds.stream().filter(videoId -> !found.contains(videoId)).collect(Collectors.toSet());
     }
 
     @Override
-    public List<String> deleteAllSavedVideosFromUser(String userId) {
+    public void deleteAllSavedVideosFromUser(String userId) {
         log.debug("Removing all videos saved from user {}", userId);
-        var deleted = repo.deleteAllByUserId(userId).stream().map(UserVideo::getVideoId).toList();
-        eventPublisher.publishEvent(new DeleteAllSavedVideosFromUser(userId, deleted));
-        return deleted;
+        repo.deleteAllByUserId(userId);
     }
 
     @Override
-    public List<String> deleteSpecificSavedVideosForAllUsers(List<String> videoIds) {
+    public void deleteSpecificSavedVideosForAllUsers(List<String> videoIds) {
         log.debug("Deleting videos {} from all users", videoIds);
         var affectedUser = repo.deleteAllByVideoIdIn(videoIds).stream().map(UserVideo::getUserId).toList();
         eventPublisher.publishEvent(new DeleteSpecificVideosFromAllUsers(affectedUser, videoIds));
-        return affectedUser;
     }
 }

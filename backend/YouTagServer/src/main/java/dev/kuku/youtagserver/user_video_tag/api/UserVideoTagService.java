@@ -32,15 +32,7 @@ public interface UserVideoTagService extends Service<UserVideoTag, UserVideoTagD
      * @param videoIds videos to delete the tags from
      * @param tags     tags to delete
      */
-    void deleteSpecificTagsFromSavedVideosOfUser(String userId, List<String> videoIds, List<String> tags);
-
-    /**
-     * Delete the specified tags from all videos saved by user
-     *
-     * @param userId userId
-     * @param tags   tags to delete from ALL videos
-     */
-    void deleteSpecificTagsFromAllSavedVideosOfUser(String userId, List<String> tags);
+    void deleteSpecificTagsFromSavedVideosOfUser(String userId, Set<String> videoIds, Set<String> tags);
 
     /**
      * Delete all tags from the specified video Ids saved to user
@@ -49,7 +41,7 @@ public interface UserVideoTagService extends Service<UserVideoTag, UserVideoTagD
      * @param videoIds video ids to delete all tags from
      * @return deleted tags
      */
-    List<String> deleteAllTagsFromSpecificSavedVideosOfUser(String userId, List<String> videoIds);
+    Set<String> deleteAllTagsFromSpecificSavedVideosOfUser(String userId, Set<String> videoIds);
 
     /**
      * Delete all entries of with matching userId. Essentially removing tags from all videos of user
@@ -84,15 +76,24 @@ public interface UserVideoTagService extends Service<UserVideoTag, UserVideoTagD
      * Delete all tags from specified videos for all users
      *
      * @param videoIds video ids to delete tags from for all users
-     */
-    void deleteAllTagsFromSpecificSavedVideosForAllUser(List<String> videoIds);
-
-    /**
-     * Remove all tags from specified videos from specified users
-     *
-     * @param userIds  userIds to delete  from
-     * @param videoIds video ids to delete the tags from
      * @return deleted tags
      */
-    List<String> deleteAllTagsFromSpecificSavedVideosOfUsers(List<String> userIds, List<String> videoIds);
+    Set<String> deleteAllTagsFromSpecificSavedVideosForAllUser(Set<String> videoIds);
+
+    /**
+     * Get tags that are not used by the user from the tags list parameter
+     *
+     * @param userId      userId
+     * @param tagsToCheck tags to check if they are being used or not
+     * @Return Set of tags that are not used by the user
+     */
+    Set<String> getUnusedTagsOfUserFromList(String userId, Set<String> tagsToCheck);
+
+    /**
+     * Get tags that are not used by any users
+     *
+     * @param tags tags to check
+     * @return set of tags that are not used by any user
+     */
+    Set<String> getUnusedTagsForAllUserFromList(Set<String> tags);
 }

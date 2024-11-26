@@ -5,6 +5,7 @@ import dev.kuku.youtagserver.user_video.api.dto.UserVideoDTO;
 import dev.kuku.youtagserver.user_video.domain.UserVideo;
 
 import java.util.List;
+import java.util.Set;
 
 public interface UserVideoService extends Service<UserVideo, UserVideoDTO> {
 
@@ -22,7 +23,7 @@ public interface UserVideoService extends Service<UserVideo, UserVideoDTO> {
      * @param userId  userId
      * @param videoId videoId to remove
      */
-    void deleteSpecificSavedVideosFromUser(String userId, List<String> videoId);
+    void deleteSpecificSavedVideosFromUser(String userId, Set<String> videoId);
 
     /**
      * get all saved videos of a user
@@ -44,23 +45,25 @@ public interface UserVideoService extends Service<UserVideo, UserVideoDTO> {
     List<String> getSpecificSavedVideosOfUser(String userId, List<String> videoIds);
 
     /**
-     * Get videoIds that exist in the table. Good to determine if a video or videos are saved by any user
+     * Get a list of video Ids from the parameter that are not saved to any user
+     *
      * @param videoIds videoIds to check
-     * @return list of videos that are saved from the specified videos
+     * @return list of videos that are not saved by any user
      */
-    List<String> getSpecificSavedVideosForAllUser(List<String> videoIds);
+    Set<String> getUnusedVideosFromSet(Set<String> videoIds);
 
 
     /**
      * Removes all videos of user
-     * @Return  Deleted videos
+     *
+     * @Return Deleted videos
      */
-    List<String> deleteAllSavedVideosFromUser(String userId);
+    void deleteAllSavedVideosFromUser(String userId);
 
     /**
      * Delete saved videos from all user
+     *
      * @param videoIds videoIds to delete from all users
-     * @return list of userId that got affected
      */
-    List<String> deleteSpecificSavedVideosForAllUsers(List<String> videoIds);
+    void deleteSpecificSavedVideosForAllUsers(List<String> videoIds);
 }

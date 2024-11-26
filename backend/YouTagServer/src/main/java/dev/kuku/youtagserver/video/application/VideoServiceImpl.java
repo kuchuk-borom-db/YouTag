@@ -1,7 +1,6 @@
 package dev.kuku.youtagserver.video.application;
 
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
-import dev.kuku.youtagserver.video.api.events.DeleteSpecifiedVideos;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
 import dev.kuku.youtagserver.video.api.services.VideoService;
@@ -10,13 +9,12 @@ import dev.kuku.youtagserver.video.infrastructure.VideoRepo;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -26,7 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class VideoServiceImpl implements VideoService {
 
     private final VideoRepo videoRepo;
-    private final ApplicationEventPublisher eventPublisher;
     private final Map<String, VideoDTO> cache = new ConcurrentHashMap<>();
 
     /**
@@ -111,10 +108,9 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public void deleteSpecifiedVideos(List<String> videoIds) {
+    public void deleteSpecifiedVideos(Set<String> videoIds) {
         log.debug("Deleting videos {}", videoIds);
         videoRepo.deleteAllById(videoIds);
-        eventPublisher.publishEvent(new DeleteSpecifiedVideos(videoIds));
     }
 
 

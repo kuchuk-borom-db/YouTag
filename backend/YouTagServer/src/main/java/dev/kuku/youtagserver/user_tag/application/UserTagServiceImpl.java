@@ -1,10 +1,6 @@
 package dev.kuku.youtagserver.user_tag.application;
 
-import dev.kuku.youtagserver.shared.helper.CacheSystem;
 import dev.kuku.youtagserver.user_tag.api.dtos.UserTagDTO;
-import dev.kuku.youtagserver.user_tag.api.events.DeleteSpecifiedTagsOfUsers;
-import dev.kuku.youtagserver.user_tag.api.events.DeleteAllTagsOfUser;
-import dev.kuku.youtagserver.user_tag.api.events.DeleteSpecifiedTagsOfUser;
 import dev.kuku.youtagserver.user_tag.api.services.UserTagService;
 import dev.kuku.youtagserver.user_tag.domain.UserTag;
 import dev.kuku.youtagserver.user_tag.domain.UserTagId;
@@ -12,11 +8,11 @@ import dev.kuku.youtagserver.user_tag.infrastructure.UserTagRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,9 +21,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserTagServiceImpl implements UserTagService {
     final UserTagRepo repo;
-    final CacheSystem cacheSystem;
-    final String cacheStorageName = "user_tag";
-    final ApplicationEventPublisher eventPublisher;
 
     @Override
     public void addTagsToUser(String userId, List<String> tags) {
@@ -37,15 +30,6 @@ public class UserTagServiceImpl implements UserTagService {
         //TODO Evict everything with the matching user
     }
 
-    @Override
-    public List<String> getSpecificTagsOfUser(String userId, List<String> tags) {
-        log.debug("Getting valid existing tags {} from user {}", tags, userId);
-        List<UserTag> existingEntries = repo.findAllByUserIdAndTagIn(userId, tags);
-        List<String> existingTags = existingEntries.stream().map(UserTag::getTag).collect(Collectors.toList());
-        log.debug("Got tags {} for user {}", existingTags, userId);
-        //TODO Cache the result
-        return existingTags;
-    }
 
     @Override
     public List<String> getAllTagsOfUser(String userId, int skip, int limit) {
@@ -61,21 +45,19 @@ public class UserTagServiceImpl implements UserTagService {
     public void deleteAllTagsOfUser(String userId) {
         log.debug("Removing all tags from user {}", userId);
         repo.deleteAllByUserId(userId);
-        eventPublisher.publishEvent(new DeleteAllTagsOfUser(userId));
     }
 
     @Override
     public void deleteSpecifiedTagsOfUser(String userId, List<String> tagsToDelete) {
         log.debug("Deleting specified tags {} from user {}", tagsToDelete, userId);
         repo.deleteAllById(tagsToDelete.stream().map(tag -> new UserTagId(userId, tag)).collect(Collectors.toList()));
-        eventPublisher.publishEvent(new DeleteSpecifiedTagsOfUser(userId, tagsToDelete));
     }
 
+
     @Override
-    public void deleteSpecifiedTagsOfUsers(List<String> userIds, List<String> tags) {
-        log.debug("Deleting specified tags {} from users {}", tags, userIds);
-        repo.deleteAllByUserIdInAndTagIn(userIds, tags);
-        eventPublisher.publishEvent(new DeleteSpecifiedTagsOfUsers(userIds, tags));
+    public void deleteSpecifiedTagsFromAllUsers(Set<String> tags) {
+        log.debug("Deleting specific tags {} from all users.", tags);
+        repo.deleteAllByTagIn(tags);
     }
 
     @Override

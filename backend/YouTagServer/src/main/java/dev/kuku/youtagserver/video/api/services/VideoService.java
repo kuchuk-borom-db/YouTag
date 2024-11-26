@@ -7,7 +7,7 @@ import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
 import dev.kuku.youtagserver.video.domain.Video;
 
-import java.util.List;
+import java.util.Set;
 
 public interface VideoService extends Service<Video, VideoDTO> {
     /**
@@ -26,7 +26,8 @@ public interface VideoService extends Service<Video, VideoDTO> {
 
     /**
      * Delete specified video ids
+     *
      * @param videoIds videos to delete
      */
-    void deleteSpecifiedVideos(List<String> videoIds);
+    void deleteSpecifiedVideos(Set<String> videoIds);
 }

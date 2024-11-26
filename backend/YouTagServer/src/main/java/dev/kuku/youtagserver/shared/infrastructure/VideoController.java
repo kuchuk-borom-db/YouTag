@@ -4,6 +4,7 @@ import dev.kuku.youtagserver.auth.api.exceptions.NoAuthenticatedYouTagUser;
 import dev.kuku.youtagserver.auth.api.services.AuthService;
 import dev.kuku.youtagserver.shared.api.events.RemoveVideosOrder;
 import dev.kuku.youtagserver.shared.api.events.UpdateVideoInfoOrder;
+import dev.kuku.youtagserver.shared.application.OrchestratorService;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
 import dev.kuku.youtagserver.shared.models.VideoInfoTagDTO;
 import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
@@ -25,6 +26,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * - Save video(s) (to user)
@@ -43,6 +45,7 @@ public class VideoController {
     private final YoutubeScrapperService scrapperService;
     private final UserVideoTagService userVideoTagService;
     private final ApplicationEventPublisher eventPublisher;
+    private final OrchestratorService orchestratorService;
 
     private String getCurrentUser() throws NoAuthenticatedYouTagUser {
         return authService.getCurrentUser().email();
@@ -98,6 +101,8 @@ public class VideoController {
     }
 
     /**
+     * Delete videos by Id
+     *
      * @param videosRaw list of videos separated by ,
      * @throws NoAuthenticatedYouTagUser if authenticated user is invalid
      */
@@ -107,8 +112,8 @@ public class VideoController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseModel.build(null, "videos query parameter is missing"));
         }
         log.debug("Deleting videos {} from user {}", videosRaw, getCurrentUser());
-        List<String> videoIds = Arrays.stream(videosRaw.split(",")).map(s -> s.trim().toLowerCase()).toList();
-        userVideoService.deleteSpecificSavedVideosFromUser(getCurrentUser(), videoIds);
+        Set<String> videoIds = Arrays.stream(videosRaw.trim().split(",")).collect(Collectors.toSet());
+        orchestratorService.deleteSpecificSavedVideosOfUser(getCurrentUser(), videoIds);
         return ResponseEntity.ok(ResponseModel.build(null, String.format("Deleted videos from user %s", getCurrentUser())));
     }
 

@@ -2,6 +2,7 @@ package dev.kuku.youtagserver.shared.infrastructure;
 
 import dev.kuku.youtagserver.auth.api.exceptions.NoAuthenticatedYouTagUser;
 import dev.kuku.youtagserver.auth.api.services.AuthService;
+import dev.kuku.youtagserver.shared.application.OrchestratorService;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
 import dev.kuku.youtagserver.user_tag.api.services.UserTagService;
 import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * - Add tag(s) to saved video(s) (of user)
@@ -34,6 +36,7 @@ public class TagController {
     final UserVideoService userVideoService;
     final UserVideoTagService userVideoTagService;
     final UserTagService userTagService;
+    final OrchestratorService orchestratorService;
 
     String getCurrentUserId() throws NoAuthenticatedYouTagUser {
         return authService.getCurrentUser().email();
@@ -77,16 +80,15 @@ public class TagController {
         if (tagsRaw.isBlank() && videosRaw.isBlank()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseModel.build(null, "tags and/or videos query parameters are missing"));
         }
-        List<String> tags = Arrays.stream(tagsRaw.trim().split(",")).map(s -> s.trim().toLowerCase()).toList();
-        List<String> videoIds = Arrays.stream(videosRaw.trim().split(",")).map(String::trim).toList();
+        Set<String> tags = Arrays.stream(tagsRaw.trim().split(",")).map(s -> s.trim().toLowerCase()).collect(Collectors.toSet());
+        Set<String> videoIds = Arrays.stream(videosRaw.trim().split(",")).map(String::trim).collect(Collectors.toSet());
 
         String msg = "";
         /*
         If both tags and videos are present delete tags from the video
          */
         if (!tagsRaw.isBlank() && !videosRaw.isBlank()) {
-
-            userVideoTagService.deleteSpecificTagsFromSavedVideosOfUser(getCurrentUserId(), videoIds, tags);
+            orchestratorService.deleteSpecificTagsFromSpecificSavedVideosOfUser(getCurrentUserId(), videoIds, tags);
             msg = String.format("Deleted tags %s from videos %s", tags, videoIds);
         }
 
@@ -94,7 +96,7 @@ public class TagController {
         If tags are present but not videos delete the tags from all videos
          */
         if (!tagsRaw.isBlank() && videosRaw.isBlank()) {
-            userVideoTagService.deleteSpecificTagsFromAllSavedVideosOfUser(getCurrentUserId(), tags);
+            orchestratorService.deleteSpecificTagsFromAllSavedVideosOfUser(getCurrentUserId(), tags);
             msg = String.format("Deleted tags %s from all videos", tags);
         }
 
@@ -102,7 +104,7 @@ public class TagController {
         If videos are present but not tags then delete all tags from the videos
          */
         if (tagsRaw.isBlank() && !videosRaw.isBlank()) {
-            userVideoTagService.deleteAllTagsFromSpecificSavedVideosOfUser(getCurrentUserId(), videoIds);
+            orchestratorService.deleteAllTagsFromSpecificSavedVideosOfUser(getCurrentUserId(), videoIds);
             msg = String.format("Deleted all tags from videos %s", videoIds);
         }
         return ResponseEntity.ok(ResponseModel.build(null, msg));

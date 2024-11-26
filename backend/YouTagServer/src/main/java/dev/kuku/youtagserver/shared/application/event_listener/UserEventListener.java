@@ -1,4 +1,4 @@
-package dev.kuku.youtagserver.shared.application;
+package dev.kuku.youtagserver.shared.application.event_listener;
 
 import dev.kuku.youtagserver.user.api.events.UserDeletedEvent;
 import dev.kuku.youtagserver.user_tag.api.services.UserTagService;

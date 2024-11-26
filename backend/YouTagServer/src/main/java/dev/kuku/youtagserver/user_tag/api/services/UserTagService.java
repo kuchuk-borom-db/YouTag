@@ -5,6 +5,7 @@ import dev.kuku.youtagserver.user_tag.api.dtos.UserTagDTO;
 import dev.kuku.youtagserver.user_tag.domain.UserTag;
 
 import java.util.List;
+import java.util.Set;
 
 public interface UserTagService extends Service<UserTag, UserTagDTO> {
     /**
@@ -15,16 +16,6 @@ public interface UserTagService extends Service<UserTag, UserTagDTO> {
      */
     void addTagsToUser(String userId, List<String> tags);
 
-    /**
-     * Get specified tags of a user. If user-tag doesn't exist. It will not be returned
-     *
-     * @param userId user Id
-     * @param tags   tags to check
-     * @param skip   how many to skip
-     * @param limit  how many to limit
-     * @return list of tags of the user that exists
-     */
-    List<String> getSpecificTagsOfUser(String userId, List<String> tags);
 
     /**
      * Get all tags of user with pagination.
@@ -45,15 +36,17 @@ public interface UserTagService extends Service<UserTag, UserTagDTO> {
 
     /**
      * Delete specified tags from user
-     * @param userId userId
+     *
+     * @param userId       userId
      * @param tagsToDelete tags to delete
      */
     void deleteSpecifiedTagsOfUser(String userId, List<String> tagsToDelete);
 
+
     /**
-     * Delete specified tags from users
-     * @param userIds userIds to delete the tags from
+     * Delete specific tags from all users
+     *
      * @param tags tags to delete
      */
-    void deleteSpecifiedTagsOfUsers(List<String> userIds, List<String> tags);
+    void deleteSpecifiedTagsFromAllUsers(Set<String> tags);
 }
