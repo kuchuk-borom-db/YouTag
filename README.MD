@@ -258,39 +258,38 @@ erDiagram
     VIDEOS ||--o{ USER_VIDEO_TAG : has
 
     USERS {
-        varchar(250) id PK
-        varchar(250) name
-        varchar(250) thumbnail_url
-        timestamp(6) updated
+        varchar id PK
+        varchar name
+        varchar thumbnail_url
+        timestamp updated
     }
 
     VIDEOS {
-        varchar(50) id PK
-        varchar(250) title
-        varchar(500) description
-        varchar(500) thumbnail_url
-        timestamp(6) updated
+        varchar id PK
+        varchar title
+        varchar description
+        varchar thumbnail_url
+        timestamp updated
     }
 
     USER_VIDEO {
-        varchar(250) user_id FK
-        varchar(50) video_id FK
-        primary key(user_id, video_id)
+        varchar user_id FK
+        varchar video_id FK
+        PK user_id video_id
     }
 
     USER_TAG {
-        varchar(255) user_id FK
-        varchar(255) tag
-        primary key(user_id, tag)
+        varchar user_id FK
+        varchar tag
+        PK user_id tag
     }
 
     USER_VIDEO_TAG {
-        varchar(255) user_id FK
-        varchar(50) video_id FK
-        varchar(255) tag
-        primary key(user_id, video_id, tag)
+        varchar user_id FK
+        varchar video_id FK
+        varchar tag
+        PK user_id video_id tag
     }
-
 ```
 
 #### Index Optimization
