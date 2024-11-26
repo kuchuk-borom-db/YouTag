@@ -247,51 +247,7 @@ create table event_publication (
 ```
 
 ### Database Design
-
-#### Entity Relationship Diagram
-```mermaid
-erDiagram
-    USERS ||--o{ USER_VIDEO : has
-    VIDEOS ||--o{ USER_VIDEO : belongs_to
-    USERS ||--o{ USER_TAG : has
-    USERS ||--o{ USER_VIDEO_TAG : has
-    VIDEOS ||--o{ USER_VIDEO_TAG : has
-
-    USERS {
-        varchar id PK
-        varchar name
-        varchar thumbnail_url
-        timestamp updated
-    }
-
-    VIDEOS {
-        varchar id PK
-        varchar title
-        varchar description
-        varchar thumbnail_url
-        timestamp updated
-    }
-
-    USER_VIDEO {
-        varchar user_id FK
-        varchar video_id FK
-        PK user_id video_id
-    }
-
-    USER_TAG {
-        varchar user_id FK
-        varchar tag
-        PK user_id tag
-    }
-
-    USER_VIDEO_TAG {
-        varchar user_id FK
-        varchar video_id FK
-        varchar tag
-        PK user_id video_id tag
-    }
-```
-
+<img src="er.png">
 #### Index Optimization
 The database schema includes carefully designed indexes for optimal query performance:
 
