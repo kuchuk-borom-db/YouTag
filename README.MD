@@ -255,40 +255,42 @@ erDiagram
     VIDEOS ||--o{ USER_VIDEO : belongs_to
     USERS ||--o{ USER_TAG : has
     USERS ||--o{ USER_VIDEO_TAG : has
-    
+    VIDEOS ||--o{ USER_VIDEO_TAG : has
+
     USERS {
         varchar(250) id PK
         varchar(250) name
         varchar(250) thumbnail_url
-        timestamp updated
+        timestamp(6) updated
     }
-    
+
     VIDEOS {
         varchar(50) id PK
         varchar(250) title
         varchar(500) description
         varchar(500) thumbnail_url
-        timestamp updated
+        timestamp(6) updated
     }
-    
+
     USER_VIDEO {
         varchar(250) user_id FK
         varchar(50) video_id FK
         primary key(user_id, video_id)
     }
-    
+
     USER_TAG {
         varchar(255) user_id FK
         varchar(255) tag
         primary key(user_id, tag)
     }
-    
+
     USER_VIDEO_TAG {
         varchar(255) user_id FK
         varchar(50) video_id FK
         varchar(255) tag
         primary key(user_id, video_id, tag)
     }
+
 ```
 
 #### Index Optimization
