@@ -1,4 +1,4 @@
-# YouTag
+<img src="assets/youtag_logo-no-bg.ico">
 
 **Organize and Access Your Favorite YouTube Videos with Ease**
 
@@ -227,6 +227,8 @@ public class OrchestratorService {
 ### Event Driven Architecture
 The system uses events to maintain loose coupling between modules while ensuring reliable event processing.
 
+<img src="assets/event%20sourcing.png">
+
 #### Event Processing
 - Uses Spring Modulith's event publication system
 - Events are persisted in the database to ensure delivery
@@ -247,7 +249,7 @@ create table event_publication (
 ```
 
 ### Database Design
-<img src="er.png">
+<img src="assets/er.png">
 
 #### Index Optimization
 The database schema includes carefully designed indexes for optimal query performance:
@@ -320,6 +322,16 @@ public class SecurityConfig {
 2. Server validates OAuth response
 3. JWT token generated for authenticated user
 4. Subsequent requests use JWT token for authentication
+
+<img src="assets/google%20oauth.png">
+
+### Authenticated Endpoint Flow
+1. User sends a request with JWT token as authorization header
+2. Server's web filter intercepts the request and extracts the userID from the token
+3. Extracted userID is passed on to Authentication Provider which verifies the signature and sets the current user in security context
+4. Controller picks up and proceeds doing what it is supposed to do based on the request
+
+<img src="assets/authenticated%20endpoint%20flow%20example.png">
 
 #### Security Measures
 - JWT token validation per request
