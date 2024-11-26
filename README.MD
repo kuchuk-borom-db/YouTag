@@ -248,6 +248,7 @@ create table event_publication (
 
 ### Database Design
 <img src="er.png">
+
 #### Index Optimization
 The database schema includes carefully designed indexes for optimal query performance:
 
