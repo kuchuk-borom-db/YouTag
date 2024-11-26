@@ -7,7 +7,7 @@ import dev.kuku.youtagserver.shared.api.events.UpdateVideoInfoOrder;
 import dev.kuku.youtagserver.shared.application.OrchestratorService;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
 import dev.kuku.youtagserver.shared.models.VideoInfoTagDTO;
-import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
+import dev.kuku.youtagserver.user_video.api.UserVideoService;
 import dev.kuku.youtagserver.user_video_tag.api.UserVideoTagService;
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
 import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;

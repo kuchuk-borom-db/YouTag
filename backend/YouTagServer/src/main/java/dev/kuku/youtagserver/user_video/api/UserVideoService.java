@@ -1,7 +1,6 @@
-package dev.kuku.youtagserver.user_video.api.services;
+package dev.kuku.youtagserver.user_video.api;
 
 import dev.kuku.youtagserver.shared.api.services.Service;
-import dev.kuku.youtagserver.user_video.api.dto.UserVideoDTO;
 import dev.kuku.youtagserver.user_video.domain.UserVideo;
 
 import java.util.List;

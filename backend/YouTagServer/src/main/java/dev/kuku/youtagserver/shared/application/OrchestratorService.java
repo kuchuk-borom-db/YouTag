@@ -1,7 +1,7 @@
 package dev.kuku.youtagserver.shared.application;
 
-import dev.kuku.youtagserver.user_tag.api.services.UserTagService;
-import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
+import dev.kuku.youtagserver.user_tag.api.UserTagService;
+import dev.kuku.youtagserver.user_video.api.UserVideoService;
 import dev.kuku.youtagserver.user_video_tag.api.UserVideoTagService;
 import dev.kuku.youtagserver.video.api.services.VideoService;
 import jakarta.transaction.Transactional;

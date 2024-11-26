@@ -19,6 +19,6 @@ public class UserTag {
     @Column(name = DbConst.CommonColumn.USER_ID)
     String userId;
     @Id
-    @Column(name = DbConst.UserTag.TAG)
+    @Column(name = DbConst.CommonColumn.TAG)
     String tag;
 }

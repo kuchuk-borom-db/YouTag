@@ -1,7 +1,7 @@
 package dev.kuku.youtagserver.user_tag.application;
 
-import dev.kuku.youtagserver.user_tag.api.dtos.UserTagDTO;
-import dev.kuku.youtagserver.user_tag.api.services.UserTagService;
+import dev.kuku.youtagserver.user_tag.api.UserTagDTO;
+import dev.kuku.youtagserver.user_tag.api.UserTagService;
 import dev.kuku.youtagserver.user_tag.domain.UserTag;
 import dev.kuku.youtagserver.user_tag.domain.UserTagId;
 import dev.kuku.youtagserver.user_tag.infrastructure.UserTagRepo;

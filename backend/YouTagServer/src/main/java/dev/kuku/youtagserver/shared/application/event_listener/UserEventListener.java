@@ -1,8 +1,8 @@
 package dev.kuku.youtagserver.shared.application.event_listener;
 
 import dev.kuku.youtagserver.user.api.events.UserDeletedEvent;
-import dev.kuku.youtagserver.user_tag.api.services.UserTagService;
-import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
+import dev.kuku.youtagserver.user_tag.api.UserTagService;
+import dev.kuku.youtagserver.user_video.api.UserVideoService;
 import dev.kuku.youtagserver.user_video_tag.api.UserVideoTagService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

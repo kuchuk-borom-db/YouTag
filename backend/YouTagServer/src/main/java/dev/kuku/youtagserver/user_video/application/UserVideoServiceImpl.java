@@ -1,14 +1,12 @@
 package dev.kuku.youtagserver.user_video.application;
 
-import dev.kuku.youtagserver.user_video.api.dto.UserVideoDTO;
-import dev.kuku.youtagserver.user_video.api.events.DeleteSpecificVideosFromAllUsers;
-import dev.kuku.youtagserver.user_video.api.services.UserVideoService;
+import dev.kuku.youtagserver.user_video.api.UserVideoDTO;
+import dev.kuku.youtagserver.user_video.api.UserVideoService;
 import dev.kuku.youtagserver.user_video.domain.UserVideo;
 import dev.kuku.youtagserver.user_video.infrastructure.UserVideoRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +20,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserVideoServiceImpl implements UserVideoService {
     final UserVideoRepo repo;
-    final ApplicationEventPublisher eventPublisher;
 
     @Override
     public UserVideoDTO toDto(UserVideo e) {
@@ -78,7 +75,6 @@ public class UserVideoServiceImpl implements UserVideoService {
     @Override
     public void deleteSpecificSavedVideosForAllUsers(List<String> videoIds) {
         log.debug("Deleting videos {} from all users", videoIds);
-        var affectedUser = repo.deleteAllByVideoIdIn(videoIds).stream().map(UserVideo::getUserId).toList();
-        eventPublisher.publishEvent(new DeleteSpecificVideosFromAllUsers(affectedUser, videoIds));
+        repo.deleteAllByVideoIdIn(videoIds);
     }
 }
