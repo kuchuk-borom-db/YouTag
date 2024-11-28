@@ -64,7 +64,7 @@ public class TagController {
         //Save the tags in user_tag table if it doesn't exist yet.
         userTagService.addTagsToUser(getCurrentUserId(), tags);
         //Save the tagIds to userVideoTag table
-        userVideoTagService.addTagsToSpecificSavedVideosOfUser(getCurrentUserId(), tags, videoIds);
+        userVideoTagService.addTagsToSpecificSavedVideosOfUser(getCurrentUserId(), videoIds, tags);
         return ResponseEntity.ok(ResponseModel.build(null, String.format("Saved tags %s for videos %s of user %s", tags, videoIds, getCurrentUserId())));
     }
 
@@ -112,10 +112,10 @@ public class TagController {
 
     @GetMapping("/")
     ResponseEntity<ResponseModel<Object>> getTagsVideosOfUser(
-            String tagsRaw,
-            String videosRaw,
-            int skip,
-            int limit
+            @RequestParam(value = "tags", defaultValue = "") String tagsRaw,
+            @RequestParam(value = "videos", defaultValue = "") String videosRaw,
+            @RequestParam(value = "skip", defaultValue = "0") int skip,
+            @RequestParam(value = "skip", defaultValue = "100") int limit
     ) throws NoAuthenticatedYouTagUser {
 
         List<String> tags = Arrays.stream(tagsRaw.split(",")).map(s -> s.trim().toLowerCase()).toList();

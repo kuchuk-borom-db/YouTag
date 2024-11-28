@@ -244,7 +244,7 @@ class _PageHomeState extends State<PageHome>
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        prefixIcon: const Icon(Icons.userTag),
+                        prefixIcon:  const Icon(Icons.abc),
                         helperText: 'Use only letters, numbers, and hyphens',
                         errorText: _tagsController.text.isNotEmpty &&
                             !_validateAndFormatTags(_tagsController.text)

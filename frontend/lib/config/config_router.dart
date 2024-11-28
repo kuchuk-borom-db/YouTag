@@ -50,29 +50,25 @@ class ConfigRouter {
           final user = await userService.getUserInfo();
           if (user == null) {
             // Token is invalid or expired
-            await storageService
-                .removeValue("token"); // Clear the invalid token
-            if (!isInRedirectPath) {
-              return '/login';
-            }
+            await storageService.removeValue("token");
+            return isInRedirectPath ? null : '/login';
           }
         } catch (e) {
           // Handle any errors during user info retrieval
           await storageService.removeValue("token");
-          if (!isInRedirectPath) {
-            return '/login';
-          }
+          return isInRedirectPath ? null : '/login';
         }
       }
 
-      //If attempting to access login page when logged in. Push back to home page
-      if (state.uri.path == '/login' ||
-          state.uri.path == '/api/public/auth/redirect/google') {
+      // If attempting to access login page when logged in, redirect to home
+      if ((state.uri.path == '/login' ||
+              state.uri.path == '/api/public/auth/redirect/google') &&
+          isLoggedIn) {
         return '/';
       }
 
       // Regular auth flow
-      if (!isLoggedIn && !isInRedirectPath) {
+      if (!isLoggedIn && state.uri.path != '/login') {
         if (kDebugMode) {
           print('Redirecting to login because not logged in');
         }
@@ -178,7 +174,8 @@ class ConfigRouter {
             initialTags: userTags,
             initialTitles: titles,
             initialIds: ids,
-            autoSearch: userTags.isNotEmpty || titles.isNotEmpty || ids.isNotEmpty,
+            autoSearch:
+                userTags.isNotEmpty || titles.isNotEmpty || ids.isNotEmpty,
           );
         },
       ),

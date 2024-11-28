@@ -29,20 +29,24 @@ class ServiceVideo {
     var response = await http
         .get(Uri.parse(finalUrl), headers: {"Authorization": "Bearer $token"});
     if (response.statusCode == 200) {
-      List<dynamic> videosRAW = jsonDecode(response.body)["data"];
+      var decodedResp = jsonDecode(response.body);
+      if (kDebugMode) {
+        print("Response is $decodedResp");
+      }
+      List<dynamic> videosRAW = decodedResp["data"];
       List<ModelVideo> videos = [];
       for (var element in videosRAW) {
         var videoDTO = element['videoDTO'];
-        List<dynamic> userTags = element["userTags"];
+
+        // Use 'tags' instead of 'userTags'
+        List<dynamic> userTags = element["tags"] ?? [];
 
         String id = videoDTO['id'];
         String title = videoDTO['title'];
         String description = videoDTO['description'];
         String thumbnailUrl = videoDTO['thumbnail'];
-        List<String> tagsList = [];
-        for (var t in userTags) {
-          tagsList.add(t as String);
-        }
+
+        List<String> tagsList = userTags.map((t) => t.toString()).toList();
 
         videos.add(ModelVideo(
             id: id,
