@@ -15,7 +15,7 @@ import java.util.Arrays;
 
 @EnableWebSecurity
 @Configuration
-class  Config {
+class Config {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationProvider jwtAuthenticationProvider) throws Exception {
@@ -39,9 +39,9 @@ class  Config {
         //TODO Env variable
         // Allow multiple client origins
         configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:8081",
-                "http://127.0.0.1:8081",
-                "http://192.168.29.95:8081"
+                "http://localhost:4321",
+                "http://127.0.0.1:4321",
+                "http://192.168.29.95:4321"
         ));
 
         // Allow all common HTTP methods

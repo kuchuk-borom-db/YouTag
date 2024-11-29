@@ -1,0 +1,139 @@
+---
+import LoginLayout from '../layouts/LoginLayout.astro';
+import youtagLogo from "../assets/youtag.png"
+import {Image} from 'astro:assets';
+---
+
+<LoginLayout title="Login - YouTag" description="Sign in to YouTag app">
+    <div class="login-wrapper">
+        <div class="logo-section">
+            <Image
+                    src={youtagLogo}
+                    width={72}
+                    height={72}
+                    alt="YouTube Logo"
+            />
+            <p class="slogan">Unleash Your Creativity</p>
+        </div>
+
+        <div class="login-section" id="googleLoginBtn">
+            <button class="google-login">
+                <!--<img src="/assets/er.png" alt="Google Logo"/>-->
+                <span>Login with Google</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        import {getGoogleLoginUrl} from "../services/AuthService";
+
+        document.getElementById("googleLoginBtn")?.addEventListener('click', async () => {
+            try {
+                console.log("Login button pressed", "debug", "LOGIN");
+                const url = await getGoogleLoginUrl();
+
+                if (url) {
+                    // Redirect to the obtained URL
+                    window.location.href = url;
+                } else {
+                    // Handle case where no URL is returned
+                    console.error("No login URL received");
+                    // Optionally show an error message to the user
+                    alert("Unable to initiate Google login. Please try again.");
+                }
+            } catch (error) {
+                console.error("Google login error:", error);
+                // Optionally show an error message to the user
+                alert("An error occurred during login. Please try again.");
+            }
+        });
+    </script>
+
+    <style>
+        .login-wrapper {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .logo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo-section svg {
+            width: 72px;
+            height: 72px;
+            margin-bottom: 1rem;
+        }
+
+        .logo-section h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #030303;
+        }
+
+        .slogan {
+            color: #606060;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .login-section {
+            width: 100%;
+        }
+
+        .google-login {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #fff;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .google-login:hover {
+            background-color: #f8f9fa;
+            border-color: #d2d2d2;
+        }
+
+        .google-login img {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+        }
+
+        .google-login span {
+            color: #5f6368;
+            font-weight: 500;
+        }
+
+        @media (max-width: 480px) {
+            .login-wrapper {
+                width: 95%;
+                max-width: 100%;
+                margin: 0 1rem;
+                padding: 1.5rem;
+            }
+
+            .logo-section svg {
+                width: 56px;
+                height: 56px;
+            }
+
+            .logo-section h1 {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</LoginLayout>
