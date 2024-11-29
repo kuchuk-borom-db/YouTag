@@ -10,7 +10,7 @@ import java.util.Map;
 public interface AuthService {
     YouTagUserDTO getCurrentUser() throws NoAuthenticatedYouTagUser;
 
-    String getGoogleAuthorizationURL();
+    String getGoogleAuthorizationURL(String optionalRedirectUrl);
 
     GoogleUserDTO getUserFromGoogleToken(String code, String state);
 

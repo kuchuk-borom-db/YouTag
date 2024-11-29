@@ -33,25 +33,31 @@ public class GoogleOAuthServiceImpl implements GoogleOAuthService {
     final DefaultOAuth2UserService oAuth2UserService = new DefaultOAuth2UserService();
     final ApplicationEventPublisher eventPublisher;
 
-    public OAuth2AuthorizationRequest getAuthorizationRequest() {
+    @Override
+    public OAuth2AuthorizationRequest getAuthorizationRequest(String redirectUrl) {
         ClientRegistration googleClient = registeredClientRepo.findByRegistrationId("google");
-        return OAuth2AuthorizationRequest.authorizationCode()
+        var auth = OAuth2AuthorizationRequest.authorizationCode()
                 .clientId(googleClient.getClientId())
                 .authorizationUri(googleClient.getProviderDetails().getAuthorizationUri())
-                .scope(String.join(" ", googleClient.getScopes()))
-                .redirectUri(googleClient.getRedirectUri())
-                .state(UUID.randomUUID().toString())
+                .scope(String.join(" ", googleClient.getScopes()));
+        if (!redirectUrl.isBlank()) {
+            auth.redirectUri(redirectUrl);
+        } else {
+            auth.redirectUri(googleClient.getRedirectUri());
+        }
+        return auth.state(UUID.randomUUID().toString())
                 .build();
     }
 
-    public String getAuthorizationURL() {
-        log.info("Authorization URL : {}", getAuthorizationRequest().getAuthorizationRequestUri());
-        return getAuthorizationRequest().getAuthorizationRequestUri();
+    @Override
+    public String getAuthorizationURL(String redirectUrl) {
+        log.info("Authorization URL : {}", getAuthorizationRequest(redirectUrl).getAuthorizationRequestUri());
+        return getAuthorizationRequest(redirectUrl).getAuthorizationRequestUri();
     }
 
     public OAuth2AccessToken getAccessToken(String code, String state) {
         // Get the original authorization request
-        OAuth2AuthorizationRequest authorizationRequest = getAuthorizationRequest();
+        OAuth2AuthorizationRequest authorizationRequest = getAuthorizationRequest(null);
         // Create the authorization response with the code
         OAuth2AuthorizationResponse auth2AuthorizationResponse = OAuth2AuthorizationResponse
                 .success(code)

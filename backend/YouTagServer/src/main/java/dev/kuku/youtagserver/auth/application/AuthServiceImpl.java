@@ -1,11 +1,11 @@
 package dev.kuku.youtagserver.auth.application;
 
 import com.nimbusds.jose.JOSEException;
+import dev.kuku.youtagserver.auth.api.dto.GoogleUserDTO;
 import dev.kuku.youtagserver.auth.api.dto.YouTagUserDTO;
 import dev.kuku.youtagserver.auth.api.exceptions.NoAuthenticatedYouTagUser;
 import dev.kuku.youtagserver.auth.api.services.AuthService;
 import dev.kuku.youtagserver.auth.domain.AuthenticatedUser;
-import dev.kuku.youtagserver.auth.api.dto.GoogleUserDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,9 +36,10 @@ public class AuthServiceImpl implements AuthService {
         return new YouTagUserDTO(user.email());
     }
 
+
     @Override
-    public String getGoogleAuthorizationURL() {
-        return googleOAuthService.getAuthorizationURL();
+    public String getGoogleAuthorizationURL(String redirectUrl) {
+        return googleOAuthService.getAuthorizationURL(redirectUrl);
     }
 
     @Override
