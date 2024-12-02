@@ -1,0 +1,21 @@
+---
+import type {User} from "../models/User";
+export const prerender = false;
+const userVal = Astro.cookies.get("user-info");
+let user: User;
+if (userVal == null) {
+    user = {
+        name: "NO USER",
+        thumbnailUrl: "None",
+        email: "None"
+    }
+} else {
+    user = userVal.json() as User;
+}
+---
+<html>
+user info : <br>
+
+name : {user.name} <br>
+email : {user.email}
+</html>

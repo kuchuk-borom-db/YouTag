@@ -1,84 +1,154 @@
+---
+import { getUserDetails } from "../services/UserService";
+
+enum Status {
+    TOKEN_NOT_FOUND = "TOKEN_NOT_FOUND",
+    GETTING_USER_INFO = "GETTING_USER_INFO",
+    USER_INFO_NOT_FOUND = "USER_INFO_NOT_FOUND",
+    USER_FOUND = "USER_FOUND"
+}
+
+let status: Status;
+
+// Log the current token value for debugging
+const token = Astro.cookies.get("token");
+console.log("Token from cookies:", token);
+
+if (!token) {
+    status = Status.TOKEN_NOT_FOUND;
+    console.log("No token found in server cookie.");
+} else {
+    status = Status.GETTING_USER_INFO;
+    console.log("Token found, getting user information...");
+
+    // If token is present, proceed to validate the user
+    const user = await getUserDetails(token.value);
+    console.log("User fetch attempt result:", user);
+
+    if (!user) {
+        status = Status.USER_INFO_NOT_FOUND;
+        console.log("User not found with the provided token.");
+    } else {
+        Astro.cookies.set("user-info", JSON.stringify(user), {maxAge: 60 * 60})
+        status = Status.USER_FOUND;
+        console.log("User found and saved to cookie:", user);
+    }
+}
+
+// Log the final status
+console.log("Current status:", status);
+
+export const prerender = false;
+---
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verifying Credentials</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>Authentication Status</title>
     <style>
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
         }
-        @keyframes shimmer {
-            0% { background-position: -1000px 0; }
-            100% { background-position: 1000px 0; }
+        .status-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        .status-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .status-message {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .status-submessage {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .token-not-found {
+            background-color: #ffeeee;
+        }
+        .getting-user-info {
+            background-color: #eef6ff;
+        }
+        .user-info-not-found {
+            background-color: #fffaee;
+        }
+        .user-found {
+            background-color: #eeffee;
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen flex items-center justify-center">
-<div id="credential-check" class="text-center">
-    <div class="bg-white p-10 rounded-xl shadow-2xl transform transition-all duration-500 hover:scale-105">
-        <div id="status-icon" class="text-6xl mb-4 animate-pulse">🕵️</div>
-        <h1 class="text-3xl font-bold mb-4 text-gray-800">Authenticating Your Credentials</h1>
-        <p id="status-message" class="text-gray-600 mb-6">Verifying your identity...</p>
-        <div id="loading-spinner" class="flex justify-center items-center space-x-2 mb-6">
-            <div class="w-4 h-4 bg-blue-500 rounded-full animate-bounce"></div>
-            <div class="w-4 h-4 bg-purple-500 rounded-full animate-bounce delay-150"></div>
-            <div class="w-4 h-4 bg-pink-500 rounded-full animate-bounce delay-300"></div>
-        </div>
-        <div id="error-container" class="hidden text-red-500 font-semibold"></div>
-    </div>
+<body>
+<div id="status-container" class="status-container">
+    {status === Status.TOKEN_NOT_FOUND && (
+            <div class="token-not-found">
+                <div class="status-icon">❗</div>
+                <h1 class="status-message">Authentication Failed</h1>
+                <p class="status-submessage">No authentication token found. Please log in.</p>
+                <a href="/login" class="btn">Go to Login</a>
+            </div>
+    )}
+
+    {status === Status.GETTING_USER_INFO && (
+            <div class="getting-user-info">
+                <div class="status-icon">⏳</div>
+                <h1 class="status-message">Authenticating</h1>
+                <p class="status-submessage">Fetching your user details...</p>
+            </div>
+    )}
+
+    {status === Status.USER_INFO_NOT_FOUND && (
+            <div class="user-info-not-found">
+                <div class="status-icon">⚠️</div>
+                <h1 class="status-message">Authentication Error</h1>
+                <p class="status-submessage">Unable to retrieve user information.</p>
+                <a href="/login" class="btn">Try Again</a>
+            </div>
+    )}
+
+    {status === Status.USER_FOUND && (
+            <div class="user-found">
+                <div class="status-icon">✅</div>
+                <h1 class="status-message">Authentication Successful</h1>
+                <p class="status-submessage">Redirecting to your dashboard...</p>
+            </div>
+    )}
 </div>
 
-<script>
-    import {getUserDetails} from "../services/UserService";
-
-    async function checkUserCredentials() {
-        const credentialCheck = document.getElementById('credential-check');
-        const statusIcon = document.getElementById('status-icon');
-        const statusMessage = document.getElementById('status-message');
-        const errorContainer = document.getElementById('error-container');
-
-        try {
-            const userInfo = await getUserDetails();
-
-            if (userInfo == null) {
-                // Not logged in
-                statusIcon.textContent = '🚫';
-                statusMessage.textContent = 'Authentication Failed';
-                errorContainer.textContent = 'Please log in to continue.';
-                errorContainer.classList.remove('hidden');
-
-                // Redirect after a delay
-                setTimeout(() => {
-                    window.location.href = "/login";
-                }, 2000);
-            } else {
-                // Logged in successfully
-                statusIcon.textContent = '✅';
-                statusMessage.textContent = 'Authentication Successful';
-
-                // Redirect after a short delay to show success
-                setTimeout(() => {
-                    window.location.href = "/home";
-                }, 1500);
-            }
-        } catch (error) {
-            // Error during authentication process
-            statusIcon.textContent = '❌';
-            statusMessage.textContent = 'Error Occurred';
-            errorContainer.textContent = error.message || 'Unable to verify credentials';
-            errorContainer.classList.remove('hidden');
-
-            // Redirect to login on error
-            setTimeout(() => {
-                window.location.href = "/login";
-            }, 2500);
-        }
-    }
-
-    checkUserCredentials();
-</script>
+{status === Status.USER_FOUND && (
+    <script is:inline>
+        setTimeout(() => {
+            window.location.href = '/home';
+        }, 2000);
+        </script>
+)}
 </body>
 </html>

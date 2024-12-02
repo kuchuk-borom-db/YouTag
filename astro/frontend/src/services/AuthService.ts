@@ -18,6 +18,7 @@ export async function getJwtToken(code: string, state: string): Promise<string |
         if (resp.status != 200)
             return null;
         const jsonBody = await resp.json();
+        console.log(`Got token ${jsonBody['data']}`)
         return jsonBody['data'];
     } catch (e) {
         return null;
