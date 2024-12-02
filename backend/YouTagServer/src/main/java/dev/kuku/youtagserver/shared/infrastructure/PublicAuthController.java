@@ -23,16 +23,14 @@ public class PublicAuthController {
 
     @GetMapping("/login/google")
     ResponseEntity<ResponseModel<String>> getGoogleLogin(
-            @RequestParam(required = false, value = "redirect-url") String redirectUrl
     ) {
-
-        return ResponseEntity.ok(new ResponseModel<>(authService.getGoogleAuthorizationURL(redirectUrl), "Success"));
+        return ResponseEntity.ok(new ResponseModel<>(authService.getGoogleAuthorizationURL(), "Success"));
     }
 
     @GetMapping("/redirect/google")
     ResponseEntity<ResponseModel<String>> googleRedirectEndpoint(
-            @RequestParam(required = false) String code,
-            @RequestParam(required = false) String state
+            @RequestParam String code,
+            @RequestParam String state
     ) throws InvalidOAuthRedirect, JOSEException {
         log.debug("Redirect google oauth with state {} and code {}", state, code);
 

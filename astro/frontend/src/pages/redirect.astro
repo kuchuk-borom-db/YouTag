@@ -1,0 +1,44 @@
+<html>
+
+<script>
+    import {getJwtToken} from "../services/AuthService";
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+
+
+    async function getToken() {
+        if (state == null || code == null) {
+            console.log("State and/or code is missing from query parameter");
+            // Optionally show a user-friendly message or redirect
+            return;
+        }
+        try {
+            const token = await getJwtToken(code, state);
+
+            const response = await fetch("/api/cookie", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    key: 'token',
+                    value: token,
+                }),
+            });
+
+            if (!response.ok) {
+                console.error('Failed to set cookie:', await response.json());
+            } else {
+                console.log('Cookie set successfully!');
+            }
+        } catch (error) {
+            console.error('Error fetching token or setting cookie:', error);
+        }
+    }
+
+    getToken(); // Execute the function
+</script>
+
+</html>

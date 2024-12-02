@@ -8,9 +8,9 @@ import org.springframework.stereotype.Service;
 @Service
 public interface GoogleOAuthService {
 
-    OAuth2AuthorizationRequest getAuthorizationRequest(String redirectUrl);
+    OAuth2AuthorizationRequest getAuthorizationRequest();
 
-    String getAuthorizationURL(String redirectUrl);
+    String getAuthorizationURL();
 
     OAuth2AccessToken getAccessToken(String code, String state);
 

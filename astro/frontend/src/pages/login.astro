@@ -34,6 +34,7 @@ import {Image} from 'astro:assets';
 
                 if (url) {
                     // Redirect to the obtained URL
+                    console.log(`Got login url ${url}`)
                     window.location.href = url;
                 } else {
                     // Handle case where no URL is returned

@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -22,7 +23,11 @@ public class AuthServiceImpl implements AuthService {
     final JwtService jwtService;
 
     private OAuth2AccessToken getGoogleAccessToken(String code, String state) {
-        return googleOAuthService.getAccessToken(code, state);
+        try {
+            return googleOAuthService.getAccessToken(code, state);
+        } catch (OAuth2AuthorizationException e) {
+            return null;
+        }
     }
 
     @Override
@@ -38,8 +43,8 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public String getGoogleAuthorizationURL(String redirectUrl) {
-        return googleOAuthService.getAuthorizationURL(redirectUrl);
+    public String getGoogleAuthorizationURL() {
+        return googleOAuthService.getAuthorizationURL();
     }
 
     @Override

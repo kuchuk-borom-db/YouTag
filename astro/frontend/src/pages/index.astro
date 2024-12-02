@@ -1,11 +1,84 @@
----
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifying Credentials</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen flex items-center justify-center">
+<div id="credential-check" class="text-center">
+    <div class="bg-white p-10 rounded-xl shadow-2xl transform transition-all duration-500 hover:scale-105">
+        <div id="status-icon" class="text-6xl mb-4 animate-pulse">🕵️</div>
+        <h1 class="text-3xl font-bold mb-4 text-gray-800">Authenticating Your Credentials</h1>
+        <p id="status-message" class="text-gray-600 mb-6">Verifying your identity...</p>
+        <div id="loading-spinner" class="flex justify-center items-center space-x-2 mb-6">
+            <div class="w-4 h-4 bg-blue-500 rounded-full animate-bounce"></div>
+            <div class="w-4 h-4 bg-purple-500 rounded-full animate-bounce delay-150"></div>
+            <div class="w-4 h-4 bg-pink-500 rounded-full animate-bounce delay-300"></div>
+        </div>
+        <div id="error-container" class="hidden text-red-500 font-semibold"></div>
+    </div>
+</div>
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
----
+<script>
+    import {getUserDetails} from "../services/UserService";
 
-<Layout>
-	<Welcome />
-</Layout>
+    async function checkUserCredentials() {
+        const credentialCheck = document.getElementById('credential-check');
+        const statusIcon = document.getElementById('status-icon');
+        const statusMessage = document.getElementById('status-message');
+        const errorContainer = document.getElementById('error-container');
+
+        try {
+            const userInfo = await getUserDetails();
+
+            if (userInfo == null) {
+                // Not logged in
+                statusIcon.textContent = '🚫';
+                statusMessage.textContent = 'Authentication Failed';
+                errorContainer.textContent = 'Please log in to continue.';
+                errorContainer.classList.remove('hidden');
+
+                // Redirect after a delay
+                setTimeout(() => {
+                    window.location.href = "/login";
+                }, 2000);
+            } else {
+                // Logged in successfully
+                statusIcon.textContent = '✅';
+                statusMessage.textContent = 'Authentication Successful';
+
+                // Redirect after a short delay to show success
+                setTimeout(() => {
+                    window.location.href = "/home";
+                }, 1500);
+            }
+        } catch (error) {
+            // Error during authentication process
+            statusIcon.textContent = '❌';
+            statusMessage.textContent = 'Error Occurred';
+            errorContainer.textContent = error.message || 'Unable to verify credentials';
+            errorContainer.classList.remove('hidden');
+
+            // Redirect to login on error
+            setTimeout(() => {
+                window.location.href = "/login";
+            }, 2500);
+        }
+    }
+
+    checkUserCredentials();
+</script>
+</body>
+</html>

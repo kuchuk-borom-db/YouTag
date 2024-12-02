@@ -8,3 +8,20 @@ export async function getGoogleLoginUrl(): Promise<string | null> {
     const jsonBody = await response.json();
     return jsonBody['data'];
 }
+
+export async function getJwtToken(code: string, state: string): Promise<string | null> {
+
+    try {
+        const url = `${SERVER_URI}/public/auth/redirect/google?code=${code}&state=${state}`;
+        console.log(`Getting token from url ${url}`)
+        const resp = await fetch(url);
+        if (resp.status != 200)
+            return null;
+        const jsonBody = await resp.json();
+        return jsonBody['data'];
+    } catch (e) {
+        return null;
+    }
+
+}
+
