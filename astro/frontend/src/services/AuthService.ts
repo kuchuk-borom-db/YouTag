@@ -10,6 +10,13 @@ export async function getGoogleLoginUrl(): Promise<string | null> {
     return jsonBody['data'];
 }
 
+export async function exchangeCodeForToken(code: string, state: string): Promise<string | null> {
+    const url = `${SERVER_URI}/public/auth/redirect/google?code=${code}&state=${state}`;
+    const response = await fetch(url);
+    const jsonBody = await response.json();
+    return jsonBody['data'];
+}
+
 export async function getUserInfo(token: string): Promise<User | null> {
     const url = `${SERVER_URI}/authenticated/auth/user`;
     const response = await fetch(url, {

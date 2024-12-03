@@ -33,6 +33,7 @@ function isAuthPath(pathName: string): boolean {
     const publicPaths = [
         "/login",
         "/redirect",
+        "/api/cookie"
     ];
     // Check if the path is a public route
     return !publicPaths.includes(pathName);

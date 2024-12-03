@@ -1,0 +1,132 @@
+---
+const prerender = false;
+---
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTag Redirect</title>
+    <style>
+        /* General Styles */
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #181818;
+            color: white;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        /* Rotating Logo */
+        .logo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            background-image: url("../assets/youtag.png"); /* Placeholder logo */
+            background-size: cover;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Status Message */
+        .status {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .status {
+                font-size: 1.2rem;
+            }
+
+            .logo {
+                width: 80px;
+                height: 80px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="logo" id="logo"></div>
+<div class="status" id="status">Please wait while we authenticate...</div>
+
+<script>
+    const STATUS = {
+        MISSING: "Missing authentication details. Please try again.",
+        EXCHANGING: "Exchanging authentication code for token...",
+        FAILED: "Authentication failed. Please refresh and try again.",
+        SAVING: "Saving your session...",
+        SUCCESS: "Authentication successful! Redirecting...",
+    };
+
+    const statusDiv = document.getElementById("status");
+
+    async function exchangeToken() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+
+        if (!code || !state) {
+            updateStatus("MISSING");
+            return;
+        }
+
+        updateStatus("EXCHANGING");
+        const token = await import('../services/AuthService.ts').then(({exchangeCodeForToken}) => exchangeCodeForToken(code, state));
+        if (!token) {
+            updateStatus("FAILED");
+            return;
+        }
+
+        updateStatus("SAVING");
+        await fetch("/api/cookie", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                key: "token",
+                value: token,
+            }),
+        });
+
+        updateStatus("SUCCESS");
+        setTimeout(() => {
+            window.location.href = "/"; // Redirect to home or dashboard
+        }, 2000);
+    }
+
+    function updateStatus(key: string) {
+        statusDiv.textContent = STATUS[key];
+    }
+
+    exchangeToken();
+</script>
+</body>
+</html>
