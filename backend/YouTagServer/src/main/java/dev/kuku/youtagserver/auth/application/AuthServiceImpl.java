@@ -36,10 +36,16 @@ public class AuthServiceImpl implements AuthService {
         return new YouTagUserDTO(user.email());
     }
 
+    public long getMaxAgeOfCurrentUser() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        var user = (AuthenticatedUser) auth;
+        return user.maxAge();
+    }
+
 
     @Override
-    public String getGoogleAuthorizationURL(String redirectUrl) {
-        return googleOAuthService.getAuthorizationURL(redirectUrl);
+    public String getGoogleAuthorizationURL() {
+        return googleOAuthService.getAuthorizationURL();
     }
 
     @Override

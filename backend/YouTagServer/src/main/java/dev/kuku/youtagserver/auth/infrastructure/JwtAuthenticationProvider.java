@@ -42,7 +42,7 @@ class JwtAuthenticationProvider implements AuthenticationProvider {
 
         String emailID = claims.getSubject();
         log.info("Authenticated user: {}", emailID);
-        return new AuthenticatedUser(emailID);
+        return new AuthenticatedUser(emailID, claims.getExpirationTime().toInstant().getEpochSecond());
     }
 
     @Override

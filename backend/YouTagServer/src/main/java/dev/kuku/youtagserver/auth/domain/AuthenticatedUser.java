@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.List;
 
 
-public record AuthenticatedUser(String email) implements Authentication {
+public record AuthenticatedUser(String email, long maxAge) implements Authentication {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("USER"));

@@ -22,11 +22,9 @@ public class PublicAuthController {
     private final AuthService authService;
 
     @GetMapping("/login/google")
-    ResponseEntity<ResponseModel<String>> getGoogleLogin(
-            @RequestParam(required = false, value = "redirect-url") String redirectUrl
-    ) {
+    ResponseEntity<ResponseModel<String>> getGoogleLogin() {
 
-        return ResponseEntity.ok(new ResponseModel<>(authService.getGoogleAuthorizationURL(redirectUrl), "Success"));
+        return ResponseEntity.ok(new ResponseModel<>(authService.getGoogleAuthorizationURL(), "Success"));
     }
 
     @GetMapping("/redirect/google")

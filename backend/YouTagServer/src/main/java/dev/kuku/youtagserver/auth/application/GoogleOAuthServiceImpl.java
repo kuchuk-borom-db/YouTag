@@ -34,30 +34,27 @@ public class GoogleOAuthServiceImpl implements GoogleOAuthService {
     final ApplicationEventPublisher eventPublisher;
 
     @Override
-    public OAuth2AuthorizationRequest getAuthorizationRequest(String redirectUrl) {
+    public OAuth2AuthorizationRequest getAuthorizationRequest() {
         ClientRegistration googleClient = registeredClientRepo.findByRegistrationId("google");
         var auth = OAuth2AuthorizationRequest.authorizationCode()
                 .clientId(googleClient.getClientId())
                 .authorizationUri(googleClient.getProviderDetails().getAuthorizationUri())
                 .scope(String.join(" ", googleClient.getScopes()));
-        if (!redirectUrl.isBlank()) {
-            auth.redirectUri(redirectUrl);
-        } else {
-            auth.redirectUri(googleClient.getRedirectUri());
-        }
+        auth.redirectUri(googleClient.getRedirectUri());
+
         return auth.state(UUID.randomUUID().toString())
                 .build();
     }
 
     @Override
-    public String getAuthorizationURL(String redirectUrl) {
-        log.info("Authorization URL : {}", getAuthorizationRequest(redirectUrl).getAuthorizationRequestUri());
-        return getAuthorizationRequest(redirectUrl).getAuthorizationRequestUri();
+    public String getAuthorizationURL() {
+        log.info("Authorization URL : {}", getAuthorizationRequest().getAuthorizationRequestUri());
+        return getAuthorizationRequest().getAuthorizationRequestUri();
     }
 
     public OAuth2AccessToken getAccessToken(String code, String state) {
         // Get the original authorization request
-        OAuth2AuthorizationRequest authorizationRequest = getAuthorizationRequest(null);
+        OAuth2AuthorizationRequest authorizationRequest = getAuthorizationRequest();
         // Create the authorization response with the code
         OAuth2AuthorizationResponse auth2AuthorizationResponse = OAuth2AuthorizationResponse
                 .success(code)

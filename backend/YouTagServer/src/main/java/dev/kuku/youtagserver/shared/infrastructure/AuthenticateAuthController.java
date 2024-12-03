@@ -29,6 +29,11 @@ public class AuthenticateAuthController {
     ResponseEntity<ResponseModel<UserDTO>> getUserInfo() throws UserDTOHasNullValues, EmailNotFound, NoAuthenticatedYouTagUser {
         String userId = authService.getCurrentUser().email();
         log.debug("Getting user info {}", userId);
-        return ResponseEntity.ok(ResponseModel.build(userService.getUser(userId), ""));
+        //Define cache control to allow client to cache the response until max age
+        long userAge = authService.getMaxAgeOfCurrentUser();
+        return ResponseEntity.ok()
+                .header("Cache-Control", "public, max-age=" + userAge)
+                .body(ResponseModel.build(userService.getUser(userId), ""));
+
     }
 }
