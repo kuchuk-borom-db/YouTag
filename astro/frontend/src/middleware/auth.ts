@@ -12,17 +12,17 @@ export const auth = defineMiddleware(async (context, next) => {
         console.log(`Hit a public route ${pathName}`);
         return next();
     }
-
+    console.log(`Cookies : ${JSON.stringify(context.cookies)}`)
     const token = context.cookies.get("token")?.value
     if (token == undefined) {
         console.log("No token provided. Redirecting to login page")
-        return context.redirect('/login');
+        return Response.redirect(new URL("/login", context.url));
     }
     //Get user info from the token
     const userInfo = await getUserInfo(token);
     if (userInfo == null) {
         console.log("User info was invalid using the token. Redirecting to login page")
-        return context.redirect('/login');
+        return Response.redirect(new URL("/login", context.url));
     }
     //Set user as server-cookie
     context.cookies.set("user-info", userInfo);
@@ -38,4 +38,3 @@ function isAuthPath(pathName: string): boolean {
     // Check if the path is a public route
     return !publicPaths.includes(pathName);
 }
-

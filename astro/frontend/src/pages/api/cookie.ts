@@ -1,13 +1,45 @@
 import type {APIRoute} from "astro";
 
-export const POST: APIRoute = async ({params, request}) => {
+export const POST: APIRoute = async (context) => {
     console.log("cookie post request");
-    const body = await request.json();
-    const key = body['key'];
+
+    const req = context.request;
+    let body;
+    try {
+        body = await req.json();
+    } catch (error) {
+        console.error("Failed to parse request body:", error);
+        return new Response(
+            JSON.stringify({error: "Invalid JSON body"}),
+            {
+                status: 400,
+                headers: {"Content-Type": "application/json"},
+            }
+        );
+    }
+
+    const key = body['name'];
     const value = body['value'];
 
     if (!key || !value) {
-        console.error("invalid key and/or value");
-        return new Response(JSON.stringify({error: "invalid key and/value"}));
+        console.error("Invalid key and/or value");
+        return new Response(
+            JSON.stringify({error: "Invalid key and/or value"}),
+            {
+                status: 400,
+                headers: {"Content-Type": "application/json"},
+            }
+        );
     }
-}
+
+    // Add Set-Cookie header
+    context.cookies.set(key, value, {
+        httpOnly: true,
+        path: "/"
+    });
+    //This will set the cookie in server side
+    return new Response("Cookie set", {
+        status: 200,
+    });
+};
+export const prerender = false;
