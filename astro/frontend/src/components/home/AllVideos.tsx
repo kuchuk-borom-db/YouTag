@@ -145,7 +145,11 @@ const dummyVideos: Video[] = [
     }
 ]
 
-const Videos = () => {
+interface Props {
+    currentPage: number;
+}
+
+const Videos: React.FC<Props> = (props) => {
     const [page, setPage] = useState(1);
     const videosPerPage = 6;
 

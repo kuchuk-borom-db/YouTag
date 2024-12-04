@@ -2,7 +2,7 @@
 import Navbar from "../components/Navbar"
 import type User from '../models/User'
 import Videos from "../components/home/AllVideos.tsx"
-
+import Tags from "../components/home/AllTags";
 // Dummy User for Navbar
 const dummyUser: User = {
     name: 'john doe',
@@ -113,38 +113,8 @@ const totalTagPages = Math.ceil(userTags.length / tagsPerPage)
 </head>
 <body>
 <Navbar user={dummyUser}/>
-
 <main>
-    <h2 style="text-align: center; margin-top: 1rem;">All Tags</h2>
-    <div class="tag-grid">
-        {paginatedTags.map(tag => (
-                <div class="tag-chip">{tag}</div>
-        ))}
-    </div>
-
-    <div class="pagination">
-        {tagPage > 1 && (
-                <a href={`?tagPage=${tagPage - 1}`} class="pagination-btn">
-                    Previous
-                </a>
-        )}
-
-        {Array.from({length: totalTagPages}, (_, i) => i + 1).map(pageNum => (
-                <a
-                        href={`?tagPage=${pageNum}`}
-                        class={`pagination-btn ${pageNum === tagPage ? 'active' : ''}`}
-                >
-                    {pageNum}
-                </a>
-        ))}
-
-        {tagPage < totalTagPages && (
-                <a href={`?tagPage=${tagPage + 1}`} class="pagination-btn">
-                    Next
-                </a>
-        )}
-    </div>
-
-    <Videos client:load/>
+    <Tags currentPage={1} userTags={userTags} tagsPerPage={5} client:load/>
+    <Videos currentPage={1} client:load/>
 </main>
 </body>
