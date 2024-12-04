@@ -185,7 +185,7 @@ The application follows a modular monolith architecture using Spring Modulith wi
 - **Database**: PostgreSQL
 
 #### Frontend
-- **Framework**: Flutter
+- **Framework**: Astro with ```ReactJS``` and ```Tailwind```
 
 ### Domain Driven Design
 The project follows Domain-Driven Design principles, structured into modules using Spring Modulith to ensure a clean modular monolith architecture.
