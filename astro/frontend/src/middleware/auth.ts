@@ -25,7 +25,9 @@ export const auth = defineMiddleware(async (context, next) => {
         return Response.redirect(new URL("/login", context.url));
     }
     //Set user as server-cookie
-    context.cookies.set("user-info", userInfo);
+    context.cookies.set("user-info", userInfo, {
+        path: "/",
+    });
     return next()
 });
 

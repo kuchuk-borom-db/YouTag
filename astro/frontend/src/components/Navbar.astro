@@ -1,0 +1,60 @@
+---
+import type User from "../models/User";
+interface Props {
+    user: User
+}
+const {user} = Astro.props;
+---
+
+<nav class="flex items-center justify-between p-4 bg-white border-b border-gray-200">
+    <div class="flex items-center space-x-4">
+        {/* YouTube-like Logo */}
+        <img
+                src="/youtag.png"
+                alt="Logo"
+                class="h-8 w-auto"
+        />
+    </div>
+
+    <div class="flex-grow mx-8 max-w-2xl">
+        {/* Search Field */}
+        <div class="flex items-center">
+            <input
+                    type="text"
+                    placeholder="Search"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-l-full focus:outline-none focus:border-blue-500"
+            />
+            <button
+                    class="bg-gray-100 border border-l-0 border-gray-300 px-4 py-2 rounded-r-full hover:bg-gray-200"
+            >
+                <img
+                        src="/youtag.png"
+                        alt="Search"
+                        class="h-6 w-6"
+                />
+            </button>
+        </div>
+    </div>
+
+    <div class="flex items-center space-x-4">
+        {/* User Profile */}
+        <img id="user-profile"
+             src="/profile.jpg"
+             alt="Profile"
+             class="h-8 w-8 rounded-full"
+        />
+    </div>
+</nav>
+
+
+<style>
+    nav {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+</style>
+
+<script>
+    document.getElementById("user-profile").addEventListener("click", () => {
+        console.log("clicked");
+    });
+</script>

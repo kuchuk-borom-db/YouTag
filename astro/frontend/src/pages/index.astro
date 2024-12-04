@@ -1,0 +1,21 @@
+---
+import Navbar from "../components/Navbar.astro"
+import VideoCard from "../components/VideoCard.astro"
+import type video from "../models/Video";
+const vid : video = {
+    tags : new Set(["tag1", "tag2"]),
+    description : "Video description",
+    videoId : "123",
+    thumbnailUrl : "www.placeholder.com/img",
+    title :"Video title"
+}
+---
+<html>
+<head>
+    <title>YOUTAG by Kuchuk Borom Debbarma</title>
+</head>
+<body>
+<Navbar/>
+<VideoCard video={vid}/>
+</body>
+</html>
