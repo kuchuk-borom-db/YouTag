@@ -20,6 +20,7 @@ export const POST: APIRoute = async (context) => {
 
     const key = body['name'];
     const value = body['value'];
+    const httpOnly: boolean = body['httpOnly'];
 
     if (!key || !value) {
         console.error("Invalid key and/or value");
@@ -34,7 +35,7 @@ export const POST: APIRoute = async (context) => {
 
     // Add Set-Cookie header
     context.cookies.set(key, value, {
-        httpOnly: true,
+        httpOnly: httpOnly,
         path: "/"
     });
     //This will set the cookie in server side

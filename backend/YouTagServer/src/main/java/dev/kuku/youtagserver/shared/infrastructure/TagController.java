@@ -154,4 +154,13 @@ public class TagController {
         Set<String> tagsOfVideos = userVideoTagService.getAllTagsOfSavedVideosOfUser(getCurrentUserId(), videoIds, skip, limit);
         return ResponseEntity.ok(ResponseModel.build(tagsOfVideos, null));
     }
+
+    @GetMapping("/tag-count")
+    ResponseEntity<ResponseModel<Long>> tagCountOfUser() throws NoAuthenticatedYouTagUser {
+        String userId = getCurrentUserId();
+        log.debug("Getting tags count of user {}", userId);
+        long tagCount = userTagService.getTagCountOfUser(userId);
+        return ResponseEntity.ok(ResponseModel.build(tagCount, null));
+        //TODO Add endpoint to README
+    }
 }

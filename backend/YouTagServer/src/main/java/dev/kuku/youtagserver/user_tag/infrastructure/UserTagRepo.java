@@ -15,4 +15,6 @@ public interface UserTagRepo extends CrudRepository<UserTag, UserTagId> {
     void deleteAllByUserId(String userId);
 
     void deleteAllByTagIn(Set<String> tags);
+
+    long countAllByUserId(String userId);
 }

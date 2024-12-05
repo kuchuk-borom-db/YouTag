@@ -110,6 +110,7 @@
             body: JSON.stringify({
                 name: "token",
                 value: token,
+                httpOnly : false
             }),
             credentials: "include", // Ensure cookies are sent
         });

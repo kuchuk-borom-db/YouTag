@@ -4,7 +4,6 @@ import type User from "../models/User.ts";
 interface Prop {
     user: User
 }
-
 export const NavBar: React.FC<Prop> = ({user}) => {
     const handleProfileClick = () => {
         console.log("Profile clicked");

@@ -48,4 +48,11 @@ public interface UserTagService extends Service<UserTag, UserTagDTO> {
      * @param tags tags to delete
      */
     void deleteSpecifiedTagsFromAllUsers(Set<String> tags);
+
+    /**
+     * Get tag count of user
+     * @param userId userId to get the tag count of
+     * @return tag count
+     */
+    long getTagCountOfUser(String userId);
 }

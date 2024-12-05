@@ -1,6 +1,7 @@
 import React, {type SetStateAction, useState} from 'react';
 import VideoCard from "../VideoCard.tsx";
 import type Video from "../../models/Video.ts";
+import {getTagCountOfUser} from "../../services/TagService.ts";
 
 const dummyVideos: Video[] = [
     {
@@ -146,22 +147,27 @@ const dummyVideos: Video[] = [
 ]
 
 interface Props {
-    currentPage: number;
+    initialPage: number;
+    videosPerPage: number;
 }
 
 const Videos: React.FC<Props> = (props) => {
-    const [page, setPage] = useState(1);
-    const videosPerPage = 6;
+    const [page, setPage] = useState(props.initialPage);
+    const videosPerPage = props.videosPerPage;
 
-    const totalPages = Math.ceil(dummyVideos.length / videosPerPage);
-    const startIndex = (page - 1) * videosPerPage;
-    const endIndex = startIndex + videosPerPage;
-    const paginatedVideos = dummyVideos.slice(startIndex, endIndex);
+    const totalTagsCount = await getTagCountOfUser();
+
+    if (!totalTagsCount) {
+        return (<h1>Total Tag count was null</h1>)
+    }
+
+    const totalPages = Math.ceil(totalTagsCount / videosPerPage);
 
     const handlePageChange = (newPage: SetStateAction<number>) => {
         setPage(newPage);
     };
 
+    //TODO Complete paginated video and change tag count to video count
     return (
         <div>
             <h2 className="text-center mt-8 text-2xl font-bold">Videos</h2>
@@ -174,7 +180,11 @@ const Videos: React.FC<Props> = (props) => {
             <div className="flex justify-center items-center mt-8 space-x-2">
                 {page > 1 && (
                     <button
-                        onClick={() => handlePageChange(page - 1)}
+                        onClick={() => {
+                            console.log("Clicked on page");
+                            console.log(`Cookies = ${document.cookie}`);
+                            handlePageChange(page - 1)
+                        }}
                         className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600"
                     >
                         Previous

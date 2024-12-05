@@ -61,6 +61,12 @@ public class UserTagServiceImpl implements UserTagService {
     }
 
     @Override
+    public long getTagCountOfUser(String userId) {
+        log.debug("Getting tag count of user {}", userId);
+        return repo.countAllByUserId(userId);
+    }
+
+    @Override
     public UserTagDTO toDto(UserTag e) {
         return new UserTagDTO(e.getUserId(), e.getTag());
     }
