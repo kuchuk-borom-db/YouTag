@@ -65,4 +65,6 @@ public interface UserVideoService extends Service<UserVideo, UserVideoDTO> {
      * @param videoIds videoIds to delete from all users
      */
     void deleteSpecificSavedVideosForAllUsers(List<String> videoIds);
+
+    long getSavedVideosCountOfUser(String userId);
 }

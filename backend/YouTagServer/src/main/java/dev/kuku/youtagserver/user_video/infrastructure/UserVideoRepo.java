@@ -19,4 +19,6 @@ public interface UserVideoRepo extends CrudRepository<UserVideo, UserVideoId> {
     List<UserVideo> deleteAllByUserId(String userId);
 
     List<UserVideo> deleteAllByVideoIdIn(List<String> videoIds);
+
+    long countAllByUserId(String userId);
 }

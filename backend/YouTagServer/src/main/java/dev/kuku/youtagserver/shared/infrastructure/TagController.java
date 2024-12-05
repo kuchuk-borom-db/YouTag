@@ -115,9 +115,8 @@ public class TagController {
             @RequestParam(value = "tags", defaultValue = "") String tagsRaw,
             @RequestParam(value = "videos", defaultValue = "") String videosRaw,
             @RequestParam(value = "skip", defaultValue = "0") int skip,
-            @RequestParam(value = "skip", defaultValue = "100") int limit
+            @RequestParam(value = "limit", defaultValue = "10") int limit
     ) throws NoAuthenticatedYouTagUser {
-
         List<String> tags = Arrays.stream(tagsRaw.split(",")).map(s -> s.trim().toLowerCase()).toList();
         List<String> videoIds = Arrays.stream(videosRaw.split(",")).map(String::trim).toList();
 

@@ -157,6 +157,12 @@ public class VideoController {
         eventPublisher.publishEvent(new RemoveVideosOrder(invalidVideos));
         return ResponseEntity.ok(ResponseModel.build(videoInfoTagDTOS, null));
     }
+    //TODO Add endpoint to readme
+    @GetMapping("/count")
+    ResponseEntity<ResponseModel<Long>> getAllVideosCount() throws NoAuthenticatedYouTagUser {
+        String userId = getCurrentUser();
+        log.debug("Getting all videos count of user {}", userId);
+        return ResponseEntity.ok(ResponseModel.build(userVideoService.getSavedVideosCountOfUser(userId), null));
+    }
 }
 
-//TODO Add video count endpoint

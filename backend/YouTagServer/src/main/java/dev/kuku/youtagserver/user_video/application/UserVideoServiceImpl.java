@@ -77,4 +77,10 @@ public class UserVideoServiceImpl implements UserVideoService {
         log.debug("Deleting videos {} from all users", videoIds);
         repo.deleteAllByVideoIdIn(videoIds);
     }
+
+    @Override
+    public long getSavedVideosCountOfUser(String userId) {
+        log.debug("Getting saved videos count of user {}", userId);
+        return repo.countAllByUserId(userId);
+    }
 }
