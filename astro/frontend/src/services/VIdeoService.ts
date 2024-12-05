@@ -24,7 +24,7 @@ export async function getAllVideos(skip: number, limit: number): Promise<Video[]
         return null
     }
 
-    const url = `${SERVER_URI}/authenticated/video/?skip=${skip}&limit=${limit}`;
+    const url = `${SERVER_URI}/authenticated/video/?skip=${parseInt(String(skip))}&limit=${parseInt(String(limit))}`;
     const response = await fetch(url, {
         headers: new Headers({
             'Content-Type': 'application/json',
@@ -42,6 +42,22 @@ export async function getAllVideos(skip: number, limit: number): Promise<Video[]
     const data: VideoInfoDTO[] = responseJson['data']
     return parseVideosFromData(data)
 
+}
+
+export async function getVideosCountOfUser(): Promise<number | null> {
+    const token = Cookies.get("token");
+    if (!token) {
+        console.log("No Token found in cookie");
+        return null;
+    }
+
+    const url = `${SERVER_URI}/authenticated/video/count`;
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {"content-type": "application/json", "Authorization": `Bearer ${token}`},
+    });
+    const json = await response.json();
+    return parseInt(json["data"]);
 }
 
 

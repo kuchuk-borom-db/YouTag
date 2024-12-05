@@ -115,6 +115,6 @@ const totalTagPages = Math.ceil(userTags.length / tagsPerPage)
 <Navbar user={dummyUser}/>
 <main>
     <Tags currentPage={1} userTags={userTags} tagsPerPage={5} client:load/>
-    <Videos currentPage={1} client:load/>
+    <Videos initialPage={1} videosPerPage={6} client:load/>
 </main>
 </body>
