@@ -9,37 +9,6 @@ const dummyUser: User = {
     email: 'john@example.com',
     thumbnailUrl: 'https://www.pngall.com/wp-content/uploads/5/Profile-Transparent.png'
 }
-
-const userTags: string[] = [
-    "Web development",
-    "Tutorial",
-    "GitHub",
-    "Programming",
-    "Frontend",
-    "Backend",
-    "Machine Learning",
-    "Data Science",
-    "Cybersecurity",
-    "Cloud Computing",
-    "DevOps",
-    "Mobile Development",
-    "Artificial Intelligence",
-    "Blockchain",
-    "UX Design",
-    "Software Engineering",
-    "Network Security",
-    "Database Management",
-    "Game Development",
-    "Quantum Computing"
-]
-
-// Tag Pagination setup
-const tagPage = Number(Astro.url.searchParams.get('tagPage') || 1)
-const tagsPerPage = 8
-const startTagIndex = (tagPage - 1) * tagsPerPage
-const endTagIndex = startTagIndex + tagsPerPage
-const paginatedTags = userTags.slice(startTagIndex, endTagIndex)
-const totalTagPages = Math.ceil(userTags.length / tagsPerPage)
 ---
 
 <html lang="en">
@@ -114,7 +83,9 @@ const totalTagPages = Math.ceil(userTags.length / tagsPerPage)
 <body>
 <Navbar user={dummyUser}/>
 <main>
-    <Tags initialPage={1} tagsPerPage={5} client:load/>
-    <Videos initialPage={1} videosPerPage={5} client:load/>
+    <Tags initialPage={1} tagsPerPage={5} onTagClick={(tag) => {
+    }} client:load/>
+    <Videos initialPage={1} videosPerPage={5} onVideoClick={(video) => {
+    }} client:load/>
 </main>
 </body>

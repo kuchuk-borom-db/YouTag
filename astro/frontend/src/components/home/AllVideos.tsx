@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import VideoCard from "../VideoCard.tsx";
 import type Video from "../../models/Video.ts";
-import { getAllVideos, getVideosCountOfUser } from "../../services/VIdeoService.ts";
+import {getAllVideos, getVideosCountOfUser} from "../../services/VIdeoService.ts";
 
 interface Props {
     initialPage: number;
     videosPerPage: number;
+    onVideoClick: (video: Video) => void;
 }
 
 const Videos: React.FC<Props> = (props) => {

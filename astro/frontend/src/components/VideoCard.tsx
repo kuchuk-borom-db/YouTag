@@ -2,10 +2,16 @@ import React from 'react';
 import type Video from "../models/Video.ts";
 
 interface Props {
-    video: Video
+    video: Video;
+    onClick?: (video: Video) => void;
+    onTagClick?: (tag: string) => void;
 }
 
-const VideoCard: React.FC<Props> = ({video}) => {
+const VideoCard: React.FC<Props> = ({
+                                        video,
+                                        onClick,
+                                        onTagClick
+                                    }) => {
     // Limit tags to a reasonable number
     const maxTagsToShow = 3; // Adjust based on space
     const tagsArray = Array.from(video.tags);
@@ -19,10 +25,29 @@ const VideoCard: React.FC<Props> = ({video}) => {
             ? video.description.slice(0, maxDescriptionLength) + '...'
             : video.description;
 
+    // Handle video click
+    const handleVideoClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (onClick) {
+            onClick(video);
+        } else {
+            window.open(`https://www.youtube.com/watch?v=${video.videoId}`, '_blank');
+        }
+    };
+
+    // Handle tag click
+    const handleTagClick = (tag: string, e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent video click
+        if (onTagClick) {
+            onTagClick(tag);
+        }
+    };
+
     return (
         <div
-            className="video-card relative w-full max-w-sm h-64 bg-cover bg-center rounded-lg shadow-lg overflow-hidden group"
+            className="video-card relative w-full max-w-sm h-64 bg-cover bg-center rounded-lg shadow-lg overflow-hidden group cursor-pointer"
             style={{backgroundImage: `url('${video.thumbnailUrl}')`}}
+            onClick={handleVideoClick}
         >
             {/* Title and Tags (Always Visible) */}
             <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-end p-4 text-white">
@@ -31,7 +56,8 @@ const VideoCard: React.FC<Props> = ({video}) => {
                     {tagsToDisplay.map((tag, index) => (
                         <span
                             key={index}
-                            className="bg-blue-500 bg-opacity-75 text-white text-xs px-2 py-1 rounded"
+                            className="bg-blue-500 bg-opacity-75 text-white text-xs px-2 py-1 rounded hover:bg-blue-600 transition duration-300"
+                            onClick={(e) => handleTagClick(tag, e)}
                         >
                             {tag}
                         </span>
@@ -51,12 +77,6 @@ const VideoCard: React.FC<Props> = ({video}) => {
                     {truncatedDescription}
                 </p>
             </div>
-
-            <a
-                href={`/video/${video.videoId}`}
-                className="absolute inset-0"
-                aria-label={`Watch video: ${video.title}`}
-            />
         </div>
     );
 };
