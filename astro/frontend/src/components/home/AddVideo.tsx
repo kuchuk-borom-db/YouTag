@@ -1,6 +1,6 @@
-import React, { type ChangeEvent, type KeyboardEvent, useRef, useState, useEffect } from 'react';
+import React, { type ChangeEvent, type KeyboardEvent, useRef, useState, useEffect, useCallback } from 'react';
 import { Tag, X, Youtube } from 'lucide-react';
-import { getAllTags } from "../../services/TagService.ts";
+import { getAllTags, getTagsContainingKeyword } from "../../services/TagService.ts";
 
 interface TagYoutubeModalProps {
     onClose: () => void;
@@ -16,39 +16,59 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({ onClose, onSubmit }) 
     const [suggestionsPerPage] = useState(10);
     const [totalTagCount, setTotalTagCount] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
+    const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Fetch tags when component mounts or page changes
-    useEffect(() => {
-        const fetchTags = async () => {
-            try {
-                const skip = (currentPage - 1) * suggestionsPerPage;
-                const tagResults = await getAllTags(skip, suggestionsPerPage);
+    // Fetch tags with debounce and keyword support
+    const fetchTagSuggestions = useCallback(async (keyword: string = '', page: number = 1) => {
+        try {
+            const skip = (page - 1) * suggestionsPerPage;
 
-                // Filter out tags that are already selected
-                const filteredTags = tagResults.filter(tag => !tags.includes(tag));
+            let tagResults: string[];
+            let totalCount: number;
 
-                setSuggestions(filteredTags);
-            } catch (error) {
-                console.error("Failed to fetch tags:", error);
-                setSuggestions([]);
+            if (keyword.trim() === '') {
+                // If no keyword, fetch all tags
+                tagResults = await getAllTags(skip, suggestionsPerPage);
+                const allTags = await getAllTags(0, 10000);
+                totalCount = allTags.length;
+            } else {
+                // If keyword exists, use getTagsContainingKeyword
+                tagResults = await getTagsContainingKeyword(keyword, skip, suggestionsPerPage);
+                const allMatchingTags = await getTagsContainingKeyword(keyword, 0, 10000);
+                totalCount = allMatchingTags.length;
             }
-        };
 
-        // Also fetch total tag count on first load
-        const fetchTagCount = async () => {
-            try {
-                const allTags = await getAllTags(0, 10000); // Fetch all tags to get total count
-                setTotalTagCount(allTags.length);
-            } catch (error) {
-                console.error("Failed to fetch tag count:", error);
-            }
-        };
+            // Filter out tags that are already selected
+            const filteredTags = tagResults.filter(tag => !tags.includes(tag));
 
-        fetchTags();
-        if (currentPage === 1) {
-            fetchTagCount();
+            setSuggestions(filteredTags);
+            setTotalTagCount(totalCount);
+        } catch (error) {
+            console.error("Failed to fetch tags:", error);
+            setSuggestions([]);
+            setTotalTagCount(0);
         }
-    }, [currentPage, tags]);
+    }, [tags, suggestionsPerPage]);
+
+    // Debounced search effect
+    useEffect(() => {
+        // Clear previous timeout
+        if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
+        }
+
+        // Set new timeout
+        debounceTimeoutRef.current = setTimeout(() => {
+            fetchTagSuggestions(inputValue, currentPage);
+        }, 300); // 300ms delay
+
+        // Cleanup timeout on unmount or dependency change
+        return () => {
+            if (debounceTimeoutRef.current) {
+                clearTimeout(debounceTimeoutRef.current);
+            }
+        };
+    }, [inputValue, currentPage, fetchTagSuggestions]);
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -61,9 +81,9 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({ onClose, onSubmit }) 
                 setInputValue('');
                 setCurrentPage(1);
             }
+        } else {
+            setInputValue(value);
         }
-
-        setInputValue(value);
     };
 
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {

@@ -23,6 +23,28 @@ export async function getAllTags(skip: number = 0, limit: number = 10): Promise<
     return respJson['data'];
 }
 
+export async function getTagsContainingKeyword(keyword: string, skip: number = 0, limit : number = 5): Promise<string[] | null> {
+    const token = Cookies.get("token");
+    if (!token) {
+        console.log("No Token found in cookie");
+        return null;
+    }
+    const url = `${SERVER_URI}/authenticated/search/tag/${keyword}`;
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${token}`,
+            "content-type": "application/json"
+        }
+    })
+    if (!response.ok) {
+        console.error(`Failed to get tags from server ${JSON.stringify(response)}`)
+        return null;
+    }
+    const respJson = await response.json();
+    return respJson['data'];
+}
+
 export async function getTagCountOfUser(): Promise<number | null> {
     const token = Cookies.get("token");
     if (!token) {
