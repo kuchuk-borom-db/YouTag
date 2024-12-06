@@ -1,13 +1,6 @@
-import React, { type ChangeEvent, type KeyboardEvent, useRef, useState } from 'react';
+import React, { type ChangeEvent, type KeyboardEvent, useRef, useState, useEffect } from 'react';
 import { Tag, X, Youtube } from 'lucide-react';
-
-// Dummy tag suggestions (can be replaced with real data)
-const TAG_SUGGESTIONS = [
-    'music', 'tutorial', 'gaming', 'comedy', 'tech',
-    'vlog', 'animation', 'review', 'education', 'travel',
-    'fashion', 'sports', 'news', 'food', 'lifestyle',
-    'science', 'photography', 'diy', 'business', 'health'
-];
+import { getAllTags } from "../../services/TagService.ts";
 
 interface TagYoutubeModalProps {
     onClose: () => void;
@@ -18,10 +11,44 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({ onClose, onSubmit }) 
     const [tags, setTags] = useState<string[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [youtubeLink, setYoutubeLink] = useState('');
-    const [suggestions, setSuggestions] = useState<string[]>(TAG_SUGGESTIONS.slice(0, 10));
+    const [suggestions, setSuggestions] = useState<string[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [suggestionsPerPage] = useState(10);
+    const [totalTagCount, setTotalTagCount] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    // Fetch tags when component mounts or page changes
+    useEffect(() => {
+        const fetchTags = async () => {
+            try {
+                const skip = (currentPage - 1) * suggestionsPerPage;
+                const tagResults = await getAllTags(skip, suggestionsPerPage);
+
+                // Filter out tags that are already selected
+                const filteredTags = tagResults.filter(tag => !tags.includes(tag));
+
+                setSuggestions(filteredTags);
+            } catch (error) {
+                console.error("Failed to fetch tags:", error);
+                setSuggestions([]);
+            }
+        };
+
+        // Also fetch total tag count on first load
+        const fetchTagCount = async () => {
+            try {
+                const allTags = await getAllTags(0, 10000); // Fetch all tags to get total count
+                setTotalTagCount(allTags.length);
+            } catch (error) {
+                console.error("Failed to fetch tag count:", error);
+            }
+        };
+
+        fetchTags();
+        if (currentPage === 1) {
+            fetchTagCount();
+        }
+    }, [currentPage, tags]);
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -33,14 +60,10 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({ onClose, onSubmit }) 
                 setTags([...tags, newTag]);
                 setInputValue('');
                 setCurrentPage(1);
-                updateSuggestions('');
             }
         }
 
         setInputValue(value);
-
-        // Update suggestions based on input
-        updateSuggestions(value.trim());
     };
 
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -59,7 +82,6 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({ onClose, onSubmit }) 
             setTags([...tags, suggestedTag]);
             setInputValue('');
             setCurrentPage(1);
-            updateSuggestions('');
         }
     };
 
@@ -68,22 +90,11 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({ onClose, onSubmit }) 
         onClose();
     };
 
-    const updateSuggestions = (searchTerm: string) => {
-        const filteredSuggestions = TAG_SUGGESTIONS.filter(
-            tag =>
-                tag.toLowerCase().includes(searchTerm.toLowerCase()) &&
-                !tags.includes(tag)
-        );
-
-        const startIndex = (currentPage - 1) * suggestionsPerPage;
-        const endIndex = startIndex + suggestionsPerPage;
-        setSuggestions(filteredSuggestions.slice(startIndex, endIndex));
-    };
-
     const handlePageChange = (pageNumber: number) => {
         setCurrentPage(pageNumber);
-        updateSuggestions(inputValue.trim());
     };
+
+    const totalPages = Math.ceil(totalTagCount / suggestionsPerPage);
 
     return (
         <div
@@ -152,12 +163,14 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({ onClose, onSubmit }) 
                                     </button>
                                 ))}
                             </div>
+
+                            {/* Pagination */}
                             <div className="flex justify-center mt-4">
-                                {Array.from({ length: Math.ceil(TAG_SUGGESTIONS.length / suggestionsPerPage) }, (_, index) => index + 1).map((pageNumber) => (
+                                {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
                                     <button
                                         key={pageNumber}
                                         onClick={() => handlePageChange(pageNumber)}
-                                        className={`px-3 py-1 rounded-md ${
+                                        className={`px-3 py-1 rounded-md mx-1 ${
                                             currentPage === pageNumber
                                                 ? 'bg-black text-white'
                                                 : 'bg-gray-100 text-gray-700 hover:bg-blue-100 transition-colors'
