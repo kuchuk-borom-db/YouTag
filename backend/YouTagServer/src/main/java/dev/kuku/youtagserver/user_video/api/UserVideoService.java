@@ -67,4 +67,14 @@ public interface UserVideoService extends Service<UserVideo, UserVideoDTO> {
     void deleteSpecificSavedVideosForAllUsers(List<String> videoIds);
 
     long getSavedVideosCountOfUser(String userId);
+
+    /**
+     * Return videos containing the keyword as it's title
+     * @param userId userId the video has to belong to
+     * @param keyword keyword the title needs to contain
+     * @param skip skip count
+     * @param limit limit count
+     * @return list of videoIds
+     */
+    List<String> getSavedVideosOfUserContaining(String userId, String keyword, int skip, int limit);
 }

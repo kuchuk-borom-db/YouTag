@@ -27,6 +27,23 @@ public interface UserTagService extends Service<UserTag, UserTagDTO> {
     List<String> getAllTagsOfUser(String userId, int skip, int limit);
 
     /**
+     * Get tag count of user
+     *
+     * @param userId userId to get the tag count of
+     * @return tag count
+     */
+    long getTagCountOfUser(String userId);
+
+    /**
+     * Get tags containing the following keyword
+     *
+     * @param userId  userId
+     * @param keyword keyword to search for in tags
+     * @return list of tags containing the keyword
+     */
+    List<String> getTagsOfUserContaining(String userId, String keyword, int skip, int limit);
+
+    /**
      * Remove all tags of user
      *
      * @param userId userId
@@ -49,10 +66,5 @@ public interface UserTagService extends Service<UserTag, UserTagDTO> {
      */
     void deleteSpecifiedTagsFromAllUsers(Set<String> tags);
 
-    /**
-     * Get tag count of user
-     * @param userId userId to get the tag count of
-     * @return tag count
-     */
-    long getTagCountOfUser(String userId);
+
 }

@@ -67,6 +67,12 @@ public class UserTagServiceImpl implements UserTagService {
     }
 
     @Override
+    public List<String> getTagsOfUserContaining(String userId, String keyword, int skip, int limit) {
+        log.debug("Getting tags containing ${} of user {}", keyword, userId);
+        return repo.findAllByUserIdAndTagContaining(userId, keyword, PageRequest.of(skip/limit, limit)).stream().map(UserTag::getTag).toList();
+    }
+
+    @Override
     public UserTagDTO toDto(UserTag e) {
         return new UserTagDTO(e.getUserId(), e.getTag());
     }

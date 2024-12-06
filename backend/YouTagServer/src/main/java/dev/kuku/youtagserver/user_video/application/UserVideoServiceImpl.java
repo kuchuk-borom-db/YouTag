@@ -83,4 +83,12 @@ public class UserVideoServiceImpl implements UserVideoService {
         log.debug("Getting saved videos count of user {}", userId);
         return repo.countAllByUserId(userId);
     }
+
+    @Override
+    public List<String> getSavedVideosOfUserContaining(String userId, String keyword, int skip, int limit) {
+        log.debug("Getting videos of user {} containing {}", userId, keyword);
+        return repo.findAllByUserIdAndVideoIdContainingIgnoreCase(userId, keyword, PageRequest.of(skip / limit, limit)).stream()
+                .map(UserVideo::getVideoId)
+                .collect(Collectors.toList());
+    }
 }
