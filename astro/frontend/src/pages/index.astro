@@ -3,6 +3,7 @@ import Navbar from "../components/Navbar"
 import type User from '../models/User'
 import Videos from "../components/home/AllVideos.tsx"
 import Tags from "../components/home/AllTags";
+import CreateContentButton from "../components/home/createContentButton";
 // Dummy User for Navbar
 const dummyUser: User = {
     name: 'john doe',
@@ -87,5 +88,6 @@ const dummyUser: User = {
     }} client:load/>
     <Videos initialPage={1} videosPerPage={5} onVideoClick={(video) => {
     }} client:load/>
+    <CreateContentButton client:load/>
 </main>
 </body>
