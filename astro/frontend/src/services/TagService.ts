@@ -52,7 +52,7 @@ export async function getTagsContainingKeyword(keyword: string, skip: number = 0
         console.log("No Token found in cookie");
         return null;
     }
-    const url = `${SERVER_URI}/authenticated/search/tag/${keyword}`;
+    const url = `${SERVER_URI}/authenticated/search/tag/${keyword}?skip=${skip}&limit=${limit}`;
     const response = await fetch(url, {
         method: "GET",
         headers: {
@@ -68,14 +68,14 @@ export async function getTagsContainingKeyword(keyword: string, skip: number = 0
     return respJson['data'];
 }
 
-export async function getTagCountOfUser(): Promise<number | null> {
+export async function getTagCountOfUser(keyword: string = ""): Promise<number | null> {
     const token = Cookies.get("token");
     if (!token) {
         console.log("No Token found in cookie");
         return null;
     }
 
-    const url = `${SERVER_URI}/authenticated/tag/count`;
+    const url = keyword.trim().length <= 0 ? `${SERVER_URI}/authenticated/tag/count` : `${SERVER_URI}/authenticated/search/count/tag/${keyword}`;
     const response = await fetch(url, {
         method: "GET",
         headers: {"content-type": "application/json", "Authorization": `Bearer ${token}`},
@@ -83,3 +83,4 @@ export async function getTagCountOfUser(): Promise<number | null> {
     const json = await response.json();
     return parseInt(json["data"]);
 }
+

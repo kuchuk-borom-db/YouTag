@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import VideoCard from "../VideoCard.tsx";
 import type Video from "../../models/Video.ts";
 import {getAllVideos, getVideosCountOfUser} from "../../services/VIdeoService.ts";
+import {EventBus} from "../../utils/EventBus.ts";
 
 interface Props {
     initialPage: number;
@@ -56,6 +57,15 @@ const Videos: React.FC<Props> = (props) => {
 
     useEffect(() => {
         fetchVideos();
+        const unsubscribe = EventBus.listen('added-video', (event) => {
+            //reload page
+            console.log("NEW VIDEO ADDED REFRESH PAGE")
+            fetchVideos();
+        })
+        //
+        return () => {
+            unsubscribe();
+        };
     }, [page, videosPerPage]);
 
     const handlePageChange = (newPage: number) => {

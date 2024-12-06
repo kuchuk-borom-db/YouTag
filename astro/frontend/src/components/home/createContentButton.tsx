@@ -52,10 +52,7 @@ const CreateContentButton: React.FC = () => {
             </div>
 
             {/* YouTube Modal (reusing the existing component) */}
-            {isYouTubeModalOpen && <TagYoutubeModal onClose={closeYouTubeModal}
-                                                    onSubmit={function (tags: string[], youtubeLink: string): void {
-                                                        throw new Error('Function not implemented.');
-                                                    }} />}
+            {isYouTubeModalOpen && <TagYoutubeModal onClose={closeYouTubeModal}/>}
         </div>
     );
 };

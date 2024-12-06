@@ -34,6 +34,9 @@ public interface UserTagService extends Service<UserTag, UserTagDTO> {
      */
     long getTagCountOfUser(String userId);
 
+    long getTagCountOfUserContaining(String userId, String keyword);
+
+
     /**
      * Get tags containing the following keyword
      *

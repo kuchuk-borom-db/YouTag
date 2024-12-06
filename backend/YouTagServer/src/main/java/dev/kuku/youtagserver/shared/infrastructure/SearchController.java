@@ -37,6 +37,15 @@ public class SearchController {
         return ResponseEntity.ok(ResponseModel.build(tags, null));
     }
 
+    @GetMapping("/count/tag/{keyword}")
+    ResponseEntity<ResponseModel<Long>> getTagsCountContaining(
+            @PathVariable() String keyword
+    ) throws NoAuthenticatedYouTagUser {
+        String userId = authService.getCurrentUser().email();
+        long tags = userTagService.getTagCountOfUserContaining(userId, keyword);
+        return ResponseEntity.ok(ResponseModel.build(tags, null));
+    }
+
     /**
      * Get videos containing keyword
      */

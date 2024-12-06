@@ -20,4 +20,6 @@ public interface UserTagRepo extends CrudRepository<UserTag, UserTagId> {
     long countAllByUserId(String userId);
 
     List<UserTag> findAllByUserIdAndTagContaining(String userId, String tag, Pageable pageRequest);
+
+    long countAllByUserIdAndTagContaining(String userId, String tag);
 }

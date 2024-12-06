@@ -1,22 +1,49 @@
-import React, { type ChangeEvent, type KeyboardEvent, useRef, useState, useEffect, useCallback } from 'react';
-import { Tag, X, Youtube } from 'lucide-react';
-import { getAllTags, getTagsContainingKeyword } from "../../services/TagService.ts";
+import React, {type ChangeEvent, type KeyboardEvent, useCallback, useEffect, useRef, useState} from 'react';
+import {AlertTriangle, Check, Tag, X, Youtube} from 'lucide-react';
+import {addTagsToVideo, getAllTags, getTagCountOfUser, getTagsContainingKeyword} from "../../services/TagService.ts";
+import {EventBus} from "../../utils/EventBus.ts";
 
 interface TagYoutubeModalProps {
     onClose: () => void;
-    onSubmit: (tags: string[], youtubeLink: string) => void;
 }
 
-const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({ onClose, onSubmit }) => {
+const extractYouTubeVideoId = (url: string): string | null => {
+    // More comprehensive regular expressions to match YouTube URL formats
+    const patterns = [
+        // Standard YouTube URLs
+        /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+        // Shortened youtu.be URLs
+        /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]{11})/,
+        // Embedded YouTube URLs
+        /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+        // Direct video ID
+        /^([a-zA-Z0-9_-]{11})$/
+    ];
+
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match && match[1]) {
+            return match[1];
+        }
+    }
+    return null;
+};
+
+const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({onClose}) => {
     const [tags, setTags] = useState<string[]>([]);
     const [inputValue, setInputValue] = useState('');
-    const [youtubeLink, setYoutubeLink] = useState('');
+    const [youtubeLinks, setYoutubeLinks] = useState<string[]>([]);
+    const [youtubeInput, setYoutubeInput] = useState('');
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [suggestionsPerPage] = useState(10);
     const [totalTagCount, setTotalTagCount] = useState(0);
+    const [submitStatus, setSubmitStatus] = useState<{
+        status: 'idle' | 'loading' | 'success' | 'error',
+        message?: string
+    }>({status: 'idle'});
     const inputRef = useRef<HTMLInputElement>(null);
-    const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Fetch tags with debounce and keyword support
     const fetchTagSuggestions = useCallback(async (keyword: string = '', page: number = 1) => {
@@ -28,14 +55,12 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({ onClose, onSubmit }) 
 
             if (keyword.trim() === '') {
                 // If no keyword, fetch all tags
-                tagResults = await getAllTags(skip, suggestionsPerPage);
-                const allTags = await getAllTags(0, 10000);
-                totalCount = allTags.length;
+                tagResults = await getAllTags(skip, suggestionsPerPage) || [];
+                totalCount = await getTagCountOfUser() || 0;
             } else {
                 // If keyword exists, use getTagsContainingKeyword
-                tagResults = await getTagsContainingKeyword(keyword, skip, suggestionsPerPage);
-                const allMatchingTags = await getTagsContainingKeyword(keyword, 0, 10000);
-                totalCount = allMatchingTags.length;
+                tagResults = await getTagsContainingKeyword(keyword, skip, suggestionsPerPage) || [];
+                totalCount = await getTagCountOfUser(keyword) || 0;
             }
 
             // Filter out tags that are already selected
@@ -49,6 +74,11 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({ onClose, onSubmit }) 
             setTotalTagCount(0);
         }
     }, [tags, suggestionsPerPage]);
+
+    // Pagination handler
+    const handlePageChange = (pageNumber: number) => {
+        setCurrentPage(pageNumber);
+    };
 
     // Debounced search effect
     useEffect(() => {
@@ -86,6 +116,22 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({ onClose, onSubmit }) 
         }
     };
 
+    const handleYoutubeInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+
+        // Check if last character is a comma to add YouTube link
+        if (value.endsWith(',')) {
+            const newLink = value.slice(0, -1).trim();
+            const videoId = extractYouTubeVideoId(newLink);
+            if (videoId && !youtubeLinks.includes(newLink)) {
+                setYoutubeLinks([...youtubeLinks, newLink]);
+                setYoutubeInput('');
+            }
+        } else {
+            setYoutubeInput(value);
+        }
+    };
+
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
         // Handle backspace to remove tags
         if (e.key === 'Backspace' && inputValue === '' && tags.length > 0) {
@@ -105,13 +151,57 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({ onClose, onSubmit }) 
         }
     };
 
-    const handleSubmit = () => {
-        onSubmit(tags, youtubeLink);
-        onClose();
+    const removeYoutubeLink = (linkToRemove: string) => {
+        setYoutubeLinks(youtubeLinks.filter(link => link !== linkToRemove));
     };
 
-    const handlePageChange = (pageNumber: number) => {
-        setCurrentPage(pageNumber);
+    const handleSubmit = async () => {
+        if (tags.length === 0 || youtubeLinks.length === 0) {
+            setSubmitStatus({
+                status: 'error',
+                message: 'Please add at least one tag and one YouTube link'
+            });
+            return;
+        }
+
+        try {
+            setSubmitStatus({status: 'loading', message: 'Adding videos...'});
+
+            // Extract video IDs
+            const videoIds = youtubeLinks
+                .map(link => extractYouTubeVideoId(link))
+                .filter((id): id is string => id !== null);
+
+            // Add tags to videos
+            const result = await addTagsToVideo(videoIds, tags);
+
+            if (result) {
+                setSubmitStatus({status: 'success', message: 'Videos successfully tagged!'});
+
+                // Clear fields after successful submission
+                setTags([]);
+                setYoutubeLinks([]);
+                setInputValue('');
+                setYoutubeInput('');
+
+                EventBus.dispatch('added-video', {
+                    links: youtubeLinks,
+                    tags: tags
+                });
+
+            } else {
+                setSubmitStatus({
+                    status: 'error',
+                    message: 'Failed to add tags to videos'
+                });
+            }
+        } catch (error) {
+            setSubmitStatus({
+                status: 'error',
+                message: 'An error occurred while adding videos'
+            });
+            console.error(error);
+        }
     };
 
     const totalPages = Math.ceil(totalTagCount / suggestionsPerPage);
@@ -122,7 +212,7 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({ onClose, onSubmit }) 
             onClick={onClose}
         >
             <div
-                className="bg-white rounded-xl p-6 w-96 max-w-[90%] shadow-2xl animate-slide-up"
+                className="bg-white rounded-xl p-6 w-[500px] max-w-[90%] shadow-2xl animate-slide-up"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Close Button */}
@@ -130,13 +220,13 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({ onClose, onSubmit }) 
                     onClick={onClose}
                     className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
                 >
-                    <X className="w-6 h-6" />
+                    <X className="w-6 h-6"/>
                 </button>
 
                 {/* Tags Input Section */}
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2 items-center">
-                        <Tag className="mr-2 w-5 h-5 text-blue-500" />
+                        <Tag className="mr-2 w-5 h-5 text-blue-500"/>
                         Tags
                     </label>
 
@@ -152,7 +242,7 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({ onClose, onSubmit }) 
                                     onClick={() => removeTag(tag)}
                                     className="ml-2 hover:text-red-500"
                                 >
-                                    <X className="w-4 h-4" />
+                                    <X className="w-4 h-4"/>
                                 </button>
                             </span>
                         ))}
@@ -164,7 +254,7 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({ onClose, onSubmit }) 
                             onChange={handleInputChange}
                             onKeyDown={handleKeyDown}
                             placeholder="Add tags, separate by comma"
-                            className="flex-grow outline-none px-1 text-sm"
+                            className="flex-grow outline-none px-1 text-sm text-black"
                         />
                     </div>
 
@@ -186,7 +276,7 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({ onClose, onSubmit }) 
 
                             {/* Pagination */}
                             <div className="flex justify-center mt-4">
-                                {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
+                                {Array.from({length: totalPages}, (_, index) => index + 1).map((pageNumber) => (
                                     <button
                                         key={pageNumber}
                                         onClick={() => handlePageChange(pageNumber)}
@@ -204,27 +294,72 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({ onClose, onSubmit }) 
                     )}
                 </div>
 
-                {/* YouTube Link Input */}
+                {/* YouTube Links Input */}
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2 items-center">
-                        <Youtube className="mr-2 w-5 h-5 text-red-500" />
-                        YouTube Link
+                        <Youtube className="mr-2 w-5 h-5 text-red-500"/>
+                        YouTube Links
                     </label>
+
+                    {/* YouTube Links Container */}
+                    {youtubeLinks.length > 0 && (
+                        <div className="border rounded-lg p-2 flex flex-wrap gap-2 mb-2 min-h-[50px]">
+                            {youtubeLinks.map((link) => (
+                                <span
+                                    key={link}
+                                    className="bg-red-100 text-red-700 px-2 py-1 rounded-full flex items-center text-sm"
+                                >
+                                    {link}
+                                    <button
+                                        onClick={() => removeYoutubeLink(link)}
+                                        className="ml-2 hover:text-red-500"
+                                    >
+                                        <X className="w-4 h-4"/>
+                                    </button>
+                                </span>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* YouTube Link Input */}
                     <input
                         type="text"
-                        value={youtubeLink}
-                        onChange={(e) => setYoutubeLink(e.target.value)}
-                        placeholder="Paste YouTube video link"
-                        className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-200 outline-none"
+                        value={youtubeInput}
+                        onChange={handleYoutubeInputChange}
+                        placeholder="Paste YouTube video links, separate by comma"
+                        className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-200 outline-none text-black"
                     />
                 </div>
+
+                {/* Submit Status */}
+                {submitStatus.status !== 'idle' && (
+                    <div className={`mb-4 p-3 rounded-lg flex items-center ${
+                        submitStatus.status === 'success'
+                            ? 'bg-green-100 text-green-800'
+                            : submitStatus.status === 'error'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                        {submitStatus.status === 'loading' && (
+                            <span className="mr-2 animate-spin">⏳</span>
+                        )}
+                        {submitStatus.status === 'success' && (
+                            <Check className="mr-2 w-5 h-5 text-green-600"/>
+                        )}
+                        {submitStatus.status === 'error' && (
+                            <AlertTriangle className="mr-2 w-5 h-5 text-red-600"/>
+                        )}
+                        {submitStatus.message}
+                    </div>
+                )}
 
                 {/* Submit Button */}
                 <button
                     className="w-full bg-black text-white py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center"
                     onClick={handleSubmit}
+                    disabled={submitStatus.status === 'loading'}
                 >
-                    Add Video
+                    Add Video(s)
                 </button>
             </div>
         </div>

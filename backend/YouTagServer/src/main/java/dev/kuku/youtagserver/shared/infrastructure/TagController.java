@@ -10,6 +10,7 @@ import dev.kuku.youtagserver.user_video.api.UserVideoService;
 import dev.kuku.youtagserver.user_video_tag.api.UserVideoTagService;
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
 import dev.kuku.youtagserver.video.api.services.VideoService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/authenticated/tag")
+@Transactional
 public class TagController {
     final AuthService authService;
     final UserVideoService userVideoService;
@@ -65,6 +67,7 @@ public class TagController {
         var existingVideos = videoService.getVideoInfos(videoIds).stream().map(VideoDTO::getId).toList();
         var videosNotInDb = videoIds.stream().filter(vid -> !existingVideos.contains(vid)).toList();
         if (!videosNotInDb.isEmpty()) {
+            log.debug("Videos {} not in database", videosNotInDb);
             videoService.addVideos(videosNotInDb);
             eventPublisher.publishEvent(new UpdateVideoInfosOrder(videosNotInDb));
         }

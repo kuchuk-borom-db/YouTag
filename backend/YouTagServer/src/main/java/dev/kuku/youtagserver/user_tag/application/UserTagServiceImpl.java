@@ -67,6 +67,12 @@ public class UserTagServiceImpl implements UserTagService {
     }
 
     @Override
+    public long getTagCountOfUserContaining(String userId, String keyword) {
+        log.debug("Getting tag count of user {} containing keyword {}", userId, keyword);
+        return repo.countAllByUserIdAndTagContaining(userId, keyword);
+    }
+
+    @Override
     public List<String> getTagsOfUserContaining(String userId, String keyword, int skip, int limit) {
         log.debug("Getting tags containing ${} of user {}", keyword, userId);
         return repo.findAllByUserIdAndTagContaining(userId, keyword, PageRequest.of(skip/limit, limit)).stream().map(UserTag::getTag).toList();

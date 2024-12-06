@@ -28,7 +28,6 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public YouTagUserDTO getCurrentUser() throws NoAuthenticatedYouTagUser {
         var auth = SecurityContextHolder.getContext().getAuthentication();
-        log.info("Current auth = {}", auth);
         var user = (AuthenticatedUser) auth;
         if (user == null) {
             throw new NoAuthenticatedYouTagUser();

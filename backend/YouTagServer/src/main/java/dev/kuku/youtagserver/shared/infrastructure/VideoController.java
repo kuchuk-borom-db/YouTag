@@ -146,7 +146,9 @@ public class VideoController {
                 //Can ignore. This should never happen as we already do this check at the start of the function.
             }
         });
-        eventPublisher.publishEvent(new RemoveVideosOrder(invalidVideos));
+        if (!invalidVideos.isEmpty()) {
+            eventPublisher.publishEvent(new RemoveVideosOrder(invalidVideos));
+        }
         return ResponseEntity.ok(ResponseModel.build(videoInfoTagDTOS, null));
     }
 
