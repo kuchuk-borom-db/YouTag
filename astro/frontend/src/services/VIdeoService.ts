@@ -16,6 +16,28 @@ interface VideoDTO {
     updated: any
 }
 
+export async function saveVideo(videoId: string): Promise<boolean> {
+    console.log("Saving video");
+    const token = Cookies.get("token");
+    if (!token) {
+        console.error("No token found in cookie");
+        return false
+    }
+    const url = `${SERVER_URI}/authenticated/video/${videoId}`;
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        }
+    })
+    if (!response.ok) {
+        console.error(`Failed to create video ${JSON.stringify(response)}`);
+        return false
+    }
+    return true;
+}
+
 
 export async function getAllVideos(skip: number, limit: number): Promise<Video[] | null> {
     const token = Cookies.get("token");

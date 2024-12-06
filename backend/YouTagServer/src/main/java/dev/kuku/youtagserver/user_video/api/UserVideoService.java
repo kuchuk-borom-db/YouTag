@@ -14,7 +14,7 @@ public interface UserVideoService extends Service<UserVideo, UserVideoDTO> {
      * @param userId   userId
      * @param videoIds ID of the video to save
      */
-    void saveVideoToUser(String userId, List<String> videoIds);
+    void saveVideosToUser(String userId, List<String> videoIds);
 
     /**
      * Remove saved video from user
@@ -77,4 +77,5 @@ public interface UserVideoService extends Service<UserVideo, UserVideoDTO> {
      * @return list of videoIds
      */
     List<String> getSavedVideosOfUserContaining(String userId, String keyword, int skip, int limit);
+
 }

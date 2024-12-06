@@ -13,9 +13,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -67,6 +69,12 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
+    public List<VideoDTO> getVideoInfos(List<String> ids) {
+        log.debug("Fetching videos with ids {}", ids);
+        return videoRepo.findAllByIdIn(ids).stream().map(this::toDto).collect(Collectors.toList());
+    }
+
+    @Override
     public void addVideo(VideoDTO video) throws VideoAlreadyExists {
         try {
             getVideoInfo(video.getId());
@@ -83,6 +91,12 @@ public class VideoServiceImpl implements VideoService {
             videoRepo.save(newVideo);
             evictCache(video.getId());
         }
+    }
+
+    @Override
+    public void addVideos(List<String> ids) {
+        log.debug("Adding videos {}", ids);
+        videoRepo.saveAll(ids.stream().map(s -> new Video(s, "NA", "NA", "NA", LocalDateTime.now())).collect(Collectors.toList()));
     }
 
     @Override
@@ -105,6 +119,12 @@ public class VideoServiceImpl implements VideoService {
         // Evict the cached entry
         evictCache(video.getId());
         log.debug("Updated video with id {} saved and cache evicted", video.getId());
+    }
+
+    @Override
+    public void updateVideos(List<VideoDTO> videos) {
+        log.debug("Updating videos {}", videos);
+        videoRepo.saveAll(videos.stream().map(videoDTO -> new Video(videoDTO.getId(), videoDTO.getTitle(), videoDTO.getDescription(), videoDTO.getThumbnail(), LocalDateTime.now())).collect(Collectors.toList()));
     }
 
     @Override

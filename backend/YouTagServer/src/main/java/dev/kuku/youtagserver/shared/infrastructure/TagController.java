@@ -2,13 +2,17 @@ package dev.kuku.youtagserver.shared.infrastructure;
 
 import dev.kuku.youtagserver.auth.api.exceptions.NoAuthenticatedYouTagUser;
 import dev.kuku.youtagserver.auth.api.services.AuthService;
+import dev.kuku.youtagserver.shared.api.events.UpdateVideoInfosOrder;
 import dev.kuku.youtagserver.shared.application.OrchestratorService;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
 import dev.kuku.youtagserver.user_tag.api.UserTagService;
 import dev.kuku.youtagserver.user_video.api.UserVideoService;
 import dev.kuku.youtagserver.user_video_tag.api.UserVideoTagService;
+import dev.kuku.youtagserver.video.api.dto.VideoDTO;
+import dev.kuku.youtagserver.video.api.services.VideoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +41,8 @@ public class TagController {
     final UserVideoTagService userVideoTagService;
     final UserTagService userTagService;
     final OrchestratorService orchestratorService;
+    private final VideoService videoService;
+    final ApplicationEventPublisher eventPublisher;
 
     String getCurrentUserId() throws NoAuthenticatedYouTagUser {
         return authService.getCurrentUser().email();
@@ -55,11 +61,16 @@ public class TagController {
         List<String> videoIds = Arrays.stream(videosRaw.split(",")).map(String::trim).toList();
         List<String> tags = Arrays.stream(tagsRaw.split(",")).map(s -> s.trim().toLowerCase()).toList();
 
-        //Check if the video is saved for user
-        videoIds = userVideoService.getSpecificSavedVideosOfUser(getCurrentUserId(), videoIds);
-        if (videoIds.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(ResponseModel.build(null, "videos provided in query parameters are not saved to user"));
+        //Get list of videos saved in db
+        var existingVideos = videoService.getVideoInfos(videoIds).stream().map(VideoDTO::getId).toList();
+        var videosNotInDb = videoIds.stream().filter(vid -> !existingVideos.contains(vid)).toList();
+        if (!videosNotInDb.isEmpty()) {
+            videoService.addVideos(videosNotInDb);
+            eventPublisher.publishEvent(new UpdateVideoInfosOrder(videosNotInDb));
         }
+
+        //Save the video for users
+        userVideoService.saveVideosToUser(getCurrentUserId(), videoIds);
 
         //Save the tags in user_tag table if it doesn't exist yet.
         userTagService.addTagsToUser(getCurrentUserId(), tags);

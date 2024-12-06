@@ -28,7 +28,7 @@ public class UserVideoServiceImpl implements UserVideoService {
 
 
     @Override
-    public void saveVideoToUser(String userId, List<String> videoIds) {
+    public void saveVideosToUser(String userId, List<String> videoIds) {
         log.debug("Save video {} to user {}", videoIds, userId);
         repo.saveAll(videoIds.stream().map(vid -> new UserVideo(userId, vid)).toList());
         //TODO Cache evict

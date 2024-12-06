@@ -7,6 +7,7 @@ import dev.kuku.youtagserver.video.api.exceptions.VideoAlreadyExists;
 import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
 import dev.kuku.youtagserver.video.domain.Video;
 
+import java.util.List;
 import java.util.Set;
 
 public interface VideoService extends Service<Video, VideoDTO> {
@@ -15,7 +16,17 @@ public interface VideoService extends Service<Video, VideoDTO> {
      */
     VideoDTO getVideoInfo(String id) throws VideoNotFound;
 
+    /**
+     * Get video by ids
+     */
+    List<VideoDTO> getVideoInfos(List<String> ids);
+
     void addVideo(VideoDTO video) throws VideoAlreadyExists;
+
+    /**
+     * Add videos by Ids
+     */
+    void addVideos(List<String> ids);
 
     /**
      * Update info of existing video
@@ -25,9 +36,16 @@ public interface VideoService extends Service<Video, VideoDTO> {
     void updateVideo(VideoDTO video) throws VideoNotFound;
 
     /**
+     * Update videos
+     * @param videos videos to update
+     */
+    void updateVideos(List<VideoDTO> videos);
+
+    /**
      * Delete specified video ids
      *
      * @param videoIds videos to delete
      */
     void deleteSpecifiedVideos(Set<String> videoIds);
+
 }

@@ -3,7 +3,7 @@ package dev.kuku.youtagserver.shared.infrastructure;
 import dev.kuku.youtagserver.auth.api.exceptions.NoAuthenticatedYouTagUser;
 import dev.kuku.youtagserver.auth.api.services.AuthService;
 import dev.kuku.youtagserver.shared.api.events.RemoveVideosOrder;
-import dev.kuku.youtagserver.shared.api.events.UpdateVideoInfoOrder;
+import dev.kuku.youtagserver.shared.api.events.UpdateVideoInfosOrder;
 import dev.kuku.youtagserver.shared.application.OrchestratorService;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
 import dev.kuku.youtagserver.shared.models.VideoInfoTagDTO;
@@ -70,19 +70,11 @@ public class VideoController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseModel.build(null, String.format("Video %s already saved to user %s", videoId, getCurrentUser())));
         }
 
-        //Check if video is already saved in videos table with updated values or doesn't exist yet.
+        //Check if video is already saved in videos table. If yes then update its info
         try {
             //Video exists in repository
-            var videoInfoDb = videoService.getVideoInfo(videoId);
-            //Compare latest scrapped data and data from repository
-            var scrappedVideoInfo = scrapperService.getYoutubeVideoInfo(videoId);
-            if (videoInfoDb.getDescription().equals(scrappedVideoInfo.description()) && videoInfoDb.getTitle().equals(scrappedVideoInfo.title())) {
-                log.debug("Existing video {} found and doesn't require updating {}", videoInfoDb, scrappedVideoInfo);
-            } else {
-                //repo data is outdated and needs updating.
-                log.debug("Existing video found but requires updating. Updating....");
-                eventPublisher.publishEvent(new UpdateVideoInfoOrder(new VideoDTO(videoId, scrappedVideoInfo.title(), scrappedVideoInfo.description(), scrappedVideoInfo.thumbnail())));
-            }
+            videoService.getVideoInfo(videoId);
+            eventPublisher.publishEvent(new UpdateVideoInfosOrder(List.of(videoId)));
         } catch (VideoNotFound e) {
             //Existing video was not found in database.
             log.debug("Existing video {} not found. Adding to video table...", videoId);
@@ -96,7 +88,7 @@ public class VideoController {
         }
 
         //Save the video to the user
-        userVideoService.saveVideoToUser(getCurrentUser(), List.of(videoId));
+        userVideoService.saveVideosToUser(getCurrentUser(), List.of(videoId));
         return ResponseEntity.ok(ResponseModel.build(null, String.format("Saved video %s to user %s", videoId, getCurrentUser())));
     }
 
@@ -157,6 +149,7 @@ public class VideoController {
         eventPublisher.publishEvent(new RemoveVideosOrder(invalidVideos));
         return ResponseEntity.ok(ResponseModel.build(videoInfoTagDTOS, null));
     }
+
     //TODO Add endpoint to readme
     @GetMapping("/count")
     ResponseEntity<ResponseModel<Long>> getAllVideosCount() throws NoAuthenticatedYouTagUser {
