@@ -5,11 +5,8 @@ import Videos from "../components/home/AllVideos.tsx"
 import Tags from "../components/home/AllTags";
 import CreateContentButton from "../components/home/createContentButton";
 // Dummy User for Navbar
-const dummyUser: User = {
-    name: 'john doe',
-    email: 'john@example.com',
-    thumbnailUrl: 'https://www.pngall.com/wp-content/uploads/5/Profile-Transparent.png'
-}
+const user = JSON.parse(Astro.cookies.get("user-info")!.value)
+export const prerender = false
 ---
 
 <html lang="en">
@@ -82,7 +79,7 @@ const dummyUser: User = {
     </style>
 </head>
 <body>
-<Navbar user={dummyUser}/>
+<Navbar user={user} client:load/>
 <main>
     <Tags initialPage={1} tagsPerPage={5} onTagClick={(tag) => {
     }} client:load/>
