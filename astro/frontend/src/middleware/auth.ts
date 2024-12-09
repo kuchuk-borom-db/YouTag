@@ -6,6 +6,7 @@ import {defineMiddleware} from "astro/middleware";
 const logLabel = "Middleware-Auth"
 export const auth = defineMiddleware(async (context, next) => {
     const pathName = context.url.pathname;
+    console.log(`Current page = ${pathName}`)
     console.log(`Auth middleware triggered on path name ${pathName}`)
     if (!isAuthPath(pathName)) {
         console.log(`Hit a public route ${pathName}`);
