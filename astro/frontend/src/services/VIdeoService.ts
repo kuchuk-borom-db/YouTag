@@ -62,8 +62,8 @@ export async function getAllVideos(skip: number, limit: number, token: string): 
 }
 
 export async function   getVideosWithTags(tags: string[], skip: number, limit: number, token : string): Promise<Video[] | null> {
-
-    const url = `${SERVER_URI}/authenticated/tag/?tags=${tags.join(',').toLowerCase()}`;
+    console.log(`Getting videos with tags ${tags} skip ${skip} and limit ${limit}`)
+    const url = `${SERVER_URI}/authenticated/tag/?tags=${tags.join(',').toLowerCase()}&skip=${skip}&limit=${limit}`;
     const response = await fetch(url, {
         headers: {
             "Content-Type": "application/json",

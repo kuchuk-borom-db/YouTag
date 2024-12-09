@@ -5,14 +5,13 @@ interface Props {
     videos?: Video[];
     totalVideos: number;
     currentPage: number;
+    videosPerPage: number;
 }
 
-const VideoList: React.FC<Props> = ({videos = [], totalVideos = 0, currentPage}) => {
-    // Use Math.ceil to round up the total pages and prevent floating-point results
-    // Divide totalVideos by the current page's video count to get accurate pagination
-    const totalPages = Math.ceil(totalVideos / (videos.length || 1));
-    console.log("Total Pages passed to VideosList:", totalPages);
-
+const VideoList: React.FC<Props> = ({videos = [], totalVideos = 0, currentPage, videosPerPage = 1}) => {
+    // Calculate the total pages based on the actual number of videos displayed on the current page
+    const totalPages = Math.ceil(totalVideos / videosPerPage);
+    console.log(`VideosList :- Total Pages = ${totalPages} from totalVids/vids.length (${totalVideos}/${videos.length})`);
     return (
         <div className="p-4">
             {/* Video Grid */}
@@ -66,7 +65,9 @@ const VideoList: React.FC<Props> = ({videos = [], totalVideos = 0, currentPage})
                         }`}
                         onClick={() => {
                             if (currentPage > 1) {
-                                window.location.href = `?page=${currentPage - 1}`;
+                                const url = new URL(window.location.href);
+                                url.searchParams.set('page', String(currentPage - 1));
+                                window.location.href = url.toString();
                             }
                         }}
                         disabled={currentPage === 1}
@@ -84,11 +85,13 @@ const VideoList: React.FC<Props> = ({videos = [], totalVideos = 0, currentPage})
                                     : "bg-gray-200 hover:bg-gray-300"
                             }`}
                             onClick={() => {
-                                if(index + 1 === currentPage) {
-                                    console.log("Already in this page dude")
+                                if (index + 1 === currentPage) {
+                                    console.log("Already in this page");
                                     return;
                                 }
-                                window.location.href = `?page=${index + 1}`;
+                                const url = new URL(window.location.href);
+                                url.searchParams.set('page', String(index + 1));
+                                window.location.href = url.toString();
                             }}
                         >
                             {index + 1}
@@ -102,7 +105,9 @@ const VideoList: React.FC<Props> = ({videos = [], totalVideos = 0, currentPage})
                         }`}
                         onClick={() => {
                             if (currentPage < totalPages) {
-                                window.location.href = `?page=${currentPage + 1}`;
+                                const url = new URL(window.location.href);
+                                url.searchParams.set('page', String(currentPage + 1));
+                                window.location.href = url.toString();
                             }
                         }}
                         disabled={currentPage === totalPages}

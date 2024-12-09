@@ -11,7 +11,7 @@ interface SearchComponentProps {
     initialTags: string[] | null
 }
 
-const SearchComponent: React.FC<SearchComponentProps> = ({ initialTags }) => {
+const SearchComponent: React.FC<SearchComponentProps> = ({initialTags}) => {
     console.log(`Initial tags = ${initialTags}`)
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState<string>('');
@@ -119,7 +119,10 @@ const SearchComponent: React.FC<SearchComponentProps> = ({ initialTags }) => {
         e.preventDefault();
         console.log('Searching with:', {tags});
         setShowTagSuggestions(false);
-        window.location.href = `?tags=${tags}`
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('tags', tags.join(","));
+        window.location.href = url.toString();
     };
 
     const handleTagSuggestionClick = (tag: string) => {

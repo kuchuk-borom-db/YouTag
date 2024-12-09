@@ -13,7 +13,7 @@ if (!token) {
 }
 
 // Get `Tags`, `limit` and `page` from query parameters
-const limit = Math.max(Number(Astro.url.searchParams.get("limit")) || 3, 1); // Ensure limit > 0
+const limit = 2;
 const pageNumber = Math.max(Number(Astro.url.searchParams.get("page")) || 1, 1); // Ensure page > 0
 const tagsRaw: string = Astro.url.searchParams.get("tags") || "";
 const tagsList = tagsRaw.trim().toLowerCase().split(",").filter(value => value.length > 0 ) || [];
@@ -32,9 +32,11 @@ if (tagsList.length <= 0 ) {
     videos = await getVideosWithTags(tagsList, skip, limit, token) || [];
     videosCount = await getVideosCountWithTags(tagsList, token) || 0;
 }
+
+console.log(`Videos = ${videos.toString()}`);
 ---
 
 <div class="bg-gray-100">
     <SearchBox initialTags={tagsList} client:load/>
-    <VideosList videos={videos} totalVideos={videosCount} currentPage={pageNumber} client:load/>
+    <VideosList videos={videos} totalVideos={videosCount} currentPage={pageNumber}  videosPerPage ={limit} client:load/>
 </div>

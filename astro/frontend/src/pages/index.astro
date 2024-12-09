@@ -12,7 +12,7 @@ if (!token) {
 }
 
 // Get `limit` and `page` from query parameters
-const limit = Math.max(Number(Astro.url.searchParams.get("limit")) || 3, 1); // Ensure limit > 0
+const limit = 2// Ensure limit > 0
 const pageNumber = Math.max(Number(Astro.url.searchParams.get("page")) || 1, 1); // Ensure page > 0
 
 // Calculate `skip` for pagination
@@ -98,6 +98,7 @@ const changePage = (page: number) => {
                     videos={videos}
                     totalVideos={videosCount || 0}
                     currentPage={pageNumber}
+                    videosPerPage={limit}
                     client:load
             />
     ) : (
