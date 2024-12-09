@@ -62,6 +62,15 @@ public interface UserVideoTagService extends Service<UserVideoTag, UserVideoTagD
     Set<String> getAllSavedVideosOfUserWithTags(String userId, List<String> tags, int skip, int limit);
 
     /**
+     * Get total no. of saved videos with tag
+     * @param userId
+     * @param tags
+     * @return
+     */
+    long getCountOfSavedVideosOfUserWithTags(String userId, List<String> tags);
+
+
+    /**
      * Get all tags of the saved videos
      *
      * @param userId   userId

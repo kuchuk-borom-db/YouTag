@@ -154,10 +154,16 @@ public class VideoController {
 
     //TODO Add endpoint to readme
     @GetMapping("/count")
-    ResponseEntity<ResponseModel<Long>> getAllVideosCount() throws NoAuthenticatedYouTagUser {
+    ResponseEntity<ResponseModel<Long>> getAllVideosCount(
+            @RequestParam(value = "tags", defaultValue = "") String tagsRaw
+    ) throws NoAuthenticatedYouTagUser {
         String userId = getCurrentUser();
-        log.debug("Getting all videos count of user {}", userId);
-        return ResponseEntity.ok(ResponseModel.build(userVideoService.getSavedVideosCountOfUser(userId), null));
+        if (tagsRaw == null || tagsRaw.isEmpty()) {
+            log.debug("Getting all videos count of user {}", userId);
+            return ResponseEntity.ok(ResponseModel.build(userVideoService.getSavedVideosCountOfUser(userId), null));
+        }
+        log.debug("Getting videos count with tags {}", tagsRaw);
+        return ResponseEntity.ok(ResponseModel.build(userVideoTagService.getCountOfSavedVideosOfUserWithTags(userId, Arrays.stream(tagsRaw.split(",")).toList()), null));
     }
 }
 

@@ -66,6 +66,29 @@ export async function getAllVideos(skip: number, limit: number): Promise<Video[]
 
 }
 
+export async function getVideosWithTags(tags: string[], skip: number, limit: number): Promise<Video[] | null> {
+    const token = Cookies.get("token");
+    if (!token) {
+        console.log("No Token found in cookie");
+        return null;
+    }
+
+    const url = `${SERVER_URI}/authenticated/tag/?tags=${tags.join(',').toLowerCase()}`;
+    const response = await fetch(url, {
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        }
+    })
+
+    if (!response.ok) {
+        console.error(`Response error ${JSON.stringify(response)}`);
+        return null
+    }
+    const responseJson = await response.json();
+    return parseVideosFromData(responseJson['data']);
+}
+
 export async function getVideosCountOfUser(): Promise<number | null> {
     const token = Cookies.get("token");
     if (!token) {
@@ -74,6 +97,22 @@ export async function getVideosCountOfUser(): Promise<number | null> {
     }
 
     const url = `${SERVER_URI}/authenticated/video/count`;
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {"content-type": "application/json", "Authorization": `Bearer ${token}`},
+    });
+    const json = await response.json();
+    return parseInt(json["data"]);
+}
+
+export async function getVideosCountWithTags(tags: string[]): Promise<number | null> {
+    console.log(`Getting videos count with tags ${tags}`);
+    const token = Cookies.get("token");
+    if (!token) {
+        console.log("No Token found in cookie");
+        return null;
+    }
+    const url = `${SERVER_URI}/authenticated/video/count?tags=${tags.join(',').trim().toLowerCase()}`;
     const response = await fetch(url, {
         method: "GET",
         headers: {"content-type": "application/json", "Authorization": `Bearer ${token}`},
@@ -96,3 +135,5 @@ function parseVideosFromData(data: VideoInfoDTO[]): Video[] {
     })
     return videos;
 }
+
+//TODO Combine tags from option for adding videos to skip having to add tags manually one by one. This will introduce search feature for video with suggestions

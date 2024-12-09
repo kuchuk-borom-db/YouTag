@@ -1,12 +1,18 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Tag, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { getAllTags, getTagCountOfUser, getTagsContainingKeyword, getTagCountOfUser as getTagCountContainingKeyword } from "../services/TagService.ts";
+import React, {useEffect, useRef, useState} from 'react';
+import {ChevronLeft, ChevronRight, Tag, X} from 'lucide-react';
+import {
+    getAllTags,
+    getTagCountOfUser,
+    getTagCountOfUser as getTagCountContainingKeyword,
+    getTagsContainingKeyword
+} from "../services/TagService.ts";
 
 interface SearchComponentProps {
     profileLogoUrl: string | null;
+    onSearch: (tags: string[]) => void;
 }
 
-const SearchComponent: React.FC<SearchComponentProps> = ({ profileLogoUrl }) => {
+const SearchComponent: React.FC<SearchComponentProps> = ({profileLogoUrl, onSearch}) => {
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState<string>('');
     const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
@@ -19,7 +25,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({ profileLogoUrl }) => 
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Pagination settings
-    const ITEMS_PER_PAGE = 5;
+    const ITEMS_PER_PAGE = 2;
 
     // Fetch tags based on input
     const fetchTags = async (keyword?: string) => {
@@ -74,9 +80,11 @@ const SearchComponent: React.FC<SearchComponentProps> = ({ profileLogoUrl }) => 
     const handleTagSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         if (value.endsWith(',')) {
-            const newTag = value.slice(0, value.length-1).trim();
+            const newTag = value.slice(0, value.length - 1).trim();
             if (newTag && !tags.includes(newTag)) {
-                setTags(prev => [...prev, newTag]);
+                setTags(prevState => {
+                    return [...prevState, newTag];
+                });
                 setTagInput('');
                 setShowTagSuggestions(false);
             }
@@ -92,8 +100,9 @@ const SearchComponent: React.FC<SearchComponentProps> = ({ profileLogoUrl }) => 
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Searching with:', { tags });
+        console.log('Searching with:', {tags});
         setShowTagSuggestions(false);
+        onSearch(tags);
     };
 
     const handleTagSuggestionClick = (tag: string) => {
@@ -118,9 +127,10 @@ const SearchComponent: React.FC<SearchComponentProps> = ({ profileLogoUrl }) => 
 
     return (
         <div className="bg-gray-100 w-full relative">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+            <div
+                className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
                 <div className="flex items-center w-full md:w-auto justify-between">
-                    <img src={"youtag.png"} alt="Logo" className="h-8 mr-4" />
+                    <img src={"youtag.png"} alt="Logo" className="h-8 mr-4"/>
                     <div className="md:hidden">
                         <img
                             src={!profileLogoUrl ? "profile.jpg" : profileLogoUrl}
@@ -129,7 +139,8 @@ const SearchComponent: React.FC<SearchComponentProps> = ({ profileLogoUrl }) => 
                         />
                     </div>
                 </div>
-                <form onSubmit={handleSearch} className="w-full flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 relative">
+                <form onSubmit={handleSearch}
+                      className="w-full flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 relative">
                     <div className="relative w-full md:flex-1" ref={tagSearchInputRef}>
                         <div className="relative">
                             <input
@@ -139,7 +150,8 @@ const SearchComponent: React.FC<SearchComponentProps> = ({ profileLogoUrl }) => 
                                 onChange={handleTagSearchChange}
                                 className="w-full pl-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
                             />
-                            <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                            <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                                 size={20}/>
                         </div>
                         {tags.length > 0 && (
                             <div className="mt-2 flex flex-wrap gap-2">
@@ -154,7 +166,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({ profileLogoUrl }) => 
                                             onClick={() => removeTag(tag)}
                                             className="text-green-500 hover:text-green-700"
                                         >
-                                            <X size={16} />
+                                            <X size={16}/>
                                         </button>
                                     </div>
                                 ))}
@@ -175,7 +187,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({ profileLogoUrl }) => 
                                         onClick={() => setShowTagSuggestions(false)}
                                         className="text-gray-500 hover:text-gray-700 focus:outline-none"
                                     >
-                                        <X size={20} />
+                                        <X size={20}/>
                                     </button>
                                 </div>
                                 <ul className="max-h-60 overflow-y-auto">
@@ -196,7 +208,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({ profileLogoUrl }) => 
                                         className={`text-gray-500 hover:text-gray-700 focus:outline-none ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         disabled={currentPage === 1}
                                     >
-                                        <ChevronLeft size={20} />
+                                        <ChevronLeft size={20}/>
                                     </button>
                                     <span className="text-sm text-gray-700">
                                         Page {currentPage} of {totalPages}
@@ -207,7 +219,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({ profileLogoUrl }) => 
                                         className={`text-gray-500 hover:text-gray-700 focus:outline-none ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         disabled={currentPage === totalPages}
                                     >
-                                        <ChevronRight size={20} />
+                                        <ChevronRight size={20}/>
                                     </button>
                                 </div>
                             </div>
@@ -217,7 +229,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({ profileLogoUrl }) => 
                         type="submit"
                         className="w-full md:w-auto bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-300 flex items-center justify-center space-x-2"
                     >
-                        <Tag size={20} />
+                        <Tag size={20}/>
                         <span>Search</span>
                     </button>
                 </form>

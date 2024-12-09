@@ -70,7 +70,15 @@ public class UserVideoTagServiceImpl implements UserVideoTagService {
         log.debug("Getting all saved videos of user {} with tags {}", userId, tags);
         List<UserVideoTag> entries = repo.findAllByUserIdAndTagIn(userId, tags, PageRequest.of(skip / limit, limit));
         log.debug("Got tags {} for saved videos {}", tags, entries);
-        return entries.stream().map(UserVideoTag::getTag).collect(Collectors.toSet());
+        return entries.stream().map(UserVideoTag::getVideoId).collect(Collectors.toSet());
+    }
+
+    @Override
+    public long getCountOfSavedVideosOfUserWithTags(String userId, List<String> tags) {
+        log.debug("Getting countOfSavedVideos of user {} with tags {}", userId, tags);
+        long count = repo.countDistinctVideosByUserIdAndTags(userId, tags, tags.size());
+        log.debug("Got countOfSavedVideos of user {} with tags {} = {}", userId, tags, count);
+        return count;
     }
 
     @Override

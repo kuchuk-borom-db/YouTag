@@ -2,13 +2,16 @@ package dev.kuku.youtagserver.shared.infrastructure;
 
 import dev.kuku.youtagserver.auth.api.exceptions.NoAuthenticatedYouTagUser;
 import dev.kuku.youtagserver.auth.api.services.AuthService;
+import dev.kuku.youtagserver.shared.api.events.RemoveVideosOrder;
 import dev.kuku.youtagserver.shared.api.events.UpdateVideoInfosOrder;
 import dev.kuku.youtagserver.shared.application.OrchestratorService;
 import dev.kuku.youtagserver.shared.models.ResponseModel;
+import dev.kuku.youtagserver.shared.models.VideoInfoTagDTO;
 import dev.kuku.youtagserver.user_tag.api.UserTagService;
 import dev.kuku.youtagserver.user_video.api.UserVideoService;
 import dev.kuku.youtagserver.user_video_tag.api.UserVideoTagService;
 import dev.kuku.youtagserver.video.api.dto.VideoDTO;
+import dev.kuku.youtagserver.video.api.exceptions.VideoNotFound;
 import dev.kuku.youtagserver.video.api.services.VideoService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -157,7 +158,17 @@ public class TagController {
         if (!tagsRaw.isEmpty() && videosRaw.isEmpty()) {
             log.debug("Getting all videos with tag {} for user {}", tags, getCurrentUserId());
             Set<String> videoIdsWithTags = userVideoTagService.getAllSavedVideosOfUserWithTags(getCurrentUserId(), tags, skip, limit);
-            return ResponseEntity.ok(ResponseModel.build(videoIdsWithTags, null));
+            List<VideoInfoTagDTO> videoInfoTagDTOS = new ArrayList<>();
+            videoIdsWithTags.forEach(s -> {
+                try {
+                    var videoInfo = videoService.getVideoInfo(s);
+                    videoInfoTagDTOS.add(new VideoInfoTagDTO(videoInfo, new HashSet<>(tags)));
+                } catch (VideoNotFound e) {
+                    log.error("Video not found {}", s);
+                    eventPublisher.publishEvent(new RemoveVideosOrder(Set.of(s)));
+                }
+            });
+            return ResponseEntity.ok(ResponseModel.build(videoInfoTagDTOS, null));
         }
 
         /*

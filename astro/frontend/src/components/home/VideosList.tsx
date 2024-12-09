@@ -1,13 +1,19 @@
 import React, {useEffect, useState} from 'react';
 import VideoCard from "../VideoCard.tsx";
 import type Video from "../../models/Video.ts";
-import {getAllVideos, getVideosCountOfUser} from "../../services/VIdeoService.ts";
+import {
+    getAllVideos,
+    getVideosCountOfUser,
+    getVideosCountWithTags,
+    getVideosWithTags
+} from "../../services/VIdeoService.ts";
 import {EventBus} from "../../utils/EventBus.ts";
 
 interface Props {
     initialPage: number;
     videosPerPage: number;
     onVideoClick: (video: Video) => void;
+    requiredTags: string[];
 }
 
 const Videos: React.FC<Props> = (props) => {
@@ -24,7 +30,7 @@ const Videos: React.FC<Props> = (props) => {
             setIsLoading(true);
 
             // Fetch videos count
-            const videosCount = await getVideosCountOfUser();
+            const videosCount = props.requiredTags == null || props.requiredTags.length <= 0 ? await getVideosCountOfUser() : await getVideosCountWithTags(props.requiredTags);
             if (!videosCount) {
                 setError('Unable to retrieve video count');
                 return;
@@ -32,13 +38,14 @@ const Videos: React.FC<Props> = (props) => {
 
             // Calculate total pages
             const calculatedTotalPages = Math.ceil(videosCount / videosPerPage);
+            console.log(`Videos count ${videosCount}: ${calculatedTotalPages}`);
             setTotalPages(calculatedTotalPages);
 
             // Calculate skip
             const skip = (page - 1) * videosPerPage;
 
             // Fetch videos
-            const fetchedVideos = await getAllVideos(skip, videosPerPage);
+            const fetchedVideos = props.requiredTags == null || props.requiredTags.length <= 0 ? await getAllVideos(skip, videosPerPage) : await getVideosWithTags(props.requiredTags, skip, videosPerPage);
 
             if (!fetchedVideos || fetchedVideos.length < 1) {
                 setError('No videos found');
