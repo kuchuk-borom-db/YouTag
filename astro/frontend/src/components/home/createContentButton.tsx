@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, VideoIcon, Settings } from 'lucide-react';
-import TagYoutubeModal from './AddVideo.tsx'; // Assuming this is in the same directory
+import TagYoutubeModal from './AddVideo.tsx';
 
 const CreateContentButton: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -52,7 +52,7 @@ const CreateContentButton: React.FC = () => {
             </div>
 
             {/* YouTube Modal (reusing the existing component) */}
-            {isYouTubeModalOpen && <TagYoutubeModal onClose={closeYouTubeModal}/>}
+            {isYouTubeModalOpen && <TagYoutubeModal initialTags={["SUP"]} onClose={closeYouTubeModal}/>}
         </div>
     );
 };

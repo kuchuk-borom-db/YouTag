@@ -1,9 +1,10 @@
 import React, {type ChangeEvent, type KeyboardEvent, useCallback, useEffect, useRef, useState} from 'react';
 import {AlertTriangle, Check, Tag, X, Youtube} from 'lucide-react';
 import {addTagsToVideo, getAllTags, getTagCountOfUser, getTagsContainingKeyword} from "../../services/TagService.ts";
-import {EventBus} from "../../utils/EventBus.ts";
 
 interface TagYoutubeModalProps {
+    initialTags?: string[];
+    initialVideos?: string[];
     onClose: () => void;
 }
 
@@ -29,10 +30,27 @@ const extractYouTubeVideoId = (url: string): string | null => {
     return null;
 };
 
-const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({onClose}) => {
-    const [tags, setTags] = useState<string[]>([]);
+const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({
+                                                             initialTags = [],
+                                                             initialVideos = [],
+                                                             onClose
+                                                         }) => {
+    // Initialize state with initial props, filtering out any invalid items
+    const [tags, setTags] = useState<string[]>(
+        initialTags.filter(tag => tag && tag.trim() !== '')
+    );
     const [inputValue, setInputValue] = useState('');
-    const [youtubeLinks, setYoutubeLinks] = useState<string[]>([]);
+
+    // Filter initial videos to ensure they are valid YouTube links
+    const [youtubeLinks, setYoutubeLinks] = useState<string[]>(
+        initialVideos
+            .map(video => {
+                const videoId = extractYouTubeVideoId(video);
+                return videoId ? video : null;
+            })
+            .filter((video): video is string => video !== null)
+    );
+
     const [youtubeInput, setYoutubeInput] = useState('');
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -90,7 +108,7 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({onClose}) => {
         // Set new timeout
         debounceTimeoutRef.current = setTimeout(() => {
             fetchTagSuggestions(inputValue, currentPage);
-        }, 1000); // 300ms delay
+        }, 1000); // 1000ms delay
 
         // Cleanup timeout on unmount or dependency change
         return () => {
@@ -105,16 +123,20 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({onClose}) => {
 
         // Check if last character is a comma to add tag
         if (value.endsWith(',')) {
-            const newTag = value.slice(0, -1).trim();
-            if (newTag && !tags.includes(newTag)) {
+            const newTag = value.slice(0, -1).trim().toLowerCase();
+            const isValidTag = /^[a-z0-9_]+$/.test(newTag); // Ensures only alphanumeric and underscore, no spaces or special symbols
+            if (newTag && isValidTag && !tags.includes(newTag)) {
                 setTags([...tags, newTag]);
                 setInputValue('');
                 setCurrentPage(1);
             }
         } else {
-            setInputValue(value);
+            // Prevent spaces and special characters (except '_') while typing
+            const sanitizedValue = value.replace(/[^a-z0-9_]/gi, '');
+            setInputValue(sanitizedValue);
         }
     };
+
 
     const handleYoutubeInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -178,16 +200,10 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({onClose}) => {
             if (result) {
                 setSubmitStatus({status: 'success', message: 'Videos successfully tagged!'});
 
-                // Clear fields after successful submission
                 setTags([]);
                 setYoutubeLinks([]);
                 setInputValue('');
                 setYoutubeInput('');
-
-                EventBus.dispatch('added-video', {
-                    links: youtubeLinks,
-                    tags: tags
-                });
 
             } else {
                 setSubmitStatus({
@@ -364,8 +380,6 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({onClose}) => {
             </div>
         </div>
     );
-
-    //TODO Update url query param as we do stuff and consider it for inputs
 };
 
 export default TagYoutubeModal;

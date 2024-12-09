@@ -1,4 +1,5 @@
 ---
+
 import Navbar from "../components/Navbar";
 import Tags from "../components/home/AllTags";
 import CreateContentButton from "../components/home/createContentButton";
@@ -29,10 +30,9 @@ console.log(`Generated Page with skip ${skip} and videos count ${videosCount} an
 
 export const prerender = false;
 
+
 // Define the page change function
-const changePage = (page: number) => {
-    return new URL(`?page=${page}`, Astro.url).toString();
-};
+
 ---
 
 <html lang="en">
@@ -91,7 +91,7 @@ const changePage = (page: number) => {
 
 <main>
     <!-- Tags Section -->
-    <Tags initialPage={1} tagsPerPage={3} onTagClick={(tag) => {
+    <Tags initialPage={1} tagsPerPage={3} onTagClick={() => {
     }} client:load/>
 
     <!-- Videos Section -->

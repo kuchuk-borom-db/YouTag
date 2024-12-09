@@ -61,3 +61,4 @@ WHERE v.userId = :userId AND v.videoId IN (
     );
 
 }
+
