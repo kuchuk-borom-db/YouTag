@@ -10,6 +10,7 @@ import dev.kuku.youtagserver.user.api.services.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,5 +36,13 @@ public class AuthenticateAuthController {
                 .header("Cache-Control", "public, max-age=" + userAge)
                 .body(ResponseModel.build(userService.getUser(userId), ""));
 
+    }
+
+    @DeleteMapping("/user")
+    ResponseEntity<Object> deleteUserInfo() throws NoAuthenticatedYouTagUser, UserDTOHasNullValues, EmailNotFound {
+        String userId = authService.getCurrentUser().email();
+        log.debug("Deleting user info {}", userId);
+        userService.deleteUser(userId);
+        return ResponseEntity.ok(null);
     }
 }

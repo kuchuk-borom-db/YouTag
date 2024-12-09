@@ -23,11 +23,10 @@
     <scm>
         <connection/>
         <developerConnection/>
-        <userTag/>
         <url/>
     </scm>
     <properties>
-        <java.version>23</java.version>
+        <java.version>22</java.version>
         <spring-modulith.version>1.2.4</spring-modulith.version>
     </properties>
     <dependencies>

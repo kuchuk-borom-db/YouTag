@@ -79,7 +79,7 @@ public class VideoServiceImpl implements VideoService {
         try {
             getVideoInfo(video.getId());
             throw new VideoAlreadyExists(video.getId());
-        } catch (VideoNotFound _) {
+        } catch (VideoNotFound e) {
             log.debug("Adding new video by dto {}", video);
             Video newVideo = new Video(
                     video.getId(),

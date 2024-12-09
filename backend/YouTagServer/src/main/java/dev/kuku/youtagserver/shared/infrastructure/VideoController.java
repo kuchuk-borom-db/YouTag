@@ -140,9 +140,9 @@ public class VideoController {
                 VideoDTO videoDTO = videoService.getVideoInfo(videoId);
                 Set<String> videoTags = userVideoTagService.getTagsOfSavedVideoOfUser(getCurrentUser(), videoDTO.getId());
                 videoInfoTagDTOS.add(new VideoInfoTagDTO(videoDTO, videoTags));
-            } catch (VideoNotFound _) {
+            } catch (VideoNotFound e) {
                 invalidVideos.add(videoId);
-            } catch (NoAuthenticatedYouTagUser _) {
+            } catch (NoAuthenticatedYouTagUser e) {
                 //Can ignore. This should never happen as we already do this check at the start of the function.
             }
         });

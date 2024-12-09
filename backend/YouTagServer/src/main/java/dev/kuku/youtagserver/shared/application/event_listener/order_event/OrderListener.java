@@ -47,7 +47,7 @@ public class OrderListener {
             try {
                 var videoInfo = youtubeScrapperService.getYoutubeVideoInfo(id);
                 videoDTOS.add(new VideoDTO(id, videoInfo.title(), videoInfo.description(), videoInfo.thumbnail()));
-            } catch (InvalidVideoId _) {
+            } catch (InvalidVideoId e) {
                 //Failed to get video info. Remove it from video using event publisher
                 invalidVideos.add(id);
             }
