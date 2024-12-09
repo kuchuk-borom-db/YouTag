@@ -17,7 +17,7 @@ export const auth = defineMiddleware(async (context, next) => {
     const token = context.cookies.get("token")?.value
     if (token == undefined) {
         console.log(`No token provided. Redirecting to login page ${context.url}`)
-        return Response.redirect(context.url.host+"/login");
+        return Response.redirect(context.url.hostname+"/login");
     }
     return next()
 });
