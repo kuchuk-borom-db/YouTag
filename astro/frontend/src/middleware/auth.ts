@@ -7,6 +7,7 @@ const logLabel = "Middleware-Auth"
 export const auth = defineMiddleware(async (context, next) => {
     const pathName = context.url.pathname;
     console.log(`Current page = ${pathName}`)
+    console.log(`Current full path  = ${context.url}`)
 
     console.log(`Auth middleware triggered on path name ${pathName}`)
     if (!isAuthPath(pathName)) {
@@ -17,7 +18,9 @@ export const auth = defineMiddleware(async (context, next) => {
     const token = context.cookies.get("token")?.value
     if (token == undefined) {
         console.log(`No token provided. Redirecting to login page ${context.url}`)
-        return context.redirect("/login")
+        const response = context.redirect("/login")
+        console.log(`Redirecting to ${response.url}`)
+        return response;
     }
     return next()
 });
