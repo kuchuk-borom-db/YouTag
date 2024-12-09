@@ -1,11 +1,15 @@
 ---
-import {getAllVideos, getVideosCountOfUser, getVideosCountWithTags, getVideosWithTags} from "../services/VIdeoService";
+import {getAllVideos, getVideosCountOfUser, getVideosCountWithTags, getVideosWithTags} from "./api/VIdeoService";
+
 export const prerender = false;
 
 import SearchBox from "../components/SearchBox";
 import VideosList from "../components/VideosList";
 import type Video from "../models/Video";
+import Navbar from "../components/Navbar"
+import {getUserInfo} from "./api/AuthService";
 
+const user = await getUserInfo(Astro.cookies.get("token")!.value)
 // Get token from cookies
 const token = Astro.cookies.get("token")?.value;
 if (!token) {
@@ -16,14 +20,14 @@ if (!token) {
 const limit = 2;
 const pageNumber = Math.max(Number(Astro.url.searchParams.get("page")) || 1, 1); // Ensure page > 0
 const tagsRaw: string = Astro.url.searchParams.get("tags") || "";
-const tagsList = tagsRaw.trim().toLowerCase().split(",").filter(value => value.length > 0 ) || [];
+const tagsList = tagsRaw.trim().toLowerCase().split(",").filter(value => value.length > 0) || [];
 // Calculate `skip` for pagination
 const skip = (pageNumber - 1) * limit;
 
 // Fetch videos and count
 let videos: Video[];
 let videosCount: number;
-if (tagsList.length <= 0 ) {
+if (tagsList.length <= 0) {
     console.log(`No tags`);
     videos = await getAllVideos(skip, limit, token) || [];
     videosCount = await getVideosCountOfUser(token) || 0;
@@ -37,9 +41,10 @@ console.log(`Videos = ${videos.toString()}`);
 ---
 <head>
     <title>YouTag Search</title>
-    <link rel="icon" href="/youtag.png" type="image/x-icon" />
+    <link rel="icon" href="/youtag.png" type="image/x-icon"/>
 </head>
-<div class="bg-gray-100">
+<div class="bg-black/90">
+    <Navbar user={user!} client:load/>
     <SearchBox initialTags={tagsList} client:load/>
-    <VideosList videos={videos} totalVideos={videosCount} currentPage={pageNumber}  videosPerPage ={limit} client:load/>
+    <VideosList videos={videos} totalVideos={videosCount} currentPage={pageNumber} videosPerPage={limit} client:load/>
 </div>

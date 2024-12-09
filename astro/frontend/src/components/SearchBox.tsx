@@ -5,7 +5,7 @@ import {
     getTagCountOfUser,
     getTagCountOfUser as getTagCountContainingKeyword,
     getTagsContainingKeyword
-} from "../services/TagService.ts";
+} from "../pages/api/TagService.ts";
 
 interface SearchComponentProps {
     initialTags: string[] | null
@@ -155,7 +155,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({initialTags}) => {
     };
 
     return (
-        <div className="bg-white w-full max-w-xl mx-auto p-4">
+        <div className="bg-black/70 min-w-full w-full max-w-xl mx-auto p-4">
             <form onSubmit={handleSearch} className="space-y-4">
                 <div className="relative" ref={tagSearchInputRef}>
                     <div className="relative">

@@ -1,0 +1,110 @@
+---
+import {getUserInfo} from "./api/AuthService";
+import Navbar from "../components/Navbar";
+const user = await getUserInfo(Astro.cookies.get("token")!.value);
+export const prerender = false;
+
+if (!user) {
+    Astro.redirect("/login");
+}
+---
+<Navbar user={user!} client:load/>
+<div class="flex flex-col items-center justify-center h-screen bg-black/70 ">
+    <div class="bg-black/70  shadow-lg rounded-lg p-8 w-full max-w-sm">
+        <div class="flex flex-col items-center">
+            <img src={user ? user.thumbnailUrl : ""} alt={user? user.name:"Invalid User"} class="w-32 h-32 rounded-full mb-4"/>
+            <h2 class="text-2xl font-bold mb-2">{user? user.name:"Invalid User"}</h2>
+            <p class="text-gray-100 mb-6">{user? user.name:"Invalid Email"}</p>
+
+            <!-- Button container for better spacing -->
+            <div class="flex flex-col space-y-4 w-full">
+                <button id="logout-btn"
+                        class="bg-blue-400 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded w-full">
+                    Logout
+                </button>
+                <button
+                        class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded w-full"
+                        id="delete-account-btn"
+                >
+                    Delete Account
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal"
+         class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-80 text-center">
+            <h3 class="text-lg font-semibold mb-4">Are you sure you want to delete your account?</h3>
+            <div class="flex justify-around">
+                <button class="bg-gray-300 text-gray-700 py-2 px-4 rounded"
+                        id="cancel-btn">
+                    Cancel
+                </button>
+                <button class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded" id="confirm-delete-btn">
+                    Confirm Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Client-side script to handle modal visibility -->
+<!-- Client-side script to handle modal visibility -->
+<script>
+    const deleteAccountBtn = document.getElementById("delete-account-btn");
+    const confirmationModal = document.getElementById("confirmation-modal");
+    const cancelBtn = document.getElementById("cancel-btn");
+    const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+
+    logoutBtn!.addEventListener("click", async () => {
+        const astroResp = await fetch("/api/cookie", {
+            method: "DELETE",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                name: "token",
+                httpOnly: false
+            }),
+            credentials: "include",
+        });
+        localStorage.removeItem("token");
+        window.location.reload();
+    });
+
+    // Show confirmation modal
+    deleteAccountBtn!.addEventListener("click", () => {
+        confirmationModal!.classList.remove("hidden");
+    });
+
+    // Hide confirmation modal
+    cancelBtn!.addEventListener("click", () => {
+        confirmationModal!.classList.add("hidden");
+    });
+
+    // Confirm account deletion
+    confirmDeleteBtn!.addEventListener("click", async () => {
+        try {
+            const deleteResp = await fetch('/api/delete-account', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',  // Send cookies with the request
+            });
+
+            if (deleteResp.ok) {
+                alert('Your account has been deleted.');
+                window.location.href = "/login"; // Redirect to login after deletion
+            } else {
+                alert('Failed to delete account.');
+            }
+
+        } catch (error) {
+            console.error('Error during account deletion:', error);
+            alert('An error occurred.');
+        }
+
+        confirmationModal!.classList.add("hidden"); // Hide the modal after confirmation
+    });
+</script>
+

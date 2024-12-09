@@ -1,6 +1,6 @@
 import React, {type ChangeEvent, type KeyboardEvent, useCallback, useEffect, useRef, useState} from 'react';
 import {AlertTriangle, Check, Tag, X, Youtube} from 'lucide-react';
-import {addTagsToVideo, getAllTags, getTagCountOfUser, getTagsContainingKeyword} from "../../services/TagService.ts";
+import {addTagsToVideo, getAllTags, getTagCountOfUser, getTagsContainingKeyword} from "../../pages/api/TagService.ts";
 
 interface TagYoutubeModalProps {
     initialTags?: string[];
@@ -201,7 +201,11 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({
                 setSubmitStatus({status: 'success', message: 'Videos successfully tagged!'});
 
                 setTags([]);
-                setYoutubeLinks([]);
+                if (initialVideos && initialVideos.length > 0) {
+                    setYoutubeLinks(initialVideos);
+                } else {
+                    setYoutubeLinks([]);
+                }
                 setInputValue('');
                 setYoutubeInput('');
 

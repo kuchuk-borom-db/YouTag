@@ -24,7 +24,7 @@ import {Image} from 'astro:assets';
     </div>
 
     <script>
-        import {getGoogleLoginUrl} from "../services/AuthService";
+        import {getGoogleLoginUrl} from "./api/AuthService";
 
         document.getElementById("googleLoginBtn")?.addEventListener('click', async () => {
             try {

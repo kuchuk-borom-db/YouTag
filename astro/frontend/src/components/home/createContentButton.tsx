@@ -33,12 +33,6 @@ const CreateContentButton: React.FC = () => {
                             <VideoIcon className="mr-2 w-5 h-5 text-red-500"/>
                             YouTube Video
                         </button>
-                        <button
-                            className="flex items-center bg-white text-gray-800 px-4 py-2 rounded-lg shadow-lg hover:bg-gray-100 transition-colors"
-                        >
-                            <Settings className="mr-2 w-5 h-5 text-gray-500"/>
-                            Settings
-                        </button>
                     </div>
                 )}
 
@@ -52,7 +46,7 @@ const CreateContentButton: React.FC = () => {
             </div>
 
             {/* YouTube Modal (reusing the existing component) */}
-            {isYouTubeModalOpen && <TagYoutubeModal initialTags={["SUP"]} onClose={closeYouTubeModal}/>}
+            {isYouTubeModalOpen && <TagYoutubeModal  onClose={closeYouTubeModal}/>}
         </div>
     );
 };

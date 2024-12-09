@@ -1,5 +1,5 @@
-import type Video from "../models/Video.ts";
-import {SERVER_URI} from "../utils/Constants.ts";
+import type Video from "../../models/Video.ts";
+import {SERVER_URI} from "../../utils/Constants.ts";
 import Cookies from 'js-cookie';
 
 
@@ -61,7 +61,7 @@ export async function getAllVideos(skip: number, limit: number, token: string): 
 
 }
 
-export async function   getVideosWithTags(tags: string[], skip: number, limit: number, token : string): Promise<Video[] | null> {
+export async function getVideosWithTags(tags: string[], skip: number, limit: number, token: string): Promise<Video[] | null> {
     console.log(`Getting videos with tags ${tags} skip ${skip} and limit ${limit}`)
     const url = `${SERVER_URI}/authenticated/tag/?tags=${tags.join(',').toLowerCase()}&skip=${skip}&limit=${limit}`;
     const response = await fetch(url, {
@@ -79,7 +79,7 @@ export async function   getVideosWithTags(tags: string[], skip: number, limit: n
     return parseVideosFromData(responseJson['data']);
 }
 
-export async function getVideosCountOfUser(token : string): Promise<number | null> {
+export async function getVideosCountOfUser(token: string): Promise<number | null> {
 
 
     const url = `${SERVER_URI}/authenticated/video/count`;
@@ -87,11 +87,14 @@ export async function getVideosCountOfUser(token : string): Promise<number | nul
         method: "GET",
         headers: {"content-type": "application/json", "Authorization": `Bearer ${token}`},
     });
+    if(!response.ok){
+        return null;
+    }
     const json = await response.json();
     return parseInt(json["data"]);
 }
 
-export async function getVideosCountWithTags(tags: string[], token : string): Promise<number | null> {
+export async function getVideosCountWithTags(tags: string[], token: string): Promise<number | null> {
     const url = `${SERVER_URI}/authenticated/video/count?tags=${tags.join(',').trim().toLowerCase()}`;
     const response = await fetch(url, {
         method: "GET",
@@ -101,6 +104,15 @@ export async function getVideosCountWithTags(tags: string[], token : string): Pr
     return parseInt(json["data"]);
 }
 
+export async function deleteVideo(videoId: string, token: string): Promise<boolean> {
+    console.log(`Deleting video ${videoId}`)
+    const url = `${SERVER_URI}/authenticated/video/?videos=${videoId}`;
+    const response = await fetch(url, {
+        method: "DELETE",
+        headers: {"content-type": "application/json", "Authorization": `Bearer ${token}`},
+    })
+    return response.ok;
+}
 
 function parseVideosFromData(data: VideoInfoDTO[]): Video[] {
     const videos: Video[] = [];
@@ -115,5 +127,6 @@ function parseVideosFromData(data: VideoInfoDTO[]): Video[] {
     })
     return videos;
 }
+
 
 //TODO Combine tags from option for adding videos to skip having to add tags manually one by one. This will introduce search feature for video with suggestions

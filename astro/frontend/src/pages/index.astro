@@ -1,10 +1,10 @@
 ---
-
 import Navbar from "../components/Navbar";
 import Tags from "../components/home/AllTags";
 import CreateContentButton from "../components/home/createContentButton";
 import VideosList from "../components/VideosList";
-import {getAllVideos, getVideosCountOfUser} from "../services/VIdeoService";
+import {getAllVideos, getVideosCountOfUser} from "./api/VIdeoService";
+import {getUserInfo} from "./api/AuthService";
 
 // Get token from cookies
 const token = Astro.cookies.get("token")?.value;
@@ -24,20 +24,19 @@ const videos = await getAllVideos(skip, limit, token);
 const videosCount = await getVideosCountOfUser(token);
 
 // Fetch user info from cookies
-const user = JSON.parse(Astro.cookies.get("user-info")?.value || "{}");
-
 console.log(`Generated Page with skip ${skip} and videos count ${videosCount} and videos ${JSON.stringify(videos)}`);
+
+const userInfo = await getUserInfo(Astro.cookies.get("token")!.value)!;
 
 export const prerender = false;
 
 
 // Define the page change function
-
 ---
 
 <html lang="en">
 <head>
-    <link rel="icon" href="/youtag.png" type="image/x-icon" />
+    <link rel="icon" href="/youtag.png" type="image/x-icon"/>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -87,7 +86,7 @@ export const prerender = false;
     </style>
 </head>
 <body>
-<Navbar user={user} client:load/>
+<Navbar user={userInfo!} client:load/>
 
 <main>
     <!-- Tags Section -->

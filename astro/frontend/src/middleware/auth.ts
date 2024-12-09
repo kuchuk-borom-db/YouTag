@@ -1,5 +1,4 @@
 import {defineMiddleware} from "astro/middleware";
-import {getUserInfo} from "../services/AuthService.ts";
 
 /**
  * Check if server-cookie contains token.
@@ -18,16 +17,6 @@ export const auth = defineMiddleware(async (context, next) => {
         console.log("No token provided. Redirecting to login page")
         return Response.redirect(new URL("/login", context.url));
     }
-    //Get user info from the token
-    const userInfo = await getUserInfo(token);
-    if (userInfo == null) {
-        console.log("User info was invalid using the token. Redirecting to login page")
-        return Response.redirect(new URL("/login", context.url));
-    }
-    //Set user as server-cookie
-    context.cookies.set("user-info", userInfo, {
-        path: "/",
-    });
     return next()
 });
 
@@ -35,7 +24,8 @@ function isAuthPath(pathName: string): boolean {
     const publicPaths = [
         "/login",
         "/redirect",
-        "/api/cookie"
+        "/api/cookie",
+        "/api/delete-account"
     ];
     // Check if the path is a public route
     return !publicPaths.includes(pathName);

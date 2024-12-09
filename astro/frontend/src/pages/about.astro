@@ -1,0 +1,110 @@
+---
+import { Github, Youtube, Linkedin, Instagram, Mail } from 'lucide-react';
+
+const developerName = 'Kuchuk Borom Debbarma';
+const developerProfilePic = '/kuku.png';
+const developerGithub = import.meta.env.GITHUB;
+const developerYoutube = {
+    music: import.meta.env.YOUTUBE_MUSIC,
+    coding: import.meta.env.YOUTUBE_CODE,
+};
+const developerLinkedin = import.meta.env.LINKEDIN;
+const developerInstagram = import.meta.env.INSTAGRAM;
+const developerEmail = import.meta.env.EMAIL;
+
+export const prerender = false;
+---
+
+<div class="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center p-4">
+    <div class="bg-white/80 backdrop-blur-md shadow-2xl rounded-2xl p-8 max-w-md w-full transform transition-all hover:scale-105 duration-300">
+        <div class="flex flex-col items-center">
+            <img
+                    src={developerProfilePic}
+                    alt={developerName}
+                    class="w-40 h-40 rounded-full border-4 border-white shadow-lg mb-6 object-cover"
+            />
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 text-center">
+                {developerName}
+            </h1>
+            <p class="text-gray-600 text-center mb-6 leading-relaxed">
+                I am a backend developer (hence the "charming" UI), obsessed with making distributed systems scale like a dream. <br>
+                When I’m not buried in code, you’ll catch me jamming on my guitar, playing games, or going for rides to clear my head. <br>
+                Oh, and I make music too... because why not?
+            </p>
+
+            <div class="flex space-x-6 mb-6">
+                <a
+                        href={developerGithub}
+                        target="_blank"
+                        class="group flex flex-col items-center text-gray-600 hover:text-black transition-all"
+                >
+                    <Github size={28} className="mb-1 group-hover:scale-110 transition-transform" />
+                    <span class="text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                        Hobby Projects
+                    </span>
+                </a>
+
+                <a
+                        href={developerYoutube.music}
+                        target="_blank"
+                        class="group flex flex-col items-center text-gray-600 hover:text-red-600 transition-all"
+                >
+                    <Youtube size={28} className="mb-1 group-hover:scale-110 transition-transform" />
+                    <span class="text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                        Musical Journey
+                    </span>
+                </a>
+
+                <a
+                        href={developerYoutube.coding}
+                        target="_blank"
+                        class="group flex flex-col items-center text-gray-600 hover:text-red-600 transition-all"
+                >
+                    <Youtube size={28} className="mb-1 group-hover:scale-110 transition-transform" />
+                    <span class="text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                        Coding Adventures
+                    </span>
+                </a>
+
+                <a
+                        href={developerInstagram}
+                        target="_blank"
+                        class="group flex flex-col items-center text-gray-600 hover:text-pink-600 transition-all"
+                >
+                    <Instagram size={28} className="mb-1 group-hover:scale-110 transition-transform" />
+                    <span class="text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                        Personal Side
+                    </span>
+                </a>
+
+                <a
+                        href={developerLinkedin}
+                        target="_blank"
+                        class="group flex flex-col items-center text-gray-600 hover:text-pink-600 transition-all"
+                >
+                    <Linkedin size={28} className="mb-1 group-hover:scale-110 transition-transform" />
+                    <span class="text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                        "Professional" Side
+                    </span>
+                </a>
+
+                <a
+                        href={`mailto:${developerEmail}`}
+                        class="group flex flex-col items-center text-gray-600 hover:text-blue-600 transition-all"
+                >
+                    <Mail size={28} className="mb-1 group-hover:scale-110 transition-transform" />
+                    <span class="text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                        Get in Touch
+                    </span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes subtle-float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+</style>

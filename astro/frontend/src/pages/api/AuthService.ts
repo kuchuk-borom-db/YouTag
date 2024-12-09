@@ -1,5 +1,5 @@
-import {SERVER_URI} from "../utils/Constants.ts";
-import type User from "../models/User.ts";
+import {SERVER_URI} from "../../utils/Constants.ts";
+import type User from "../../models/User.ts";
 
 export async function getGoogleLoginUrl(): Promise<string | null> {
     const url: string = `${SERVER_URI}/public/auth/login/google`;
@@ -27,6 +27,14 @@ export async function getUserInfo(token: string): Promise<User | null> {
     return parseJsonDataToUser(jsonBody['data']);
 }
 
+
+export async function deleteProfile(token: string): Promise<void> {
+    const url = `${SERVER_URI}/authenticated/auth/user`;
+    await fetch(url, {
+        headers: {Authorization: `Bearer ${token}`},
+        method: "DELETE",
+    })
+}
 
 function parseJsonDataToUser(jsonData: any): User | null {
     return {

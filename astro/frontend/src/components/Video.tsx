@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import type Video from "../models/Video.ts";
-import { ChevronLeft, ChevronRight, Trash2, Plus } from 'lucide-react';
+import {Check, ChevronLeft, ChevronRight, Plus, Trash2, X} from 'lucide-react';
 import TagYoutubeModal from './home/AddVideo.tsx';
+import Cookies from "js-cookie";
+import {deleteTagFromVideo} from "../pages/api/TagService.ts";
+import {deleteVideo} from "../pages/api/VIdeoService.ts";
 
 interface VideoCardProps {
     video: Video;
 }
 
-const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
+const VideoCard: React.FC<VideoCardProps> = ({video}) => {
     const [isYouTubeModalOpen, setIsYouTubeModalOpen] = useState(false);
     const [currentTagPage, setCurrentTagPage] = useState(0);
     const [tags, setTags] = useState(video.tags); // Local state for tags
+    const [isDeleteMode, setIsDeleteMode] = useState(false);
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const tagsPerPage = 4;
 
     // Paginate tags
@@ -22,9 +27,33 @@ const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
     // Calculate total tag pages
     const totalTagPages = Math.ceil(tags.length / tagsPerPage);
 
-    // Handle deleting a tag
+    // Handle deleting a single tag
     const handleDeleteTag = (tagToDelete: string) => {
         setTags((prevTags) => prevTags.filter((tag) => tag !== tagToDelete));
+    };
+
+    // Handle bulk tag selection in delete mode
+    const handleTagSelect = (tag: string) => {
+        if (isDeleteMode) {
+            setSelectedTags(prev =>
+                prev.includes(tag)
+                    ? prev.filter(t => t !== tag)
+                    : [...prev, tag]
+            );
+        }
+    };
+
+    // Handle bulk tag deletion
+    const handleBulkDeleteTags = async () => {
+        console.log(`Deleting tags ${selectedTags}`)
+        await deleteTagFromVideo(selectedTags, video.videoId, Cookies.get("token")!);
+        window.location.reload();
+    };
+
+    // Handle canceling tag deletion mode
+    const handleCancelDeleteMode = () => {
+        setIsDeleteMode(false);
+        setSelectedTags([]);
     };
 
     // Handle adding a new tag
@@ -38,9 +67,10 @@ const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
     };
 
     // Handle deleting the video
-    const handleDeleteVideo = () => {
+    const handleDeleteVideo = async () => {
         console.log(`Video with ID ${video.videoId} deleted`);
-        // Add your deletion logic here (e.g., API call, state update)
+        await deleteVideo(video.videoId, Cookies.get("token")!);
+        window.location.reload();
     };
 
     return (
@@ -51,7 +81,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
                 className="absolute top-2 right-2 p-1 bg-red-100 hover:bg-red-200 rounded-full"
                 title="Delete Video"
             >
-                <Trash2 size={16} className="text-red-500" />
+                <Trash2 size={16} className="text-red-500"/>
             </button>
 
             {/* Thumbnail */}
@@ -71,35 +101,88 @@ const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
                     {video.description}
                 </p>
 
-                {/* Tags with Delete Icon */}
+                {/* Tags with Delete Icon or Bulk Select */}
                 <div className="mt-2 flex flex-wrap gap-2">
                     {paginatedTags.map((tag, index) => (
                         <div
                             key={index}
-                            className="flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded"
+                            onClick={() => handleTagSelect(tag)}
+                            className={`flex items-center gap-1 px-2 py-1 rounded cursor-pointer ${
+                                isDeleteMode
+                                    ? (selectedTags.includes(tag)
+                                        ? 'bg-red-200 text-red-800'
+                                        : 'bg-blue-100 text-blue-800')
+                                    : 'bg-blue-100 text-blue-800'
+                            }`}
                         >
+                            {!isDeleteMode && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteTag(tag);
+                                    }}
+                                    className="text-red-500 hover:text-red-600 mr-1"
+                                    title="Delete Tag"
+                                >
+                                    <Trash2 size={12}/>
+                                </button>
+                            )}
                             <span className="text-sm">{tag}</span>
-                            <button
-                                onClick={() => handleDeleteTag(tag)}
-                                className="text-red-500 hover:text-red-600"
-                                title="Delete Tag"
-                            >
-                                <Trash2 size={12} />
-                            </button>
+                            {isDeleteMode && selectedTags.includes(tag) && (
+                                <Check size={12} className="ml-1"/>
+                            )}
                         </div>
                     ))}
                 </div>
 
-                {/* Add Tag Button */}
+                {/* Tag Management Buttons */}
                 <div className="mt-2 flex items-center gap-2">
-                    <button
-                        onClick={handleAddTag}
-                        className="flex items-center gap-1 px-3 py-1 text-sm bg-green-100 text-green-800 hover:bg-green-200 rounded"
-                        title="Add Tag"
-                    >
-                        <Plus size={16} />
-                        Add Tag
-                    </button>
+                    {!isDeleteMode ? (
+                        <>
+                            <button
+                                onClick={handleAddTag}
+                                className="flex items-center gap-1 px-3 py-1 text-sm bg-green-100 text-green-800 hover:bg-green-200 rounded"
+                                title="Add Tag"
+                            >
+                                <Plus size={16}/>
+                                Add Tag
+                            </button>
+                            {tags.length > 0 && (
+                                <button
+                                    onClick={() => setIsDeleteMode(true)}
+                                    className="flex items-center gap-1 px-3 py-1 text-sm bg-red-100 text-red-800 hover:bg-red-200 rounded"
+                                    title="Delete Tags"
+                                >
+                                    <Trash2 size={16}/>
+                                    Delete Tags
+                                </button>
+                            )}
+                        </>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={handleBulkDeleteTags}
+                                disabled={selectedTags.length === 0}
+                                className={`flex items-center gap-1 px-3 py-1 text-sm rounded ${
+                                    selectedTags.length > 0
+                                        ? 'bg-red-500 text-white hover:bg-red-600'
+                                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                }`}
+                                title="Confirm Delete Selected Tags"
+                            >
+                                <Trash2 size={16}/>
+                                Delete {selectedTags.length > 0 ? `(${selectedTags.length})` : ''}
+                            </button>
+                            <button
+                                onClick={handleCancelDeleteMode}
+                                className="flex items-center gap-1 px-3 py-1 text-sm bg-gray-100 text-gray-800 hover:bg-gray-200 rounded"
+                                title="Cancel Tag Deletion"
+                            >
+                                <X size={16}/>
+                                Cancel
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Pagination */}
@@ -113,7 +196,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
                             }
                             className="p-1 bg-gray-100 hover:bg-gray-200 rounded-full"
                         >
-                            <ChevronLeft size={16} />
+                            <ChevronLeft size={16}/>
                         </button>
                         <span className="text-xs text-gray-500">
                             {currentTagPage + 1}/{totalTagPages}
@@ -126,7 +209,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
                             }
                             className="p-1 bg-gray-100 hover:bg-gray-200 rounded-full"
                         >
-                            <ChevronRight size={16} />
+                            <ChevronRight size={16}/>
                         </button>
                     </div>
                 )}
