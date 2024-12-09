@@ -11,9 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -65,13 +63,24 @@ public class UserVideoTagServiceImpl implements UserVideoTagService {
         repo.deleteAllByUserId(userId);
     }
 
+    //How to get entries with DISTINCT videoID and needs to contain all tags specified in tags list
+    /*
+    the table looks like this
+    userId tag videoId
+
+    so we need to get distinct entry based on videoId which contains all the tags mentioned
+     */
     @Override
     public Set<String> getAllSavedVideosOfUserWithTags(String userId, List<String> tags, int skip, int limit) {
         log.debug("Getting all saved videos of user {} with tags {}", userId, tags);
-        List<UserVideoTag> entries = repo.findAllByUserIdAndTagIn(userId, tags, PageRequest.of(skip / limit, limit));
-        log.debug("Got tags {} for saved videos {}", tags, entries);
-        return entries.stream().map(UserVideoTag::getVideoId).collect(Collectors.toSet());
+        if (tags.isEmpty()) {
+            return Collections.emptySet();
+        }
+        List<String> videoIds = repo.findVideoIdsWithAllTags(userId, tags, tags.size(), PageRequest.of(skip / limit, limit));
+        log.debug("Got videos: {}", videoIds);
+        return new HashSet<>(videoIds);
     }
+
 
     @Override
     public long getCountOfSavedVideosOfUserWithTags(String userId, List<String> tags) {

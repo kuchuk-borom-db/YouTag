@@ -30,14 +30,34 @@ public interface UserVideoTagRepo extends CrudRepository<UserVideoTag, UserVideo
 
     List<UserVideoTag> findAllByUserIdAndTagIn(String userId, List<String> tags);
 
-    @Query(value = "SELECT COUNT(DISTINCT video_id) FROM user_video_tag WHERE user_id = :userId AND video_id IN (" +
-            "SELECT video_id FROM user_video_tag " +
-            "WHERE user_id = :userId AND tag IN :tags " +
-            "GROUP BY video_id " +
-            "HAVING COUNT(DISTINCT tag) = :tagCount)", nativeQuery = true)
+    @Query(value = """
+    SELECT videoId
+    FROM UserVideoTag
+    WHERE userId = :userId AND tag IN :tags
+    GROUP BY videoId
+    HAVING COUNT(DISTINCT tag) = :tagsCount
+""")
+    List<String> findVideoIdsWithAllTags(@Param("userId") String userId,
+                                         @Param("tags") List<String> tags,
+                                         @Param("tagsCount") long tagsCount,
+                                         Pageable pageable);
+
+
+    @Query("""
+SELECT COUNT(DISTINCT v.videoId) 
+FROM UserVideoTag v
+WHERE v.userId = :userId AND v.videoId IN (
+    SELECT vInner.videoId 
+    FROM UserVideoTag vInner
+    WHERE vInner.userId = :userId AND vInner.tag IN :tags
+    GROUP BY vInner.videoId
+    HAVING COUNT(DISTINCT vInner.tag) = :tagCount
+)
+""")
     long countDistinctVideosByUserIdAndTags(
             @Param("userId") String userId,
             @Param("tags") List<String> tags,
             @Param("tagCount") long tagCount
     );
+
 }

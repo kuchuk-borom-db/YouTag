@@ -122,6 +122,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({initialTags}) => {
 
         const url = new URL(window.location.href);
         url.searchParams.set('tags', tags.join(","));
+        url.searchParams.set("page", "1")
         window.location.href = url.toString();
     };
 
