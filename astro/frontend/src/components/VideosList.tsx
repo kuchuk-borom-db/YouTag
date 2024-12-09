@@ -8,7 +8,9 @@ interface Props {
 }
 
 const VideoList: React.FC<Props> = ({videos = [], totalVideos = 0, currentPage}) => {
-    const totalPages = totalVideos  / videos.length;
+    // Use Math.ceil to round up the total pages and prevent floating-point results
+    // Divide totalVideos by the current page's video count to get accurate pagination
+    const totalPages = Math.ceil(totalVideos / (videos.length || 1));
     console.log("Total Pages passed to VideosList:", totalPages);
 
     return (
@@ -64,7 +66,7 @@ const VideoList: React.FC<Props> = ({videos = [], totalVideos = 0, currentPage})
                         }`}
                         onClick={() => {
                             if (currentPage > 1) {
-                                window.location.href = `?page=${currentPage + 1}`;
+                                window.location.href = `?page=${currentPage - 1}`;
                             }
                         }}
                         disabled={currentPage === 1}
@@ -82,6 +84,10 @@ const VideoList: React.FC<Props> = ({videos = [], totalVideos = 0, currentPage})
                                     : "bg-gray-200 hover:bg-gray-300"
                             }`}
                             onClick={() => {
+                                if(index + 1 === currentPage) {
+                                    console.log("Already in this page dude")
+                                    return;
+                                }
                                 window.location.href = `?page=${index + 1}`;
                             }}
                         >

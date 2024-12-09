@@ -16,14 +16,14 @@ if (!token) {
 const limit = Math.max(Number(Astro.url.searchParams.get("limit")) || 3, 1); // Ensure limit > 0
 const pageNumber = Math.max(Number(Astro.url.searchParams.get("page")) || 1, 1); // Ensure page > 0
 const tagsRaw: string = Astro.url.searchParams.get("tags") || "";
-const tagsList = tagsRaw.trim().toLowerCase().split(",") || [];
+const tagsList = tagsRaw.trim().toLowerCase().split(",").filter(value => value.length > 0 ) || [];
 // Calculate `skip` for pagination
 const skip = (pageNumber - 1) * limit;
 
 // Fetch videos and count
 let videos: Video[];
 let videosCount: number;
-if (tagsList.length <= 0 || tagsRaw.trim().length <= 0) {
+if (tagsList.length <= 0 ) {
     console.log(`No tags`);
     videos = await getAllVideos(skip, limit, token) || [];
     videosCount = await getVideosCountOfUser(token) || 0;
@@ -35,6 +35,6 @@ if (tagsList.length <= 0 || tagsRaw.trim().length <= 0) {
 ---
 
 <div class="bg-gray-100">
-    <SearchBox client:load/>
-    <VideosList videos={videos} totalVideos={videosCount} currentPage={1}/>
+    <SearchBox initialTags={tagsList} client:load/>
+    <VideosList videos={videos} totalVideos={videosCount} currentPage={pageNumber} client:load/>
 </div>

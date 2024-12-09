@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Tag, X, ChevronLeft, ChevronRight} from 'lucide-react';
+import {ChevronLeft, ChevronRight, Tag, X} from 'lucide-react';
 import {
     getAllTags,
     getTagCountOfUser,
@@ -8,9 +8,11 @@ import {
 } from "../services/TagService.ts";
 
 interface SearchComponentProps {
+    initialTags: string[] | null
 }
 
-const SearchComponent: React.FC<SearchComponentProps> = () => {
+const SearchComponent: React.FC<SearchComponentProps> = ({ initialTags }) => {
+    console.log(`Initial tags = ${initialTags}`)
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState<string>('');
     const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
@@ -24,6 +26,18 @@ const SearchComponent: React.FC<SearchComponentProps> = () => {
 
     // Pagination settings
     const ITEMS_PER_PAGE = 2;
+
+    // Initialize tags from initialTag prop
+    useEffect(() => {
+        if (initialTags && Array.isArray(initialTags) && initialTags.length > 0) {
+            // Filter out any empty or null tags
+            const validTags = initialTags.filter(tag => tag && tag.trim() !== '');
+
+            if (validTags.length > 0) {
+                setTags(validTags);
+            }
+        }
+    }, [initialTags]);
 
     // Fetch tags based on input
     const fetchTags = async (keyword?: string) => {
@@ -105,7 +119,7 @@ const SearchComponent: React.FC<SearchComponentProps> = () => {
         e.preventDefault();
         console.log('Searching with:', {tags});
         setShowTagSuggestions(false);
-       window.location.href = `?tags=${tags}`
+        window.location.href = `?tags=${tags}`
     };
 
     const handleTagSuggestionClick = (tag: string) => {
