@@ -14,7 +14,8 @@ export default defineConfig({
 
     integrations: [tailwind(), react()],
 
-    experimental: {},
+    experimental: {
+    },
 
     adapter: vercel({
         webAnalytics: {
