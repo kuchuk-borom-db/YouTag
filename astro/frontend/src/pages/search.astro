@@ -35,7 +35,10 @@ if (tagsList.length <= 0 ) {
 
 console.log(`Videos = ${videos.toString()}`);
 ---
-
+<head>
+    <title>YouTag Search</title>
+    <link rel="icon" href="/youtag.png" type="image/x-icon" />
+</head>
 <div class="bg-gray-100">
     <SearchBox initialTags={tagsList} client:load/>
     <VideosList videos={videos} totalVideos={videosCount} currentPage={pageNumber}  videosPerPage ={limit} client:load/>
