@@ -77,7 +77,7 @@
 <div class="status" id="status">Please wait while we authenticate...</div>
 
 <script>
-    const STATUS = {
+    const STATUS : any = {
         MISSING: "Missing authentication details. Please try again.",
         EXCHANGING: "Exchanging authentication code for token...",
         FAILED: "Authentication failed. Please refresh and try again.",
@@ -128,7 +128,8 @@
     }
 
     function updateStatus(key: string) {
-        statusDiv.textContent = STATUS[key];
+
+        statusDiv!.textContent = STATUS[key];
     }
 
     exchangeToken();

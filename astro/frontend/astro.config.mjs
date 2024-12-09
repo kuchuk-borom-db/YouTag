@@ -9,14 +9,17 @@ import react from "@astrojs/react";
 import vercel from "@astrojs/vercel";
 
 export default defineConfig({
-  //Prerender every page as static site by default
-  output: "static",
+    //Prerender every page as static site by default
+    output: "static",
 
-  integrations: [tailwind(), react()],
+    integrations: [tailwind(), react()],
 
-  experimental :{
+    experimental: {},
 
-  },
-
-  adapter: vercel()
+    adapter: vercel({
+        webAnalytics: {
+            enabled: true,
+        },
+        maxDuration: 8,
+    }),
 });
