@@ -2,6 +2,10 @@
 export const prerender = false;
 
 import VideoSearchContainer from '../components/search/VideoSearchContainer';
+console.log(`QUeries : ${Astro.url}`)
+Astro.url.searchParams.entries().forEach(entry => {
+    console.log(`QUery : ${entry}`);
+})
 ---
 
 <div class="bg-gray-100">
