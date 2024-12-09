@@ -22,8 +22,10 @@ const VideoList: React.FC<Props> = ({videos = [], totalVideos = 0, currentPage, 
                             key={video.videoId}
                             className="bg-white rounded-lg shadow hover:shadow-lg cursor-pointer"
                             onClick={() => {
+                                window.open(`https://www.youtube.com/watch?v=${video.videoId}`, '_blank');
                                 console.log(`Video clicked ${video.videoId}`);
                             }}
+
                         >
                             <img
                                 src={video.thumbnailUrl}
