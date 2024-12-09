@@ -28,6 +28,11 @@ const user = JSON.parse(Astro.cookies.get("user-info")?.value || "{}");
 console.log(`Generated Page with skip ${skip} and videos count ${videosCount} and videos ${JSON.stringify(videos)}`);
 
 export const prerender = false;
+
+// Define the page change function
+const changePage = (page: number) => {
+    return new URL(`?page=${page}`, Astro.url).toString();
+};
 ---
 
 <html lang="en">
@@ -80,21 +85,20 @@ export const prerender = false;
     </style>
 </head>
 <body>
-<Navbar user={user} client:load />
+<Navbar user={user} client:load/>
 
 <main>
     <!-- Tags Section -->
-    <Tags initialPage={1} tagsPerPage={3} onTagClick={(tag) => {}} client:load />
+    <Tags initialPage={1} tagsPerPage={3} onTagClick={(tag) => {
+    }} client:load/>
 
     <!-- Videos Section -->
     {videos && videos.length > 0 ? (
             <VideosList
                     videos={videos}
                     totalVideos={videosCount || 0}
-                    skip={skip}
-                    onVideoClick={(video) => {
-                        console.log(`Video clicked: ${video.title}`);
-                    }}
+                    currentPage={pageNumber}
+                    client:load
             />
     ) : (
             <div class="error-message">
@@ -103,7 +107,7 @@ export const prerender = false;
     )}
 
     <!-- Create Content Button -->
-    <CreateContentButton client:load />
+    <CreateContentButton client:load/>
 </main>
 </body>
 </html>

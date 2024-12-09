@@ -61,12 +61,7 @@ export async function getAllVideos(skip: number, limit: number, token: string): 
 
 }
 
-export async function getVideosWithTags(tags: string[], skip: number, limit: number): Promise<Video[] | null> {
-    const token = Cookies.get("token");
-    if (!token) {
-        console.log("No Token found in cookie");
-        return null;
-    }
+export async function   getVideosWithTags(tags: string[], skip: number, limit: number, token : string): Promise<Video[] | null> {
 
     const url = `${SERVER_URI}/authenticated/tag/?tags=${tags.join(',').toLowerCase()}`;
     const response = await fetch(url, {
@@ -96,13 +91,7 @@ export async function getVideosCountOfUser(token : string): Promise<number | nul
     return parseInt(json["data"]);
 }
 
-export async function getVideosCountWithTags(tags: string[]): Promise<number | null> {
-    console.log(`Getting videos count with tags ${tags}`);
-    const token = Cookies.get("token");
-    if (!token) {
-        console.log("No Token found in cookie");
-        return null;
-    }
+export async function getVideosCountWithTags(tags: string[], token : string): Promise<number | null> {
     const url = `${SERVER_URI}/authenticated/video/count?tags=${tags.join(',').trim().toLowerCase()}`;
     const response = await fetch(url, {
         method: "GET",

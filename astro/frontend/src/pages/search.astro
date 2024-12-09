@@ -1,13 +1,40 @@
 ---
+import {getAllVideos, getVideosCountOfUser, getVideosCountWithTags, getVideosWithTags} from "../services/VIdeoService";
 export const prerender = false;
 
-import VideoSearchContainer from '../components/search/VideoSearchContainer';
-console.log(`QUeries : ${Astro.url}`)
-Astro.url.searchParams.entries().forEach(entry => {
-    console.log(`QUery : ${entry}`);
-})
+import SearchBox from "../components/SearchBox";
+import VideosList from "../components/VideosList";
+import type Video from "../models/Video";
+
+// Get token from cookies
+const token = Astro.cookies.get("token")?.value;
+if (!token) {
+    throw new Error("Authentication token is missing.");
+}
+
+// Get `Tags`, `limit` and `page` from query parameters
+const limit = Math.max(Number(Astro.url.searchParams.get("limit")) || 3, 1); // Ensure limit > 0
+const pageNumber = Math.max(Number(Astro.url.searchParams.get("page")) || 1, 1); // Ensure page > 0
+const tagsRaw: string = Astro.url.searchParams.get("tags") || "";
+const tagsList = tagsRaw.trim().toLowerCase().split(",") || [];
+// Calculate `skip` for pagination
+const skip = (pageNumber - 1) * limit;
+
+// Fetch videos and count
+let videos: Video[];
+let videosCount: number;
+if (tagsList.length <= 0 || tagsRaw.trim().length <= 0) {
+    console.log(`No tags`);
+    videos = await getAllVideos(skip, limit, token) || [];
+    videosCount = await getVideosCountOfUser(token) || 0;
+} else {
+    console.log(`Tags = ${tagsList}`);
+    videos = await getVideosWithTags(tagsList, skip, limit, token) || [];
+    videosCount = await getVideosCountWithTags(tagsList, token) || 0;
+}
 ---
 
 <div class="bg-gray-100">
-    <VideoSearchContainer client:load />
+    <SearchBox client:load/>
+    <VideosList videos={videos} totalVideos={videosCount} currentPage={1}/>
 </div>

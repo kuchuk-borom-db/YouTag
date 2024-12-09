@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {ChevronLeft, ChevronRight, Tag, X} from 'lucide-react';
+import {Tag, X, ChevronLeft, ChevronRight} from 'lucide-react';
 import {
     getAllTags,
     getTagCountOfUser,
@@ -8,11 +8,9 @@ import {
 } from "../services/TagService.ts";
 
 interface SearchComponentProps {
-    profileLogoUrl: string | null;
-    onSearch: (tags: string[]) => void;
 }
 
-const SearchComponent: React.FC<SearchComponentProps> = ({profileLogoUrl, onSearch}) => {
+const SearchComponent: React.FC<SearchComponentProps> = () => {
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState<string>('');
     const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
@@ -45,6 +43,8 @@ const SearchComponent: React.FC<SearchComponentProps> = ({profileLogoUrl, onSear
 
             setTagSuggestions(tags);
             setTotalPages(Math.ceil(totalCount / ITEMS_PER_PAGE));
+
+            // Always show suggestions if there are tags
             setShowTagSuggestions(tags.length > 0);
         } catch (error) {
             console.error('Error fetching tags:', error);
@@ -53,12 +53,15 @@ const SearchComponent: React.FC<SearchComponentProps> = ({profileLogoUrl, onSear
         }
     };
 
-    // Initial load of tags or when input is empty
+    // Initial load of tags or when input changes
     useEffect(() => {
-        if (!tagInput.trim()) {
-            fetchTags();
+        // Fetch tags when there's input or on initial load
+        if (tagInput.trim()) {
+            fetchTags(tagInput.trim());
+        } else {
+            fetchTags(); // Fetch all tags
         }
-    }, [currentPage, tagInput]);
+    }, [tagInput, currentPage]);
 
     // Debounced tag search function
     const debouncedTagSearch = (value: string) => {
@@ -71,7 +74,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({profileLogoUrl, onSear
                 setCurrentPage(1);
                 fetchTags(value.trim());
             } else {
-                fetchTags();
+                fetchTags(); // Fetch all tags if input is empty
             }
         }, 300);
     };
@@ -102,7 +105,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({profileLogoUrl, onSear
         e.preventDefault();
         console.log('Searching with:', {tags});
         setShowTagSuggestions(false);
-        onSearch(tags);
+       window.location.href = `?tags=${tags}`
     };
 
     const handleTagSuggestionClick = (tag: string) => {
@@ -125,122 +128,111 @@ const SearchComponent: React.FC<SearchComponentProps> = ({profileLogoUrl, onSear
         }
     };
 
+    // Focus input to show suggestions
+    const handleInputFocus = () => {
+        // Show suggestions if there are any, regardless of input
+        if (tagSuggestions.length > 0) {
+            setShowTagSuggestions(true);
+        }
+    };
+
     return (
-        <div className="bg-gray-100 w-full relative">
-            <div
-                className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
-                <div className="flex items-center w-full md:w-auto justify-between">
-                    <img src={"youtag.png"} alt="Logo" className="h-8 mr-4"/>
-                    <div className="md:hidden">
-                        <img
-                            src={!profileLogoUrl ? "profile.jpg" : profileLogoUrl}
-                            className="h-8 rounded-full"
-                            alt="profile"
+        <div className="bg-white w-full max-w-xl mx-auto p-4">
+            <form onSubmit={handleSearch} className="space-y-4">
+                <div className="relative" ref={tagSearchInputRef}>
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="Enter Tags (comma-separated)"
+                            value={tagInput}
+                            onChange={handleTagSearchChange}
+                            onFocus={handleInputFocus}
+                            className="w-full pl-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
                         />
+                        <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20}/>
                     </div>
-                </div>
-                <form onSubmit={handleSearch}
-                      className="w-full flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 relative">
-                    <div className="relative w-full md:flex-1" ref={tagSearchInputRef}>
-                        <div className="relative">
-                            <input
-                                type="text"
-                                placeholder="Enter Tags (comma-separated)"
-                                value={tagInput}
-                                onChange={handleTagSearchChange}
-                                className="w-full pl-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                            />
-                            <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                                 size={20}/>
+
+                    {tags.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                            {tags.map((tag, index) => (
+                                <div
+                                    key={index}
+                                    className="bg-green-100 text-green-700 px-2 py-1 rounded-full flex items-center space-x-1"
+                                >
+                                    <span>{tag}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeTag(tag)}
+                                        className="text-green-500 hover:text-green-700"
+                                    >
+                                        <X size={16}/>
+                                    </button>
+                                </div>
+                            ))}
                         </div>
-                        {tags.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-2">
-                                {tags.map((tag, index) => (
-                                    <div
+                    )}
+
+                    {showTagSuggestions && (
+                        <div
+                            ref={tagSuggestionsRef}
+                            className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex justify-between items-center p-2 border-b">
+                                <span className="text-sm font-medium text-gray-700">
+                                    {tagInput.trim() ? 'Tag Suggestions' : 'All Tags'}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowTagSuggestions(false)}
+                                    className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                                >
+                                    <X size={20}/>
+                                </button>
+                            </div>
+                            <ul className="max-h-60 overflow-y-auto">
+                                {tagSuggestions.map((tag, index) => (
+                                    <li
                                         key={index}
-                                        className="bg-green-100 text-green-700 px-2 py-1 rounded-full flex items-center space-x-1"
+                                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                        onClick={() => handleTagSuggestionClick(tag)}
                                     >
-                                        <span>{tag}</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => removeTag(tag)}
-                                            className="text-green-500 hover:text-green-700"
-                                        >
-                                            <X size={16}/>
-                                        </button>
-                                    </div>
+                                        {tag}
+                                    </li>
                                 ))}
+                            </ul>
+                            <div className="flex justify-between items-center p-2 border-t">
+                                <button
+                                    type="button"
+                                    onClick={handlePrevPage}
+                                    className={`text-gray-500 hover:text-gray-700 focus:outline-none ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    disabled={currentPage === 1}
+                                >
+                                    <ChevronLeft size={20}/>
+                                </button>
+                                <span className="text-sm text-gray-700">
+                                    Page {currentPage} of {totalPages}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={handleNextPage}
+                                    className={`text-gray-500 hover:text-gray-700 focus:outline-none ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    <ChevronRight size={20}/>
+                                </button>
                             </div>
-                        )}
-                        {showTagSuggestions && (
-                            <div
-                                ref={tagSuggestionsRef}
-                                className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <div className="flex justify-between items-center p-2 border-b">
-                                    <span className="text-sm font-medium text-gray-700">
-                                        {tagInput.trim() ? 'Tag Suggestions' : 'All Tags'}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowTagSuggestions(false)}
-                                        className="text-gray-500 hover:text-gray-700 focus:outline-none"
-                                    >
-                                        <X size={20}/>
-                                    </button>
-                                </div>
-                                <ul className="max-h-60 overflow-y-auto">
-                                    {tagSuggestions.map((tag, index) => (
-                                        <li
-                                            key={index}
-                                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                            onClick={() => handleTagSuggestionClick(tag)}
-                                        >
-                                            {tag}
-                                        </li>
-                                    ))}
-                                </ul>
-                                <div className="flex justify-between items-center p-2 border-t">
-                                    <button
-                                        type="button"
-                                        onClick={handlePrevPage}
-                                        className={`text-gray-500 hover:text-gray-700 focus:outline-none ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        disabled={currentPage === 1}
-                                    >
-                                        <ChevronLeft size={20}/>
-                                    </button>
-                                    <span className="text-sm text-gray-700">
-                                        Page {currentPage} of {totalPages}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={handleNextPage}
-                                        className={`text-gray-500 hover:text-gray-700 focus:outline-none ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        disabled={currentPage === totalPages}
-                                    >
-                                        <ChevronRight size={20}/>
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    <button
-                        type="submit"
-                        className="w-full md:w-auto bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-300 flex items-center justify-center space-x-2"
-                    >
-                        <Tag size={20}/>
-                        <span>Search</span>
-                    </button>
-                </form>
-                <div className="hidden md:flex items-center">
-                    <img
-                        src={!profileLogoUrl ? "profile.jpg" : profileLogoUrl}
-                        className="h-8 rounded-full"
-                        alt="profile"
-                    />
+                        </div>
+                    )}
                 </div>
-            </div>
+                <button
+                    type="submit"
+                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-300 flex items-center justify-center space-x-2"
+                >
+                    <Tag size={20}/>
+                    <span>Search</span>
+                </button>
+            </form>
         </div>
     );
 };
