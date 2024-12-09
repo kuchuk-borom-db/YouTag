@@ -102,3 +102,4 @@ export async function deleteTagFromVideo(tags: string[], videoId: string, token:
         console.log(`Failed to delete tags from video ${JSON.stringify(response)}}`)
     }
 }
+export  const prerender = false

@@ -43,3 +43,5 @@ function parseJsonDataToUser(jsonData: any): User | null {
         thumbnailUrl: jsonData['pic'],
     }
 }
+
+export  const prerender = false

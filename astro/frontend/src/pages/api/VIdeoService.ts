@@ -130,3 +130,4 @@ function parseVideosFromData(data: VideoInfoDTO[]): Video[] {
 
 
 //TODO Combine tags from option for adding videos to skip having to add tags manually one by one. This will introduce search feature for video with suggestions
+export  const prerender = false
