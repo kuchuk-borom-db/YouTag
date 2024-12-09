@@ -39,12 +39,7 @@ export async function saveVideo(videoId: string): Promise<boolean> {
 }
 
 
-export async function getAllVideos(skip: number, limit: number): Promise<Video[] | null> {
-    const token = Cookies.get("token");
-    if (!token) {
-        console.error("No token found in cookie");
-        return null
-    }
+export async function getAllVideos(skip: number, limit: number, token: string): Promise<Video[] | null> {
 
     const url = `${SERVER_URI}/authenticated/video/?skip=${parseInt(String(skip))}&limit=${parseInt(String(limit))}`;
     const response = await fetch(url, {
@@ -89,12 +84,8 @@ export async function getVideosWithTags(tags: string[], skip: number, limit: num
     return parseVideosFromData(responseJson['data']);
 }
 
-export async function getVideosCountOfUser(): Promise<number | null> {
-    const token = Cookies.get("token");
-    if (!token) {
-        console.log("No Token found in cookie");
-        return null;
-    }
+export async function getVideosCountOfUser(token : string): Promise<number | null> {
+
 
     const url = `${SERVER_URI}/authenticated/video/count`;
     const response = await fetch(url, {

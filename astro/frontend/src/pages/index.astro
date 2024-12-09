@@ -1,12 +1,33 @@
 ---
-import Navbar from "../components/Navbar"
-import type User from '../models/User'
-import Videos from "../components/home/VideosList.tsx"
+import Navbar from "../components/Navbar";
 import Tags from "../components/home/AllTags";
 import CreateContentButton from "../components/home/createContentButton";
-// Dummy User for Navbar
-const user = JSON.parse(Astro.cookies.get("user-info")!.value)
-export const prerender = false
+import VideosList from "../components/VideosList";
+import {getAllVideos, getVideosCountOfUser} from "../services/VIdeoService";
+
+// Get token from cookies
+const token = Astro.cookies.get("token")?.value;
+if (!token) {
+    throw new Error("Authentication token is missing.");
+}
+
+// Get `limit` and `page` from query parameters
+const limit = Math.max(Number(Astro.url.searchParams.get("limit")) || 3, 1); // Ensure limit > 0
+const pageNumber = Math.max(Number(Astro.url.searchParams.get("page")) || 1, 1); // Ensure page > 0
+
+// Calculate `skip` for pagination
+const skip = (pageNumber - 1) * limit;
+
+// Fetch videos and count
+const videos = await getAllVideos(skip, limit, token);
+const videosCount = await getVideosCountOfUser(token);
+
+// Fetch user info from cookies
+const user = JSON.parse(Astro.cookies.get("user-info")?.value || "{}");
+
+console.log(`Generated Page with skip ${skip} and videos count ${videosCount} and videos ${JSON.stringify(videos)}`);
+
+export const prerender = false;
 ---
 
 <html lang="en">
@@ -21,27 +42,14 @@ export const prerender = false
             font-family: 'Arial', sans-serif;
         }
 
-        .tag-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1rem;
-            padding: 1rem;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .tag-chip {
-            background-color: #333;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
+        .error-message {
             text-align: center;
-            transition: background-color 0.3s;
-            cursor: pointer;
-        }
-
-        .tag-chip:hover {
-            background-color: #555;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #333;
+            color: #ff0000;
+            border: 1px solid #ff0000;
+            border-radius: 8px;
         }
 
         .pagination {
@@ -69,22 +77,33 @@ export const prerender = false
         .pagination-btn.active {
             background-color: #ff0000;
         }
-
-        @media (max-width: 768px) {
-            .tag-grid {
-                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-                gap: 0.5rem;
-            }
-        }
     </style>
 </head>
 <body>
-<Navbar user={user} client:load/>
+<Navbar user={user} client:load />
+
 <main>
-    <Tags initialPage={1} tagsPerPage={5} onTagClick={(tag) => {
-    }} client:load/>
-    <Videos initialPage={1} videosPerPage={5} onVideoClick={(video) => {
-    }} client:load/>
-    <CreateContentButton client:load/>
+    <!-- Tags Section -->
+    <Tags initialPage={1} tagsPerPage={3} onTagClick={(tag) => {}} client:load />
+
+    <!-- Videos Section -->
+    {videos && videos.length > 0 ? (
+            <VideosList
+                    videos={videos}
+                    totalVideos={videosCount || 0}
+                    skip={skip}
+                    onVideoClick={(video) => {
+                        console.log(`Video clicked: ${video.title}`);
+                    }}
+            />
+    ) : (
+            <div class="error-message">
+                <p>No videos found for this page. Try navigating to a different page or uploading content.</p>
+            </div>
+    )}
+
+    <!-- Create Content Button -->
+    <CreateContentButton client:load />
 </main>
 </body>
+</html>
