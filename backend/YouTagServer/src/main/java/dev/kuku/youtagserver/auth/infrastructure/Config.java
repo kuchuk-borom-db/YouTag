@@ -12,6 +12,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @EnableWebSecurity
 @Configuration
@@ -21,8 +22,8 @@ class Config {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationProvider jwtAuthenticationProvider) throws Exception {
         http.authorizeHttpRequests(
                 req -> req
-                        .requestMatchers("api/public/**").permitAll()
-                        .requestMatchers("api/authenticated/**").authenticated()
+                        .requestMatchers("api/public/**" ).permitAll()
+                        .requestMatchers("api/authenticated/**" ).authenticated()
                         .anyRequest().denyAll()
         );
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
@@ -38,10 +39,8 @@ class Config {
         CorsConfiguration configuration = new CorsConfiguration();
         //TODO Env variable
         // Allow multiple client origins
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:4321",
-                "http://127.0.0.1:4321",
-                "http://192.168.29.95:4321"
+        configuration.setAllowedOrigins(List.of(
+                "/**"
         ));
 
         // Allow all common HTTP methods
@@ -50,7 +49,7 @@ class Config {
         ));
 
         // Allow specific headers
-        configuration.addAllowedHeader("*");
+        configuration.addAllowedHeader("*" );
 
         // Allow credentials (cookies, authorization headers, etc.)
         configuration.setAllowCredentials(true);
