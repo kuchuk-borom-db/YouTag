@@ -6,7 +6,6 @@ export const auth = defineMiddleware(async (context, next) => {
     const pathName = context.url.pathname;
     console.log(`Current page = ${pathName}`);
     console.log(`Auth middleware triggered on path name ${pathName}`);
-    return next();
     // If it's a public path, continue
     if (!isAuthPath(pathName)) {
         console.log(`Hit a public route ${pathName}`);
