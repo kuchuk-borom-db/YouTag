@@ -20,6 +20,7 @@ export default defineConfig({
         webAnalytics: {
             enabled: true,
         },
+        edgeMiddleware: true,
         maxDuration: 8,
     }),
 });
