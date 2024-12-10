@@ -23,7 +23,7 @@ COPY ./target/*.jar app.jar
 EXPOSE 8080
 
 # Allow environment variables to be passed
-ENV SPRING_PROFILES_ACTIVE=default
+ENV SPRING_PROFILES_ACTIVE=dev
 
 # Run the jar file
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

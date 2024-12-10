@@ -1,5 +1,6 @@
 package dev.kuku.youtagserver.auth.infrastructure;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,6 +15,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 @EnableWebSecurity
 @Configuration
 class Config {
@@ -36,12 +38,12 @@ class Config {
     }
 
     public CorsConfigurationSource corsConfigurationSource() {
+        String corsRaw = System.getenv().get("CORS_ORIGIN");
+        log.info("CORS_ORIGIN: {}", corsRaw);
         CorsConfiguration configuration = new CorsConfiguration();
         //TODO Env variable
         // Allow multiple client origins
-        configuration.setAllowedOrigins(List.of(
-                "/**"
-        ));
+        configuration.setAllowedOrigins(List.of(corsRaw.split(",")));
 
         // Allow all common HTTP methods
         configuration.setAllowedMethods(Arrays.asList(
