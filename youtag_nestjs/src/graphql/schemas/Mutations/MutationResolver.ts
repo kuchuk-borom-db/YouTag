@@ -7,8 +7,8 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import { GraphQlResp } from './RootTypes';
-import { OAuthProvider } from '../../user/enums';
+import { GraphQlResp } from '../Types/RootTypes';
+import { OAuthProvider } from "../../../user";
 
 export namespace PublicMutation {
   @ArgsType()
