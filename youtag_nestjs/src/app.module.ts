@@ -3,18 +3,20 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { GraphqlModule as GQL } from './graphql/graphql.module';
 import { GraphQLModule } from '@nestjs/graphql';
-import * as path from 'node:path';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: path.join(process.cwd(), 'src/Graphql/schema.gql'),
-      plugins: [ApolloServerPluginLandingPageLocalDefault()],
+      autoSchemaFile: true,
+      playground: false, // Disable default playground
+      plugins: [ApolloServerPluginLandingPageLocalDefault()], // Use Apollo Sandbox
     }),
     GQL,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
