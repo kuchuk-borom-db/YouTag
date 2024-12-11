@@ -7,7 +7,7 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import { GraphQlResp } from '../Types/RootTypes';
+import { ResponseModel } from '../Types/ResponseModel';
 import { OAuthProvider } from "../../../user";
 
 export namespace PublicQuery {
@@ -19,16 +19,16 @@ export namespace PublicQuery {
 
   @ObjectType()
   export class PublicQueryEndpoint {
-    @Field(() => GraphQlResp<string>, { nullable: false })
-    getOAuthLoginURL: GraphQlResp<string>;
+    @Field(() => ResponseModel<string>, { nullable: false })
+    getOAuthLoginURL: ResponseModel<string>;
   }
 
   @Resolver(() => PublicQueryEndpoint)
   export class PublicQueryEndpointResolver {
-    @ResolveField(() => GraphQlResp<string>, { nullable: false })
+    @ResolveField(() => ResponseModel<string>, { nullable: false })
     getOAuthLoginURL(
       @Args() provider: getOAuthLoginURLInput, // Specify the input object
-    ): GraphQlResp<string> {
+    ): ResponseModel<string> {
       return {
         data: `GGEZ from ${provider.provider}`,
         success: true,
