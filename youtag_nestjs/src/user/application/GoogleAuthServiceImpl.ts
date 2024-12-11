@@ -1,10 +1,10 @@
-import OAuthUserDTO from '../api/dtos/OAuthUser.dto';
-import AuthService from '../api/services/AuthService';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EnvironmentConst } from '../../Utils/Constants';
 import * as simpleOAuth2 from 'simple-oauth2';
 import { v4 } from 'uuid';
+import { AuthService } from '../api/Services';
+import { OAuthUserDTO } from "../api/DTOs";
 
 @Injectable()
 export default class GoogleAuthServiceImpl implements AuthService {

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import GoogleAuthServiceImpl from './application/GoogleAuthServiceImpl';
-import AuthService from './api/services/AuthService';
+import { AuthJwtService, AuthService } from './api/Services';
+import AuthJwtServiceImpl from './application/AuthJwtServiceImpl';
 
 @Module({
   providers: [
@@ -8,8 +9,12 @@ import AuthService from './api/services/AuthService';
       provide: AuthService,
       useClass: GoogleAuthServiceImpl,
     },
+    {
+      provide: AuthJwtService,
+      useClass: AuthJwtServiceImpl,
+    },
   ],
 
-  exports: [AuthService],
+  exports: [AuthService, AuthJwtService],
 })
 export class UserModule {}

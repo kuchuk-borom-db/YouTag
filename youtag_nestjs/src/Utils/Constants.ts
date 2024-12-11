@@ -7,4 +7,9 @@ export namespace EnvironmentConst {
       export const Scopes = 'OAUTH_GOOGLE_SCOPES';
     }
   }
+
+  export namespace JWT {
+    export const Secret = 'JWT_SECRET';
+    export const Expiry = '30d';
+  }
 }
