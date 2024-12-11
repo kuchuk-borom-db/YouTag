@@ -1,7 +1,7 @@
-import { Field, ObjectType } from "@nestjs/graphql";
+import { Field, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
-export class GraphQlResp<T> {
+export class ResponseModel<T> {
   @Field(() => Boolean)
   success: boolean;
 
