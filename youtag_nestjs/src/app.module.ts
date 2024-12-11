@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { GraphqlModule as GQL } from './graphql/graphql.module';
+import { GraphqlModule as GQL } from './GraphQL/graphql.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
-import { UserModule } from './user/user.module';
+import { UserModule } from './User/user.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({

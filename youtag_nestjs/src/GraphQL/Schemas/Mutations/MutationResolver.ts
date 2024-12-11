@@ -8,7 +8,7 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { ResponseModel } from '../Types/ResponseModel';
-import { OAuthProvider } from "../../../user";
+import { OAuthProvider } from "../../../User";
 
 export namespace PublicMutation {
   @ArgsType()

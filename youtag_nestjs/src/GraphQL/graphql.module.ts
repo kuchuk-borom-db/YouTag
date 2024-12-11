@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { PublicQuery, QueryResolver } from './schemas/Queries/QueryResolver';
+import { PublicQuery, QueryResolver } from './Schemas/Queries/QueryResolver';
 import { registerEnumType } from '@nestjs/graphql';
-import { OAuthProvider } from '../user/api/enums';
-import { MutationResolver, PublicMutation } from './schemas/Mutations/MutationResolver';
+import { OAuthProvider } from "../User";
+import { MutationResolver, PublicMutation } from './Schemas/Mutations/MutationResolver';
 
 @Module({
   providers: [
