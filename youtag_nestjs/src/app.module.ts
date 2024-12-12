@@ -7,6 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EnvironmentConst } from './Utils/Constants';
+import { VideoModule } from './video/video.module';
 
 @Module({
   imports: [
@@ -29,16 +30,18 @@ import { EnvironmentConst } from './Utils/Constants';
             rejectUnauthorized: true,
           },
           autoLoadEntities: true,
+          //synchronize: true, //only for development
         };
       },
     }),
-    GraphQLModule.forRoot<ApolloDriverConfig>({
-      driver: ApolloDriver,
-      autoSchemaFile: true,
-      playground: false, // Disable default playground
-      plugins: [ApolloServerPluginLandingPageLocalDefault()], // Use Apollo Sandbox
-    }),
+    // GraphQLModule.forRoot<ApolloDriverConfig>({
+    //   driver: ApolloDriver,
+    //   autoSchemaFile: true,
+    //   playground: false, // Disable default playground
+    //   plugins: [ApolloServerPluginLandingPageLocalDefault()], // Use Apollo Sandbox
+    // }),
     UserModule,
+    VideoModule,
   ],
 })
 export class AppModule {}
