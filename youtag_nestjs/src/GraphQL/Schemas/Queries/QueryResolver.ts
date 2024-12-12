@@ -7,28 +7,30 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import { ResponseModel } from '../Types/ResponseModel';
-import { OAuthProvider } from "../../../User";
+import { OAuthProvider } from '../../../User';
+import { IResponseModel, StringResponse } from '../Types/ResponseModel';
+import GoogleAuthServiceImpl from '../../../User/application/GoogleAuthServiceImpl';
 
 export namespace PublicQuery {
   @ArgsType()
   export class getOAuthLoginURLInput {
+    a = GoogleAuthServiceImpl;
     @Field(() => OAuthProvider, { nullable: false })
     provider: OAuthProvider;
   }
 
   @ObjectType()
   export class PublicQueryEndpoint {
-    @Field(() => ResponseModel<string>, { nullable: false })
-    getOAuthLoginURL: ResponseModel<string>;
+    @Field(() => StringResponse, { nullable: false })
+    getOAuthLoginURL: IResponseModel<string>;
   }
 
   @Resolver(() => PublicQueryEndpoint)
   export class PublicQueryEndpointResolver {
-    @ResolveField(() => ResponseModel<string>, { nullable: false })
+    @ResolveField()
     getOAuthLoginURL(
       @Args() provider: getOAuthLoginURLInput, // Specify the input object
-    ): ResponseModel<string> {
+    ): IResponseModel<string> {
       return {
         data: `GGEZ from ${provider.provider}`,
         success: true,

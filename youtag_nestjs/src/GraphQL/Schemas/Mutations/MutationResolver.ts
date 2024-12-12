@@ -7,8 +7,8 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import { ResponseModel } from '../Types/ResponseModel';
-import { OAuthProvider } from "../../../User";
+import { OAuthProvider } from '../../../User';
+import { IResponseModel, StringResponse } from '../Types/ResponseModel';
 
 export namespace PublicMutation {
   @ArgsType()
@@ -21,8 +21,8 @@ export namespace PublicMutation {
 
   @ObjectType()
   export class Endpoint {
-    @Field()
-    exchangeAccessToken: ResponseModel<string>;
+    @Field(() => StringResponse)
+    exchangeAccessToken: IResponseModel<string>;
   }
 
   @Resolver(() => Endpoint)
@@ -30,7 +30,7 @@ export namespace PublicMutation {
     @ResolveField()
     exchangeAccessToken(
       @Args() args: exchangeAccessTokenInput,
-    ): ResponseModel<string> {
+    ): IResponseModel<string> {
       return {
         success: true,
         data: `GENERATED ${args}`,
