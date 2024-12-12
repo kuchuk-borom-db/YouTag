@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
-import { GraphqlModule as GQL } from './GraphQL.module/Graphql.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
-import { UserModule } from './User.module/User.module';
 import { ConfigModule } from '@nestjs/config';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -18,8 +17,7 @@ import { ConfigModule } from '@nestjs/config';
       playground: false, // Disable default playground
       plugins: [ApolloServerPluginLandingPageLocalDefault()], // Use Apollo Sandbox
     }),
-    GQL,
-    UserModule.UserModule,
+    UserModule,
   ],
 })
 export class AppModule {}
