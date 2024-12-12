@@ -9,7 +9,7 @@ import {
 } from '@nestjs/graphql';
 import { OAuthProvider } from '../../../User';
 import { IResponseModel, StringResponse } from '../Types/ResponseModel';
-import GoogleAuthServiceImpl from '../../../User/application/GoogleAuthServiceImpl';
+import GoogleAuthServiceImpl from '../../../User.module/application/GoogleAuthServiceImpl';
 
 export namespace PublicQuery {
   @ArgsType()
