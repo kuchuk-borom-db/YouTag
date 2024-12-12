@@ -10,6 +10,13 @@ export namespace EnvironmentConst {
 
   export namespace JWT {
     export const Secret = 'JWT_SECRET';
-    export const Expiry = '30d';
+    export const Expiry = 'JWT_EXPIRY';
+  }
+
+  export namespace Db {
+    export const Host = 'DB_HOST';
+    export const Username = 'DB_USERNAME';
+    export const Password = 'DB_PWD';
+    export const DatabaseName = 'DB_NAME';
   }
 }

@@ -1,4 +1,4 @@
-import { OAuthUserDTO } from './DTOs';
+import { OAuthUserDTO, UserDTO } from './DTOs';
 
 export abstract class AuthService {
   /**
@@ -30,4 +30,12 @@ export abstract class AuthJwtService {
    * @return {string} userId extracted from subject
    */
   abstract verifyJwtAccessToken(token: string): string | null;
+}
+
+export abstract class UserService {
+  abstract createUser(user: UserDTO): Promise<boolean>;
+
+  abstract deleteUser(userId: string): Promise<boolean | null>;
+
+  abstract getUserById(userId: string): Promise<UserDTO | null>;
 }

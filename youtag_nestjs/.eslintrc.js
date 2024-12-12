@@ -6,9 +6,7 @@ module.exports = {
     sourceType: 'module',
   },
   plugins: ['@typescript-eslint/eslint-plugin'],
-  extends: [
-    'plugin:@typescript-eslint/recommended',
-  ],
+  extends: ['plugin:@typescript-eslint/recommended'],
   root: true,
   env: {
     node: true,
@@ -23,22 +21,6 @@ module.exports = {
     'no-restricted-imports': 'off',
     '@typescript-eslint/no-namespace': 'off',
     '@typescript-eslint/no-unused-vars': 'off',
-    '@typescript-eslint/no-restricted-imports': [
-      'error',
-      {
-        patterns: [
-          // Allow imports from 'api' folder inside any module.ts file
-          {
-            group: ['!**/api/**'],
-            message: "Internal module 'api' folder is allowed for imports",
-          },
-          // Restrict imports from any internal folder inside *.module.ts files
-          {
-            group: ['**/internal/**'],
-            message: "Internal module stuff can't be imported directly",
-          },
-        ],
-      },
-    ],
+    '@typescript-eslint/no-wrapper-object-types': 'off',
   },
 };
