@@ -7,14 +7,14 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import { OAuthProvider } from '../../../User';
 import { IResponseModel, StringResponse } from '../Types/ResponseModel';
-import GoogleAuthServiceImpl from '../../../User.module/application/GoogleAuthServiceImpl';
+import { API } from "../../../User.module/User.module";
 
 export namespace PublicQuery {
+  import OAuthProvider = API.OAuthProvider;
+
   @ArgsType()
   export class getOAuthLoginURLInput {
-    a = GoogleAuthServiceImpl;
     @Field(() => OAuthProvider, { nullable: false })
     provider: OAuthProvider;
   }

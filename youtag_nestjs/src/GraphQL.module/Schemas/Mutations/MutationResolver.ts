@@ -7,10 +7,12 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import { OAuthProvider } from '../../../User';
 import { IResponseModel, StringResponse } from '../Types/ResponseModel';
+import { API } from '../../../User.module/User.module';
 
 export namespace PublicMutation {
+  import OAuthProvider = API.OAuthProvider;
+
   @ArgsType()
   class exchangeAccessTokenInput {
     @Field()

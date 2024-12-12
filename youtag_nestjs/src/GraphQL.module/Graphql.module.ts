@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { PublicQuery, QueryResolver } from './Schemas/Queries/QueryResolver';
 import { registerEnumType } from '@nestjs/graphql';
-import { OAuthProvider } from '../User';
 import {
   MutationResolver,
   PublicMutation,
 } from './Schemas/Mutations/MutationResolver';
+import { API } from "../User.module/User.module";
+import OAuthProvider = API.OAuthProvider;
 
 @Module({
   providers: [

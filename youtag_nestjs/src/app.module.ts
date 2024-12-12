@@ -19,7 +19,7 @@ import { ConfigModule } from '@nestjs/config';
       plugins: [ApolloServerPluginLandingPageLocalDefault()], // Use Apollo Sandbox
     }),
     GQL,
-    UserModule,
+    UserModule.UserModule,
   ],
 })
 export class AppModule {}
