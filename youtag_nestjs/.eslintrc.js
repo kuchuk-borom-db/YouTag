@@ -34,7 +34,7 @@ module.exports = {
           },
           // Restrict imports from any internal folder inside *.module.ts files
           {
-            group: ['**.module/internal/**'],
+            group: ['**/internal/**'],
             message: "Internal module stuff can't be imported directly",
           },
         ],
