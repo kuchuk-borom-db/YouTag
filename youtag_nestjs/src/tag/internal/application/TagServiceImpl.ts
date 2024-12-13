@@ -95,9 +95,16 @@ export default class TagServiceImpl extends TagService {
     REMINDER
     Query Strategy: Find videos with EXACTLY ALL specified tags
 
+    This explanation servers as a reminder and is NOT what actually happens. It is a way to understand how these commands work at decent level
+
     Sample Data Scenario:
-    VID_1 has tags: TAG_1, TAG_2, TAG_3
-    VID_2 has tags: TAG_2, TAG_3, TAG_4
+      video_id    tag
+    1. VID_1       TAG_1
+    2. VID_1       TAG_2
+    3. VID_1       TAG_3
+    4. VID_2       TAG_2
+    5. VID_2       TAG_3
+    6. VID_2       TAG_4
 
     Example Scenario:
     - Passed Tags: ['TAG_1', 'TAG_2', 'TAG_4']
@@ -119,14 +126,17 @@ export default class TagServiceImpl extends TagService {
        - First query result would be [VID_1, VID_2]
 
        Detailed Matching Process:
-       - VID_1 matches because it has TAG_1
-       - VID_2 matches because it has TAG_4
-       - Initially looks like both videos are valid
+       - First entry with video_id VID_1 matches because it's tag is TAG_1
+       - Second entry with video_id : VID_1 matches  because it's tag is TAG_2
+       - Third entry with video_id : VID_1 doesn't match because it's tag is TAG_3
+       - Forth entry with video_id : VID_2 matches because it's tag is TAG_2
+       - Fifth entry with video_id : VID_2 doesn't match because it's tag is TAG_3
+       - Sixth entry VID_2 matches because it has TAG_4
+       - Because of 'DISTINCT' the entries with same video_id are flattened
 
-    3. Intermediate Result (Before HAVING):
        Conceptual result set:
        VID_1: [TAG_1, TAG_2]
-       VID_2: [TAG_4]
+       VID_2: [TAG_2, TAG_4]
 
     4. HAVING Clause:
        - Final filtering mechanism
@@ -137,15 +147,12 @@ export default class TagServiceImpl extends TagService {
        - Input requires 3 unique tags
        - VID_1 gets EXCLUDED
 
-       - VID_2 has only 1 matching tag
-       - VID_2 also gets EXCLUDED
+       - VID_2 has 2 unique tags
+       - Input requires 3 unique tags
+       - VID_2 gets EXCLUDED
+
 
     Final Result: Empty array [], because no single video has ALL specified tags
-
-    Mental Model:
-    - Think of it like a strict tag matching game
-    - A video must have EVERY single tag you specify
-    - Missing even one tag means the video is out
     */
   }
 
