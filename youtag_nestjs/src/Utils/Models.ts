@@ -1,4 +1,4 @@
 export type DataAndTotalCount<T> = {
-  tags: T[];
+  datas: T[];
   count: number;
 };

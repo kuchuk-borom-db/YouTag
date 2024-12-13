@@ -1,4 +1,4 @@
-import { DataAndTotalCount } from './DTOs';
+import { DataAndTotalCount } from '../../Utils/Models';
 
 export abstract class TagService {
   /**
@@ -19,7 +19,7 @@ export abstract class TagService {
    * @param videoId
    * @param tags
    */
-  abstract removeTags(
+  abstract removeTagsFromVideos(
     userId: string,
     videoId: string[],
     tags: string[],
@@ -38,7 +38,7 @@ export abstract class TagService {
       skip: number;
       limit: number;
     },
-  ): Promise<DataAndTotalCount | null>;
+  ): Promise<DataAndTotalCount<string> | null>;
 
   /**
    * get tags of user and total count
@@ -51,7 +51,7 @@ export abstract class TagService {
       skip: number;
       limit: number;
     },
-  ): Promise<DataAndTotalCount | null>;
+  ): Promise<DataAndTotalCount<string> | null>;
 
   /**
    * Get videos with the tags and total count
@@ -66,7 +66,7 @@ export abstract class TagService {
       skip: number;
       limit: number;
     },
-  ): Promise<DataAndTotalCount | null>;
+  ): Promise<DataAndTotalCount<string> | null>;
 
   /**
    * Get all tagged videos of user and total count
@@ -79,7 +79,7 @@ export abstract class TagService {
       skip: number;
       limit: number;
     },
-  ): Promise<DataAndTotalCount | null>;
+  ): Promise<DataAndTotalCount<string> | null>;
 
   /**
    * Get tags containing keyword and total count
@@ -94,5 +94,5 @@ export abstract class TagService {
       skip: number;
       limit: number;
     },
-  ): Promise<DataAndTotalCount | null>;
+  ): Promise<DataAndTotalCount<string> | null>;
 }
