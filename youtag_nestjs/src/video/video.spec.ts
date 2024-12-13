@@ -7,7 +7,7 @@ import { EnvironmentConst } from '../Utils/Constants';
 import { DataSource, Repository } from 'typeorm';
 import { VideoEntity } from './internal/domain/Entities';
 
-describe(`${VideoService.name}_Integration`, () => {
+describe(`Video Service Integration Test`, () => {
   let videoService: VideoService;
   let repo: Repository<VideoEntity>;
   let db: DataSource;
@@ -111,7 +111,7 @@ describe(`${VideoService.name}_Integration`, () => {
       thumbnailUrl: 'ASD',
       author: 'ASD',
     });
-    await repo.delete(id);
+    await videoService.removeVideo(id);
     const found = await repo.findOneBy({ id: id });
     expect(found).toBeNull();
   });
