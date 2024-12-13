@@ -5,8 +5,12 @@ import { EnvironmentConst } from '../Utils/Constants';
 import { UserEntity } from './internal/domain/Entities';
 import UserServiceImpl from './internal/application/UserServiceImpl';
 import { DataSource } from 'typeorm';
+import { AuthJwtService, AuthService, UserService } from './api/Services';
+import { AuthJwtServiceImpl } from './internal/application/AuthJWTServiceImpl';
+import { JwtModule } from '@nestjs/jwt';
+import { GoogleAuthServiceImpl } from './internal/application/GoogleOAuthService';
 
-describe('Integration User Service ', () => {
+describe(`${UserService.name}_Integration`, () => {
   let service: UserServiceImpl;
   let db: DataSource;
   beforeAll(async () => {
@@ -137,5 +141,38 @@ describe('Integration User Service ', () => {
   it('Delete user should fail', async () => {
     const result = await service.deleteUser(user.userId);
     expect(result).toBe(false);
+  });
+});
+describe(`${AuthService.name}`, () => {
+  let authService: AuthService;
+
+  beforeAll(async () => {
+    const model = await Test.createTestingModule({
+      imports: [JwtModule, await ConfigModule.forRoot()],
+      providers: [
+        {
+          provide: AuthJwtService,
+          useClass: AuthJwtServiceImpl,
+        },
+        {
+          provide: AuthService,
+          useClass: GoogleAuthServiceImpl,
+        },
+      ],
+    }).compile();
+
+    authService = model.get(AuthService);
+  });
+
+  it('Should return valid login url', async () => {
+    const url = await authService.getOAuthLoginURL();
+    console.log(url);
+    expect(url).toBeDefined();
+  });
+
+  it('Should get user info', async () => {
+    const code = '4/0AanRRrtaIf6PCt3JMdSH-RzigZnhCiuypT3Joht5fJyeEkBR7btV2JX6bVR7UdmJUm71xA\n';
+    const userInfo = await authService.getOAuthUserInfo(code);
+    expect(userInfo).toBeDefined();
   });
 });

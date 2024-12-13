@@ -12,9 +12,7 @@ export abstract class AuthService {
    * @param code code to exchange userinfo with
    * @return {OAuthUserDTO} returns user info or null if failed
    */
-  abstract getOAuthUserInfo(
-    code: string,
-  ): Promise<OAuthUserDTO | null> | OAuthUserDTO | null;
+  abstract getOAuthUserInfo(code: string): Promise<OAuthUserDTO | null>;
 }
 
 export abstract class AuthJwtService {

@@ -75,7 +75,7 @@ export class GoogleAuthServiceImpl implements AuthService {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to get user info from Google: ${error.message}`,
+        `Failed to get user info from Google: ${error}`,
       );
       return null;
     }

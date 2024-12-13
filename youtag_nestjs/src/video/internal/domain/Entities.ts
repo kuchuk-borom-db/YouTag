@@ -4,10 +4,12 @@ import { Column, Entity, PrimaryColumn } from 'typeorm';
 export class VideoEntity {
   @PrimaryColumn({ type: 'varchar' })
   id: string;
-  @Column({ nullable: true, type: 'varchar' })
-  title?: string;
-  @Column({ type: 'varchar', nullable: true })
-  description?: string;
-  @Column({ name: 'thumbnail_url', type: 'varchar', nullable: true })
+  @Column({ nullable: false, type: 'varchar' })
+  title: string;
+  @Column({ type: 'varchar', nullable: false })
+  author: string;
+  @Column({ name: 'author_url', type: 'varchar', nullable: false })
+  authorUrl: string;
+  @Column({ name: 'thumbnail_url', type: 'varchar', nullable: false })
   thumbnailUrl: string;
 }
