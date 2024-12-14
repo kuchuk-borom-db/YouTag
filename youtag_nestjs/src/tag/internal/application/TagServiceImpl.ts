@@ -185,6 +185,21 @@ export default class TagServiceImpl extends TagService {
 
        Result:
        - No videos match (because no video has ALL 3 specified tags)
+
+
+       RAW QUERY
+       SELECT t.video_id FROM youtag.tags t
+       where t.user_id = 'user'
+       AND t.tag  IN ('tag_1', 'tag_2')
+       GROUP BY t.video_id
+       HAVING COUNT(t.tag) = 2;
+
+       We use count to count the no. of rows returned as result from the sub query
+       SELECT COUNT(sq.vide0_id) FROM (SELECT t.video_id FROM youtag.tags t
+       where t.user_id = 'user'
+       AND t.tag  IN ('tag_1', 'tag_2')
+       GROUP BY t.video_id
+       HAVING COUNT(t.tag) = 2) AS sq;
      */
     try {
       this.log.debug(
@@ -209,47 +224,35 @@ export default class TagServiceImpl extends TagService {
         .having('COUNT(DISTINCT entity.tag) = :tagCount', {
           tagCount: tags.length,
         });
+      /*
+      The sub query is going to return a list of values which is then going to be counted and returned
+       */
+      const count = (
+        await this.repo.query(
+          `
+              SELECT COUNT(*)
+              FROM (SELECT t.video_id
+                    FROM youtag.tags t
+                    WHERE t.user_id = $1
+                      AND t.tag = ANY ($2) -- IN works in cli but not here idk why. ANY works here but not cli. Probably version stuff
+                    GROUP BY t.video_id
+                    HAVING COUNT(DISTINCT t.tag) = $3) AS subquery
+          `,
+          [userId, tags, tags.length],
+        )
+      )[0].count;
 
-      // Query with pagination
+      // Query with pagination, ensuring baseQuery is initialized correctly
       if (pagination) {
         baseQuery.skip(pagination.skip).take(pagination.limit);
       }
 
-      console.log(await this.repo.createQueryBuilder().select("*").getRawMany());
-
-      const count = await this.repo
-        .createQueryBuilder()
-        .select('COUNT(*)')
-        .from("youtag.tags","entity")
-        .where('entity.user_id = :userId', { userId: userId }) // Replace with your dynamic user ID
-        .andWhere('entity.tag IN (:...tags)', { tags: tags }) // Replace with your dynamic tags array
-        .groupBy('entity.video_id')
-        .having('COUNT(entity.tag) = :tagCount', { tagCount: tags.length })
-        .getRawOne();
-
-      console.log(`RAW COUNT = ${JSON.stringify(count, null, 2)}`);
-
-      const count2 = await this.repo.query(
-        `
-            SELECT COUNT(*)
-            FROM youtag.tags entity
-            WHERE entity.user_id = $1
-              AND entity.tag IN ($2)
-            GROUP BY entity.video_id
-            HAVING COUNT(entity.tag) = $3
-        `,
-        [userId, tags, tags.length],
-      );
-
-      console.log(`RAW COUNT 2 = ${JSON.stringify(count2, null, 2)}`);
-
       // Get paginated video IDs
       const videoIds = await baseQuery.getRawMany<{ videoId: string }>();
-      console.log(`Result is ${JSON.stringify(videoIds)}`);
 
       return {
         datas: videoIds.map((item) => item.videoId),
-        count: count.count,
+        count: parseInt(count),
       };
     } catch (error) {
       this.log.error('Error fetching video IDs with tags', error);
@@ -301,7 +304,18 @@ export default class TagServiceImpl extends TagService {
         .andWhere('entity.tag LIKE :keyword', { keyword: `%${containing}%` });
 
       // Get total count of unique tags
-      const count = await baseQuery.clone().getCount();
+      const count = parseInt(
+        (
+          await this.repo
+            .createQueryBuilder('entity')
+            .select('COUNT(DISTINCT entity.tag)', 'tag')
+            .where('entity.user_id = :userId', { userId })
+            .andWhere('entity.tag LIKE :keyword', {
+              keyword: `%${containing}%`,
+            })
+            .getRawOne()
+        ).tag,
+      );
 
       // Apply pagination if specified
       if (pagination) {

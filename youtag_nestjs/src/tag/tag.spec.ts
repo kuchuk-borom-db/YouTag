@@ -69,16 +69,16 @@ describe('Tag Integration test', () => {
     await repo.delete({ userId: 'user' });
   });
   afterEach(async () => {
-    //await repo.delete({ userId: 'user' });
-    await addDefault();
+    await repo.delete({ userId: 'user' });
+    //await addDefault();
   });
   afterAll(async () => {
     await db.destroy();
   });
 
-  it("TEST",async ()=>{
+  it('TEST', async () => {
     expect(true).toBe(true);
-  })
+  });
 
   describe('Add tags to video', () => {
     it('should add tags to videos', async () => {
@@ -138,7 +138,7 @@ describe('Tag Integration test', () => {
       ]);
       expect(tags).toBeDefined();
       expect(tags.datas).toHaveLength(3);
-      expect(tags.count).toBe('3');
+      expect(tags.count).toBe(3);
 
       tags = await service.getTagsAndCountOfVideo(
         'user',
@@ -195,21 +195,47 @@ describe('Tag Integration test', () => {
       result = await service.getVideoIdsAndCountWithTags('user', [
         'tag_1',
         'tag_2',
-        'extra',
-      ]);
-      expect(result).toBeDefined();
-      expect(result.datas).toHaveLength(1);
-      expect(result.count).toBe(1);
-
-      result = await service.getVideoIdsAndCountWithTags('user', [
-        'tag_1',
-        'tag_2',
-        'extra',
-        'extra2',
+        'tag_5',
       ]);
       expect(result).toBeDefined();
       expect(result.datas).toHaveLength(0);
       expect(result.count).toBe(0);
+
+      result = await service.getVideoIdsAndCountWithTags('user', ['tag_1'], {
+        skip: 1,
+        limit: 1,
+      });
+      expect(result).toBeDefined();
+      expect(result.datas).toHaveLength(1);
+      expect(result.count).toBe(3);
+    });
+  });
+
+  describe('Get tagged videos of user', () => {
+    it('Should get tagged videos of user', async () => {
+      await addDefault();
+      let vids = await service.getTagsAndCountOfUser('user');
+      expect(vids).toBeDefined();
+      expect(vids.datas).toHaveLength(3);
+      expect(vids.count).toBe(3);
+
+      vids = await service.getTagsAndCountOfUser('user', {
+        skip: 2,
+        limit: 999,
+      });
+      expect(vids).toBeDefined();
+      expect(vids.datas).toHaveLength(1);
+      expect(vids.count).toBe(3);
+    });
+  });
+
+  describe('get tags and count containing', () => {
+    it('should get all tags with tag in it', async () => {
+      await addDefault();
+      let result = await service.getTagsAndCountContaining('user', 'tag');
+      expect(result).toBeDefined();
+      expect(result.datas).toHaveLength(3);
+      expect(result.count).toBe(3);
     });
   });
 });
