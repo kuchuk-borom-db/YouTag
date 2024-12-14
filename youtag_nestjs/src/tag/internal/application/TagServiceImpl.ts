@@ -15,25 +15,30 @@ export default class TagServiceImpl extends TagService {
 
   private log = new Logger(TagServiceImpl.name);
 
-  async addTags(
+  async addTagsToVideos(
     userId: string,
     videoId: string[],
     tags: string[],
   ): Promise<void> {
-    this.log.debug(
-      `Adding tags ${tags} to videos ${videoId} for user ${userId}`,
-    );
-    let tagEntities: TagEntity[] = [];
-    videoId.forEach((videoId) => {
-      tags.forEach((tag) => {
-        const tagToAdd = new TagEntity();
-        tagToAdd.tag = tag;
-        tagToAdd.userId = userId;
-        tagToAdd.videoId = videoId;
-        tagEntities.push(tagToAdd);
+    try {
+      this.log.debug(
+        `Adding tags ${tags} to videos ${videoId} for user ${userId}`,
+      );
+      let tagEntities: TagEntity[] = [];
+      videoId.forEach((videoId) => {
+        tags.forEach((tag) => {
+          const tagToAdd = new TagEntity();
+          tagToAdd.tag = tag;
+          tagToAdd.userId = userId;
+          tagToAdd.videoId = videoId;
+          tagEntities.push(tagToAdd);
+        });
       });
-    });
-    await this.repo.save(tagEntities);
+      await this.repo.save(tagEntities);
+    } catch (error) {
+      this.log.error(`Error at adding videos to tag ${error}`);
+      return;
+    }
   }
 
   async removeTagsFromVideos(
@@ -51,7 +56,6 @@ export default class TagServiceImpl extends TagService {
       this.log.error('Error while removing tags', err);
       return;
     }
-    throw new Error('Method not implemented.');
   }
 
   async getTagsAndCountOfVideo(
@@ -63,6 +67,7 @@ export default class TagServiceImpl extends TagService {
       `Get tags and tag counts of video ${videoId} of user ${userId}`,
     );
     if (pagination) {
+      //Doesn't need DISTINCT as no tags are repeated
       const result = await this.repo.findAndCount({
         skip: pagination.skip,
         take: pagination.limit,
@@ -86,6 +91,45 @@ export default class TagServiceImpl extends TagService {
     };
   }
 
+  async getTagsAndCountOfUser(
+    userId: string,
+    pagination?: { skip: number; limit: number },
+  ): Promise<DataAndTotalCount<string> | null> {
+    try {
+      this.log.debug(`Get tags and count of user ${userId}`);
+      // First, get unique tags using a subquery
+      const queryBuilder = this.repo
+        .createQueryBuilder('entity')
+        .select('DISTINCT entity.tag', 'tag')
+        .where('entity.userId = :userId', { userId });
+
+      // Get total count of unique tags
+      const count = await queryBuilder.clone().getCount();
+
+      // Retrieve paginated unique tags
+      let data: string[] = [];
+      if (count > 0) {
+        const tagsQuery = queryBuilder.orderBy('tag', 'ASC');
+
+        // Apply pagination if specified
+        if (pagination) {
+          tagsQuery.skip(pagination.skip).take(pagination.limit);
+        }
+
+        const result = await tagsQuery.getRawMany();
+        data = result.map((item) => item.tag);
+      }
+
+      return {
+        datas: data,
+        count: count,
+      };
+    } catch (error) {
+      this.log.error('Error while retrieving tags', error);
+      return null;
+    }
+  }
+
   async getVideoIdsAndCountWithTags(
     userId: string,
     tags: string[],
@@ -94,8 +138,6 @@ export default class TagServiceImpl extends TagService {
     /*
     REMINDER
     Query Strategy: Find videos with EXACTLY ALL specified tags
-
-    This explanation servers as a reminder and is NOT what actually happens. It is a way to understand how these commands work at decent level
 
     Sample Data Scenario:
       video_id    tag
@@ -110,64 +152,146 @@ export default class TagServiceImpl extends TagService {
     - Passed Tags: ['TAG_1', 'TAG_2', 'TAG_4']
     - Expected Output: [] (empty array)
 
-    Query Progression Breakdown:
 
-    1. DISTINCT Keyword:
-       - Prevents duplicate video entries
-       - Conceptually "groups" videos by their unique ID
-       - Imagine grouping results like:
-         VID_1: [TAG_1, TAG_2, TAG_3]
-         VID_2: [TAG_2, TAG_3, TAG_4]
-       (Note: This is a simplified mental model, not exact database behavior)
+    Conceptual Query Progression:
 
-    2. IN Clause:
-       - Initial broad matching
-       - Returns videos with AT LEAST ONE matching tag
-       - First query result would be [VID_1, VID_2]
+    1. Initial Data Matching:
+       - Database finds rows where:
+         a) user_id matches
+         b) tag is IN the specified list
 
-       Detailed Matching Process:
-       - First entry with video_id VID_1 matches because it's tag is TAG_1
-       - Second entry with video_id : VID_1 matches  because it's tag is TAG_2
-       - Third entry with video_id : VID_1 doesn't match because it's tag is TAG_3
-       - Forth entry with video_id : VID_2 matches because it's tag is TAG_2
-       - Fifth entry with video_id : VID_2 doesn't match because it's tag is TAG_3
-       - Sixth entry VID_2 matches because it has TAG_4
-       - Because of 'DISTINCT' the entries with same video_id are flattened
+       Original Raw Result Set:
+       video_id  tag
+       VID_1     TAG_1
+       VID_1     TAG_2
+       VID_2     TAG_2
+       VID_2     TAG_4
 
-       Conceptual result set:
-       VID_1: [TAG_1, TAG_2]
-       VID_2: [TAG_2, TAG_4]
+    2. Aggregation Process (GROUP BY):
+       - Collects unique tags per video_id
+       - Prepares for tag count verification
 
-    4. HAVING Clause:
-       - Final filtering mechanism
-       - Checks if number of unique tags EXACTLY matches input
+       Aggregated Intermediate State:
+       video_id  unique_tags    tag_count
+       VID_1     [TAG_1, TAG_2]   2
+       VID_2     [TAG_2, TAG_4]   2
 
-       In this scenario:
-       - VID_1 has 2 unique tags
-       - Input requires 3 unique tags
-       - VID_1 gets EXCLUDED
+    3. Final Filtering (HAVING Clause):
+       - Checks if number of unique tags matches input tag count
+       - Filters out videos not meeting exact tag requirement
 
-       - VID_2 has 2 unique tags
-       - Input requires 3 unique tags
-       - VID_2 gets EXCLUDED
+       Result:
+       - No videos match (because no video has ALL 3 specified tags)
+     */
+    try {
+      this.log.debug(
+        `Getting video Ids and counts with tags ${tags} for user ${userId}`,
+      );
 
+      // Base query without pagination
+      const baseQuery = this.repo
+        .createQueryBuilder('entity')
+        //select only video id and give it videoId alias
+        .select('entity.video_id', 'videoId')
+        //userid needs to match
+        .where('entity.user_id = :userId', { userId })
+        //needs to contain at least one of the tags
+        .andWhere('entity.tag IN (:...tags)', { tags })
+        //aggregate the result based on video_id
+        // Video_id  Unique_tags
+        // VID_1     [TAG_1, TAG_2]
+        // VID_2     [TAG_2, TAG_4]
+        .groupBy('entity.video_id')
+        //Check if count matches
+        .having('COUNT(DISTINCT entity.tag) = :tagCount', {
+          tagCount: tags.length,
+        });
 
-    Final Result: Empty array [], because no single video has ALL specified tags
-    */
+      // Query with pagination
+      const paginatedQuery = baseQuery.clone();
+      if (pagination) {
+        paginatedQuery.skip(pagination.skip).take(pagination.limit);
+      }
+
+      const totalCountQuery = await baseQuery.getCount();
+
+      // Get paginated video IDs
+      const videoIds = await paginatedQuery.getRawMany<{ videoId: string }>();
+
+      return {
+        datas: videoIds.map((item) => item.videoId),
+        count: totalCountQuery,
+      };
+    } catch (error) {
+      this.log.error('Error fetching video IDs with tags', error);
+      return null;
+    }
   }
 
-  getTaggedVideosOfUser(
+  async getTaggedVideosOfUser(
     userId: string,
     pagination?: { skip: number; limit: number },
   ): Promise<DataAndTotalCount<string> | null> {
-    throw new Error('Method not implemented.');
+    try {
+      this.log.debug(`Get taggedVideosOfUser ${userId}`);
+      const baseQuery = this.repo
+        .createQueryBuilder('entity')
+        .select('DISTINCT entity.video_id', 'videoId')
+        .where('entity.user_id = :userId', { userId });
+
+      const count = await baseQuery.getCount();
+      if (pagination) {
+        baseQuery.skip(pagination.skip).take(pagination.limit);
+      }
+      const result = await baseQuery.getRawMany();
+      return {
+        datas: result.map((r) => r.videoId),
+        count: count,
+      };
+    } catch (error) {
+      this.log.error(`Error at Get Tagged videos of user ${userId} ${error}`);
+      return null;
+    }
   }
 
-  getTagsAndCountContaining(
+  async getTagsAndCountContaining(
     userId: string,
     containing: string,
     pagination?: { skip: number; limit: number },
   ): Promise<DataAndTotalCount<string> | null> {
-    throw new Error('Method not implemented.');
+    try {
+      this.log.debug(
+        `Get tags and count containing ${containing} of user ${userId}`,
+      );
+
+      // Base Query: Fetch unique tags
+      const baseQuery = this.repo
+        .createQueryBuilder('entity')
+        .select('DISTINCT entity.tag', 'tag')
+        .where('entity.user_id = :userId', { userId })
+        .andWhere('entity.tag LIKE :keyword', { keyword: `%${containing}%` });
+
+      // Get total count of unique tags
+      const count = await baseQuery.clone().getCount();
+
+      // Apply pagination if specified
+      if (pagination) {
+        baseQuery.skip(pagination.skip).take(pagination.limit);
+      }
+
+      // Execute query to get paginated results
+      const result = await baseQuery.getRawMany();
+
+      return {
+        datas: result.map((r) => r.tag),
+        count: count,
+      };
+    } catch (error) {
+      this.log.error(
+        `Error in get tags and count containing ${containing} of user ${userId} and pagination ${pagination}`,
+        error,
+      );
+      return null;
+    }
   }
 }

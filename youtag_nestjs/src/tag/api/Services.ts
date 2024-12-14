@@ -7,7 +7,7 @@ export abstract class TagService {
    * @param videoId
    * @param tags
    */
-  abstract addTags(
+  abstract addTagsToVideos(
     userId: string,
     videoId: string[],
     tags: string[],
@@ -69,7 +69,7 @@ export abstract class TagService {
   ): Promise<DataAndTotalCount<string> | null>;
 
   /**
-   * Get all tagged videos of user and total count
+   * Get all tagged videos of user and total count. Basically get all videos
    * @param userId
    * @param pagination
    */
