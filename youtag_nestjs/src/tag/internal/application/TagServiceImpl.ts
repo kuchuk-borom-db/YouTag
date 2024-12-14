@@ -66,28 +66,26 @@ export default class TagServiceImpl extends TagService {
     this.log.debug(
       `Get tags and tag counts of video ${videoId} of user ${userId}`,
     );
+    const baseQuery = this.repo
+      .createQueryBuilder('entity')
+      .select('DISTINCT entity.tag ', 'tag')
+      .where('entity.user_id = :user', { user: userId })
+      .andWhere('entity.video_id IN (:...videos)', { videos: videoId })
+      .printSql();
+
+    const countResult = await baseQuery
+      .clone()
+      .select('COUNT(DISTINCT entity.tag)', 'count')
+      .getRawOne();
+    const count = countResult.count;
+
     if (pagination) {
-      //Doesn't need DISTINCT as no tags are repeated
-      const result = await this.repo.findAndCount({
-        skip: pagination.skip,
-        take: pagination.limit,
-        where: {
-          userId: userId,
-          videoId: In(videoId),
-        },
-      });
-      return {
-        datas: result[0].map((value) => value.tag),
-        count: result[1],
-      };
+      baseQuery.skip(pagination.skip).take(pagination.limit);
     }
-    const count = await this.repo.countBy({
-      videoId: In(videoId),
-      userId: userId,
-    });
+    const result: any = await baseQuery.getRawMany();
     return {
-      datas: [],
-      count: count,
+      datas: result.map((r: any) => r.tag),
+      count: Number(count),
     };
   }
 
@@ -104,7 +102,12 @@ export default class TagServiceImpl extends TagService {
         .where('entity.userId = :userId', { userId });
 
       // Get total count of unique tags
-      const count = await queryBuilder.clone().getCount();
+      const count = (
+        await queryBuilder
+          .clone()
+          .select('COUNT(DISTINCT entity.tag)', 'count')
+          .getRawOne()
+      ).count;
 
       // Retrieve paginated unique tags
       let data: string[] = [];
@@ -122,7 +125,7 @@ export default class TagServiceImpl extends TagService {
 
       return {
         datas: data,
-        count: count,
+        count: Number(count),
       };
     } catch (error) {
       this.log.error('Error while retrieving tags', error);
@@ -194,9 +197,9 @@ export default class TagServiceImpl extends TagService {
         //select only video id and give it videoId alias
         .select('entity.video_id', 'videoId')
         //userid needs to match
-        .where('entity.user_id = :userId', { userId })
+        .where('entity.user_id = :userId', { userId: userId })
         //needs to contain at least one of the tags
-        .andWhere('entity.tag IN (:...tags)', { tags })
+        .andWhere('entity.tag IN (:...tags)', { tags: tags })
         //aggregate the result based on video_id
         // Video_id  Unique_tags
         // VID_1     [TAG_1, TAG_2]
@@ -208,19 +211,45 @@ export default class TagServiceImpl extends TagService {
         });
 
       // Query with pagination
-      const paginatedQuery = baseQuery.clone();
       if (pagination) {
-        paginatedQuery.skip(pagination.skip).take(pagination.limit);
+        baseQuery.skip(pagination.skip).take(pagination.limit);
       }
 
-      const totalCountQuery = await baseQuery.getCount();
+      console.log(await this.repo.createQueryBuilder().select("*").getRawMany());
+
+      const count = await this.repo
+        .createQueryBuilder()
+        .select('COUNT(*)')
+        .from("youtag.tags","entity")
+        .where('entity.user_id = :userId', { userId: userId }) // Replace with your dynamic user ID
+        .andWhere('entity.tag IN (:...tags)', { tags: tags }) // Replace with your dynamic tags array
+        .groupBy('entity.video_id')
+        .having('COUNT(entity.tag) = :tagCount', { tagCount: tags.length })
+        .getRawOne();
+
+      console.log(`RAW COUNT = ${JSON.stringify(count, null, 2)}`);
+
+      const count2 = await this.repo.query(
+        `
+            SELECT COUNT(*)
+            FROM youtag.tags entity
+            WHERE entity.user_id = $1
+              AND entity.tag IN ($2)
+            GROUP BY entity.video_id
+            HAVING COUNT(entity.tag) = $3
+        `,
+        [userId, tags, tags.length],
+      );
+
+      console.log(`RAW COUNT 2 = ${JSON.stringify(count2, null, 2)}`);
 
       // Get paginated video IDs
-      const videoIds = await paginatedQuery.getRawMany<{ videoId: string }>();
+      const videoIds = await baseQuery.getRawMany<{ videoId: string }>();
+      console.log(`Result is ${JSON.stringify(videoIds)}`);
 
       return {
         datas: videoIds.map((item) => item.videoId),
-        count: totalCountQuery,
+        count: count.count,
       };
     } catch (error) {
       this.log.error('Error fetching video IDs with tags', error);
