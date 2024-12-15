@@ -3,14 +3,13 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EnvironmentConst } from './Utils/Constants';
 import { VideoModule } from './video/video.module';
 import { TagModule } from './tag/tag.module';
-import { AggregatorModule } from './aggregator/aggregator.module';
 import { GraphqlModule } from './graphql/graphql.module';
+import { CommanderModule } from './commander/commander.module';
 
 @Module({
   imports: [
@@ -46,8 +45,8 @@ import { GraphqlModule } from './graphql/graphql.module';
     UserModule,
     VideoModule,
     TagModule,
-    AggregatorModule,
     GraphqlModule,
+    CommanderModule,
   ],
 })
 export class AppModule {}
