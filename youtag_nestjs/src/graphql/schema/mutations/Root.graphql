@@ -1,8 +1,32 @@
 type Mutation {
-    public : PublicMutation!
-    auth : String!
+    public: PublicMutation!
+    auth: AuthMutation!
 }
 
-type PublicMutation{
-    exchangeOAuthTokenForAccessToken(token : String!, provider : OAUTH_PROVIDER) : StringResponse!
+type PublicMutation {
+    exchangeOAuthTokenForAccessToken(
+        token: String!,
+        provider: OAUTH_PROVIDER!
+    ): StringResponse!
+}
+
+type AuthMutation {
+    addTagsToVideos(input: AddTagsToVideosInput!): ResponseModel!
+    removeTagsFromVideos(input: RemoveTagsFromVideosInput!): ResponseModel!
+    removeVideos(input: RemoveVideosInput!): ResponseModel!
+}
+
+# Input Types
+input AddTagsToVideosInput {
+    videoIds: [ID!]!
+    tagNames: [String!]!
+}
+
+input RemoveTagsFromVideosInput {
+    videoIds: [ID!]!
+    tagNames: [String!]!
+}
+
+input RemoveVideosInput {
+    videoIds: [ID!]!
 }

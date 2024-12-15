@@ -1,31 +1,3 @@
-interface ResponseModel {
-    success: Boolean!
-    message: String
-}
-
-type StringResponse implements ResponseModel {
-    data: String!
-    message: String
-    success: Boolean!
-}
-
-type UserResponse implements ResponseModel {
-    success: Boolean!
-    message: String
-    data: User
-}
-
-type TagsResponse implements ResponseModel {
-    message: String
-    success: Boolean!
-    data: [Tag]
-}
-
-type VideosResponse implements ResponseModel {
-    message: String
-    success: Boolean!
-    data: [Video]
-}
 
 type User {
     name: String!
