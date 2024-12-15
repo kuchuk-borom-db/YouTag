@@ -1,0 +1,18 @@
+type Query {
+    publicData: PublicQuery!
+    authenticatedData: AuthQuery!
+}
+
+type PublicQuery {
+    getOAuthLoginURL(provider: OAUTH_PROVIDER): StringResponse!
+}
+
+type AuthQuery {
+    user: UserResponse!
+    tags(skip: Int, limit: Int, contains: String): TagsResponse!
+    videos(skip: Int, limit: Int, tags: [String]): VideosResponse!
+}
+
+enum OAUTH_PROVIDER {
+    GOOGLE
+}

@@ -1,0 +1,49 @@
+interface ResponseModel {
+    success: Boolean!
+    message: String
+}
+
+type StringResponse implements ResponseModel {
+    data: String!
+    message: String
+    success: Boolean!
+}
+
+type UserResponse implements ResponseModel {
+    success: Boolean!
+    message: String
+    data: User
+}
+
+type TagsResponse implements ResponseModel {
+    message: String
+    success: Boolean!
+    data: [Tag]
+}
+
+type VideosResponse implements ResponseModel {
+    message: String
+    success: Boolean!
+    data: [Video]
+}
+
+type User {
+    name: String!
+    email: String!
+    thumbnail: String!
+    tags(skip: Int, limit: Int, contains: String): [Tag]
+}
+
+type Tag {
+    name: String!
+    videosWithTag(skip: Int, limit: Int): [Video]
+}
+
+type Video {
+    id: ID!
+    title: String!
+    author: String!
+    authorUrl: String!
+    thumbnail: String!
+    associatedTags(skip: Int, limit: Int): [Tag]
+}

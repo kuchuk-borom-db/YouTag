@@ -1,0 +1,8 @@
+type Mutation {
+    public : PublicMutation!
+    auth : String!
+}
+
+type PublicMutation{
+    exchangeOAuthTokenForAccessToken(token : String!, provider : OAUTH_PROVIDER) : StringResponse!
+}

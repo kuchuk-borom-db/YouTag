@@ -10,6 +10,8 @@ import { VideoModule } from './video/video.module';
 import { TagModule } from './tag/tag.module';
 import { GraphqlModule } from './graphql/graphql.module';
 import { CommanderModule } from './commander/commander.module';
+import * as path from 'node:path';
+import * as process from 'node:process';
 
 @Module({
   imports: [
@@ -38,7 +40,10 @@ import { CommanderModule } from './commander/commander.module';
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: true,
+      typePaths: ['./**/*.graphql'],
+      definitions: {
+        path: path.join(process.cwd(), 'src/graphql.ts'),
+      },
       playground: false, // Disable default playground
       plugins: [ApolloServerPluginLandingPageLocalDefault()], // Use Apollo Sandbox
     }),
