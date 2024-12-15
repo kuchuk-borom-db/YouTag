@@ -237,5 +237,21 @@ describe('Tag Integration test', () => {
       expect(result.datas).toHaveLength(3);
       expect(result.count).toBe(3);
     });
+
+    it('should get 1 tag with 3 in it', async () => {
+      await addDefault();
+      let result = await service.getTagsAndCountContaining('user', '3');
+      expect(result).toBeDefined();
+      expect(result.datas).toHaveLength(1);
+      expect(result.count).toBe(1);
+    });
+
+    it('should get no tags', async () => {
+      await addDefault();
+      let result = await service.getTagsAndCountContaining('user', 'ku');
+      expect(result).toBeDefined();
+      expect(result.datas).toHaveLength(0);
+      expect(result.count).toBe(0);
+    });
   });
 });

@@ -10,6 +10,7 @@ import { EnvironmentConst } from './Utils/Constants';
 import { VideoModule } from './video/video.module';
 import { TagModule } from './tag/tag.module';
 import { AggregatorModule } from './aggregator/aggregator.module';
+import { GraphqlModule } from './graphql/graphql.module';
 
 @Module({
   imports: [
@@ -36,16 +37,17 @@ import { AggregatorModule } from './aggregator/aggregator.module';
         };
       },
     }),
-    // GraphQLModule.forRoot<ApolloDriverConfig>({
-    //   driver: ApolloDriver,
-    //   autoSchemaFile: true,
-    //   playground: false, // Disable default playground
-    //   plugins: [ApolloServerPluginLandingPageLocalDefault()], // Use Apollo Sandbox
-    // }),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: true,
+      playground: false, // Disable default playground
+      plugins: [ApolloServerPluginLandingPageLocalDefault()], // Use Apollo Sandbox
+    }),
     UserModule,
     VideoModule,
     TagModule,
     AggregatorModule,
+    GraphqlModule,
   ],
 })
 export class AppModule {}
