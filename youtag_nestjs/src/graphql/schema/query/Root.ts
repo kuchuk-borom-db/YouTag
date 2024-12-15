@@ -6,7 +6,12 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { OAuthProvider } from '../../../user/api/Enums';
-import { ResponseModel, StringResponse } from '../type/Base';
+import {
+  GQL_Type_User,
+  ResponseModel,
+  ResponseModelResolver,
+  StringResponse,
+} from '../type/Base';
 import { AuthCommander } from '../../../commander/api/Services';
 
 @ObjectType()
@@ -18,7 +23,7 @@ export class PublicQueryResolver {
 
   @ResolveField(() => StringResponse, { nullable: false })
   async getOAuthLoginURL(
-    provider: OAuthProvider,
+    @Args('provider', { type: () => OAuthProvider }) provider: OAuthProvider,
   ): Promise<ResponseModel<string>> {
     const url = await this.authCommander.getOAuthLoginURL(provider);
     return {
@@ -29,25 +34,17 @@ export class PublicQueryResolver {
 }
 
 @ObjectType()
-class AuthenticatedQuery {}
+class AuthQuery {}
 
-@Resolver(() => AuthenticatedQuery)
-export class AuthenticatedQueryResolver {
-  constructor(private readonly authCommander: AuthCommander) {}
+const userResolver = ResponseModelResolver(GQL_Type_User);
 
-  //TODO move to public mutation
-  @ResolveField(() => StringResponse, { nullable: false })
-  async exchangeOAuthToken(
-    @Args('authToken') authToken: string,
-    @Args('provider') provider: OAuthProvider,
-  ): Promise<ResponseModel<string>> {
-    const token = await this.authCommander.exchangeOAuthToken(
-      authToken,
-      provider,
-    );
+@Resolver(() => AuthQuery)
+export class AuthQueryResolver {
+  @ResolveField(() => userResolver, { nullable: false })
+  getUserInfo(): ResponseModel<GQL_Type_User> {
     return {
       success: true,
-      data: token,
+      data: {},
     };
   }
 }
@@ -56,6 +53,11 @@ export class AuthenticatedQueryResolver {
 export class RootQueryResolver {
   @Query(() => PublicQuery, { name: 'public', nullable: false })
   publicEndpoint(): PublicQuery {
+    return {};
+  }
+
+  @Query(() => AuthQuery, { name: 'auth', nullable: false })
+  authEndpoint(): AuthQuery {
     return {};
   }
 }
