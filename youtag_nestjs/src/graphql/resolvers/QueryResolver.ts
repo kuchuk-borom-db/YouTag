@@ -9,6 +9,8 @@ import {
   VideosResponse,
 } from '../../graphql';
 import { AuthCommander } from '../../commander/api/Services';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../internal/infrastructure/AuthGuard';
 
 @Resolver()
 export class QueryResolver {
@@ -17,6 +19,7 @@ export class QueryResolver {
     return new PublicQuery();
   }
 
+  @UseGuards(AuthGuard)
   @Query(() => AuthQuery, { nullable: false })
   authenticatedData(): AuthQuery | Promise<AuthQuery> {
     return new AuthQuery();
@@ -47,6 +50,8 @@ export class PublicQueryResolver {
 
 @Resolver(() => AuthQuery)
 export class AuthQueryResolver {
+  constructor(private readonly authCommander: AuthCommander) {}
+
   @ResolveProperty(() => UserResponse)
   async user(): Promise<UserResponse> {
     return {
