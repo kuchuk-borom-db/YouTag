@@ -4,7 +4,7 @@ type Query {
 }
 
 type PublicQuery {
-    getOAuthLoginURL(provider: OAUTH_PROVIDER): StringResponse!
+    getOAuthLoginURL(provider: OAUTH_PROVIDER!): StringResponse!
 }
 
 type AuthQuery {

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthCommander } from './api/Services';
 import { AuthCommanderImpl } from './internal/application/AuthCommanderImpl';
+import { UserModule } from '../user/user.module';
 
 @Module({
   providers: [
@@ -10,5 +11,6 @@ import { AuthCommanderImpl } from './internal/application/AuthCommanderImpl';
     },
   ],
   exports: [AuthCommander],
+  imports: [UserModule],
 })
 export class CommanderModule {}

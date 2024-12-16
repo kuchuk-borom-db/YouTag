@@ -43,6 +43,7 @@ import * as process from 'node:process';
       typePaths: ['./**/*.graphql'],
       definitions: {
         path: path.join(process.cwd(), 'src/graphql.ts'),
+        outputAs : "class"
       },
       playground: false, // Disable default playground
       plugins: [ApolloServerPluginLandingPageLocalDefault()], // Use Apollo Sandbox

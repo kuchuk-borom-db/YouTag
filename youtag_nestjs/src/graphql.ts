@@ -12,17 +12,17 @@ export enum OAUTH_PROVIDER {
     GOOGLE = "GOOGLE"
 }
 
-export interface AddTagsToVideosInput {
+export class AddTagsToVideosInput {
     videoIds: string[];
     tagNames: string[];
 }
 
-export interface RemoveTagsFromVideosInput {
+export class RemoveTagsFromVideosInput {
     videoIds: string[];
     tagNames: string[];
 }
 
-export interface RemoveVideosInput {
+export class RemoveVideosInput {
     videoIds: string[];
 }
 
@@ -31,79 +31,82 @@ export interface ResponseModel {
     message?: Nullable<string>;
 }
 
-export interface IMutation {
-    public(): PublicMutation | Promise<PublicMutation>;
-    auth(): AuthMutation | Promise<AuthMutation>;
+export abstract class IMutation {
+    abstract public(): PublicMutation | Promise<PublicMutation>;
+
+    abstract auth(): AuthMutation | Promise<AuthMutation>;
 }
 
-export interface PublicMutation {
+export class PublicMutation {
     exchangeOAuthTokenForAccessToken?: StringResponse;
 }
 
-export interface AuthMutation {
+export class AuthMutation {
     addTagsToVideos?: ResponseModel;
     removeTagsFromVideos?: ResponseModel;
     removeVideos?: ResponseModel;
 }
 
-export interface IQuery {
-    publicData(): PublicQuery | Promise<PublicQuery>;
-    authenticatedData(): AuthQuery | Promise<AuthQuery>;
+export abstract class IQuery {
+    abstract publicData(): PublicQuery | Promise<PublicQuery>;
+
+    abstract authenticatedData(): AuthQuery | Promise<AuthQuery>;
 }
 
-export interface PublicQuery {
+export class PublicQuery {
     getOAuthLoginURL?: StringResponse;
 }
 
-export interface AuthQuery {
+export class AuthQuery {
     user: UserResponse;
     tags?: TagsResponse;
     videos?: VideosResponse;
 }
 
-export interface StringResponse extends ResponseModel {
+export class StringResponse implements ResponseModel {
     data: string;
     message?: Nullable<string>;
     success: boolean;
 }
 
-export interface UserResponse extends ResponseModel {
+export class UserResponse implements ResponseModel {
     success: boolean;
     message?: Nullable<string>;
     data?: Nullable<User>;
 }
 
-export interface TagsResponse extends ResponseModel {
+export class TagsResponse implements ResponseModel {
     message?: Nullable<string>;
     success: boolean;
     data?: Nullable<Nullable<Tag>[]>;
 }
 
-export interface VideosResponse extends ResponseModel {
+export class VideosResponse implements ResponseModel {
     message?: Nullable<string>;
     success: boolean;
     data?: Nullable<Nullable<Video>[]>;
 }
 
-export interface User {
+export class User {
     name: string;
     email: string;
     thumbnail: string;
-    tags?: Nullable<Nullable<Tag>[]>;
+    tags?: Nullable<Tag[]>;
+    videos?: Nullable<Video[]>;
 }
 
-export interface Tag {
+export class Tag {
     name: string;
-    videosWithTag?: Nullable<Nullable<Video>[]>;
+    videosWithTag?: Nullable<Video[]>;
 }
 
-export interface Video {
+export class Video {
     id: string;
     title: string;
     author: string;
     authorUrl: string;
     thumbnail: string;
-    associatedTags?: Nullable<Nullable<Tag>[]>;
+    associatedTags?: Nullable<Tag[]>;
 }
 
 type Nullable<T> = T | null;
