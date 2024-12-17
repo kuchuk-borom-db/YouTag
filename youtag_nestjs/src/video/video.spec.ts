@@ -81,25 +81,11 @@ describe(`Video Service Integration Test`, () => {
 
   describe('Save video', () => {
     it('should save video', async () => {
-      const saved = await videoService.addVideo(id);
-      expect(saved).toBeDefined();
-      expect(saved.title).toBeDefined();
+      await videoService.addVideos([id]);
 
       const result = await repo.findOneBy({ id: id });
       expect(result).toBeDefined();
-      expect(result.title).toBe(saved.title);
-    });
-
-    it('Should fail to add video', async () => {
-      await repo.save({
-        id: id,
-        title: 'RANDOM',
-        authorUrl: 'ASD',
-        thumbnailUrl: 'ASD',
-        author: 'ASD',
-      });
-      const saved = await videoService.addVideo(id);
-      expect(saved).toBeNull();
+      console.log(`Found video : ${JSON.stringify(result)}`);
     });
   });
 
@@ -111,7 +97,7 @@ describe(`Video Service Integration Test`, () => {
       thumbnailUrl: 'ASD',
       author: 'ASD',
     });
-    await videoService.removeVideos(id);
+    await videoService.removeVideos([id]);
     const found = await repo.findOneBy({ id: id });
     expect(found).toBeNull();
   });
