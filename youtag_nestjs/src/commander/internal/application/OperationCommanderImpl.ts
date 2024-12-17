@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { VideoService } from '../../../video/api/Services';
 import { TagService } from '../../../tag/api/Services';
 import { OperationCommander } from '../../api/Services';
+import { DataAndTotalCount } from '../../../Utils/Models';
+import { VideoDTO } from '../../../video/api/DTOs';
 
 @Injectable()
 export class OperationCommanderImpl extends OperationCommander {
@@ -72,5 +74,73 @@ export class OperationCommanderImpl extends OperationCommander {
       `Removing videos ${videoIds} as they are not used by any user`,
     );
     await this.videoService.removeVideos(videosNotInUse);
+  }
+
+  async getVideosOfUser(
+    skip: number,
+    limit: number,
+    containing: string[],
+    userId: string,
+  ): Promise<DataAndTotalCount<VideoDTO>> {
+    this.log.debug(
+      `Getting videos of user skip ${skip}, limit ${limit}, containing tags ${containing}, for user ${userId}`,
+    );
+    let data: DataAndTotalCount<string>;
+    if (containing.length == 0) {
+      this.log.debug('Getting all tagged videos of user');
+      data = await this.tagService.getTaggedVideosOfUser(userId, {
+        skip: skip,
+        limit: limit,
+      });
+    } else {
+      this.log.debug(
+        `Getting all tagged videos of user containing ${containing}`,
+      );
+      data = await this.tagService.getVideoIdsAndCountWithTags(
+        userId,
+        containing,
+        {
+          skip: skip,
+          limit: limit,
+        },
+      );
+    }
+
+    let videoInfo: DataAndTotalCount<VideoDTO>;
+    const videoInfos: VideoDTO[] = await Promise.all(
+      data.datas.map((value) => this.videoService.getVideoById(value)),
+    );
+
+    videoInfo = {
+      datas: videoInfos,
+      count: data.count,
+    };
+
+    return videoInfo;
+  }
+
+  async getTagsOfUser(
+    userId: string,
+    skip: number,
+    limit: number,
+    contains?: string,
+  ): Promise<DataAndTotalCount<string>> {
+    this.log.debug(
+      `Get tags of user ${userId} skip ${skip} and limit ${limit} and contains ${contains}`,
+    );
+
+    let data: DataAndTotalCount<string>;
+
+    if (!contains) {
+      this.log.debug('Getting all tags of user');
+      data = await this.tagService.getTagsAndCountOfUser(userId, {
+        skip: skip,
+        limit: limit,
+      });
+    } else {
+      this.log.debug(`Getting tags of user containing ${contains} tags`);
+      data = await this.tagService.getTagsAndCountContaining(userId, contains);
+    }
+    return data;
   }
 }

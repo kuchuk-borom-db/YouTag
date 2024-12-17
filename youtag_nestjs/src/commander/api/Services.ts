@@ -1,5 +1,7 @@
 import { OAUTH_PROVIDER } from '../../graphql';
 import { UserDTO } from '../../user/api/DTOs';
+import { DataAndTotalCount } from '../../Utils/Models';
+import { VideoDTO } from '../../video/api/DTOs';
 
 /**
  * Operations related to User and auth
@@ -46,4 +48,31 @@ export abstract class OperationCommander {
    */
   abstract removeVideos(videoIds: string[], userId: string): Promise<void>;
 
+  /**
+   *
+   * @param skip how many to skip
+   * @param limit how many to limit
+   * @param containing tags the videos need to have
+   * @param userId userId
+   */
+  abstract getVideosOfUser(
+    skip: number,
+    limit: number,
+    containing: string[],
+    userId: string,
+  ): Promise<DataAndTotalCount<VideoDTO>>;
+
+  /**
+   * Get tags of user
+   * @param userId userId to get tags of
+   * @param skip how many to skip
+   * @param limit how many to limit to
+   * @param contains keywords the tags need to contain
+   */
+  abstract getTagsOfUser(
+    userId: string,
+    skip: number,
+    limit: number,
+    contains?: string,
+  ): Promise<DataAndTotalCount<string>>;
 }
