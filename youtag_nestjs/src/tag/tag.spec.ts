@@ -6,6 +6,7 @@ import TagServiceImpl from './internal/application/TagServiceImpl';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EnvironmentConst } from '../Utils/Constants';
+import { CacheModule } from '@nestjs/cache-manager';
 
 describe('Tag Integration test', () => {
   let service: TagService;
@@ -39,6 +40,7 @@ describe('Tag Integration test', () => {
         },
       ],
       imports: [
+        CacheModule.register(),
         await ConfigModule.forRoot({}),
         TypeOrmModule.forRootAsync({
           imports: [ConfigModule],

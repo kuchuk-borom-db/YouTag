@@ -1,13 +1,16 @@
 import { VideoService } from '../../api/Services';
-import { Logger } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { VideoEntity } from '../domain/Entities';
 import { Repository } from 'typeorm';
 import { VideoDTO } from 'src/video/api/DTOs';
 import { VideoInfoModel } from '../domain/Models';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 export default class VideoServiceImpl extends VideoService {
   constructor(
+    @Inject(CACHE_MANAGER) private cache: Cache,
     @InjectRepository(VideoEntity) private repo: Repository<VideoEntity>,
   ) {
     super();
@@ -53,6 +56,9 @@ export default class VideoServiceImpl extends VideoService {
 
   async removeVideos(videoId: string[]): Promise<void> {
     this.log.debug(`Remove video ${videoId}`);
+    for (const vid in videoId) {
+      await this.cache.del(this.getVideoCacheKey(vid));
+    }
     if (videoId.length <= 0) {
       this.log.debug(`Video is empty`);
       return;
@@ -62,20 +68,30 @@ export default class VideoServiceImpl extends VideoService {
 
   async getVideoById(id: string): Promise<VideoDTO | null> {
     try {
-      this.log.debug(`Getting video ${id}`);
+      const cacheVideo = await this.cache.get<VideoDTO>(
+        this.getVideoCacheKey(id),
+      );
+      if (cacheVideo) {
+        this.log.debug(`Video found in Cache ${cacheVideo}`);
+        return cacheVideo;
+      }
+      this.log.debug(`Getting video ${id} rom database`);
       const vid = await this.repo.findOneBy({ id: id });
       if (!vid) {
         this.log.warn(`Video ${id} not found`);
         return null;
       }
       this.log.debug(`Got video ${vid}`);
-      return {
+      const dbVid: VideoDTO = {
         author: vid.author,
         authorUrl: vid.authorUrl,
         videoId: id,
         title: vid.title,
         thumbnailUrl: vid.thumbnailUrl,
       };
+      this.log.debug(`Got video ${vid}. Caching it.`);
+      await this.cache.set(this.getVideoCacheKey(id), dbVid);
+      return dbVid;
     } catch (err) {
       this.log.error(`Error at getVideoByID ${err}`);
       return null;
@@ -98,5 +114,9 @@ export default class VideoServiceImpl extends VideoService {
       thumbnailUrl: jsonResp['thumbnail_url'],
       title: jsonResp['title'],
     };
+  }
+
+  private getVideoCacheKey(videoId: string): string {
+    return `VIDEO_${videoId}`;
   }
 }

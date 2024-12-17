@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EnvironmentConst } from '../Utils/Constants';
 import { DataSource, In, Repository } from 'typeorm';
 import { VideoEntity } from './internal/domain/Entities';
+import { CacheModule } from '@nestjs/cache-manager';
 
 describe(`Video Service Integration Test`, () => {
   let videoService: VideoService;
@@ -20,6 +21,7 @@ describe(`Video Service Integration Test`, () => {
         },
       ],
       imports: [
+        CacheModule.register(),
         await ConfigModule.forRoot(),
         TypeOrmModule.forRootAsync({
           imports: [ConfigModule],

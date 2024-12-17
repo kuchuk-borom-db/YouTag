@@ -5,17 +5,19 @@ import { EnvironmentConst } from '../Utils/Constants';
 import { UserEntity } from './internal/domain/Entities';
 import UserServiceImpl from './internal/application/UserServiceImpl';
 import { DataSource } from 'typeorm';
-import { AuthJwtService, AuthService, UserService } from './api/Services';
+import { AuthJwtService, AuthService } from './api/Services';
 import { AuthJwtServiceImpl } from './internal/application/AuthJWTServiceImpl';
 import { JwtModule } from '@nestjs/jwt';
 import { GoogleAuthServiceImpl } from './internal/application/GoogleOAuthService';
+import { CacheModule } from '@nestjs/cache-manager';
 
-describe(`${UserService.name}_Integration`, () => {
+describe(`User Service Integration TEST`, () => {
   let service: UserServiceImpl;
   let db: DataSource;
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       imports: [
+        CacheModule.register(),
         //Imports for Database to be configured and injected
         await ConfigModule.forRoot(),
         TypeOrmModule.forRootAsync({
@@ -171,7 +173,8 @@ describe(`${AuthService.name}`, () => {
   });
 
   it('Should get user info', async () => {
-    const code = '4/0AanRRrvL-YkB3_eI4bA2rfjRUoqOyJJVv7glXD-GQpuOHiKI3glLTHG38cpxvVbX17ipnw\n';
+    const code =
+      '4/0AanRRrvL-YkB3_eI4bA2rfjRUoqOyJJVv7glXD-GQpuOHiKI3glLTHG38cpxvVbX17ipnw\n';
     const userInfo = await authService.getOAuthUserInfo(code);
     console.log(userInfo);
     expect(userInfo).toBeDefined();

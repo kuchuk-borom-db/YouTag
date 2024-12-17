@@ -12,9 +12,11 @@ import { GraphqlModule } from './graphql/graphql.module';
 import { CommanderModule } from './commander/commander.module';
 import * as path from 'node:path';
 import * as process from 'node:process';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
+    CacheModule.register(),
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
@@ -43,7 +45,7 @@ import * as process from 'node:process';
       typePaths: ['./**/*.graphql'],
       definitions: {
         path: path.join(process.cwd(), 'src/graphql.ts'),
-        outputAs : "class"
+        outputAs: 'class',
       },
       playground: false, // Disable default playground
       plugins: [ApolloServerPluginLandingPageLocalDefault()], // Use Apollo Sandbox
