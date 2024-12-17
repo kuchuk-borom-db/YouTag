@@ -6,7 +6,12 @@ import TagServiceImpl from './internal/application/TagServiceImpl';
 import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TagEntity]), CacheModule],
+  imports: [
+    TypeOrmModule.forFeature([TagEntity]),
+    CacheModule.register({
+      ttl: 240,
+    }),
+  ],
   providers: [
     {
       provide: TagService,

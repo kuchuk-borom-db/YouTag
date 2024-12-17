@@ -6,7 +6,12 @@ import { VideoEntity } from './internal/domain/Entities';
 import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([VideoEntity]), CacheModule],
+  imports: [
+    TypeOrmModule.forFeature([VideoEntity]),
+    CacheModule.register({
+      ttl: 120,
+    }),
+  ],
   providers: [
     {
       provide: VideoService,

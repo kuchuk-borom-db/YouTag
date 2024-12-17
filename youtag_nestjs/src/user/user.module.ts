@@ -24,7 +24,13 @@ import { CacheModule } from '@nestjs/cache-manager';
       useClass: UserServiceImpl,
     },
   ],
-  imports: [JwtModule, TypeOrmModule.forFeature([UserEntity]), CacheModule],
+  imports: [
+    JwtModule,
+    TypeOrmModule.forFeature([UserEntity]),
+    CacheModule.register({
+      ttl: 240,
+    }),
+  ],
   exports: [AuthJwtService, AuthService, UserService],
 })
 export class UserModule {}
