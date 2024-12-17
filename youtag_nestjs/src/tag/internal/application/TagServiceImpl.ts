@@ -289,9 +289,16 @@ export default class TagServiceImpl extends TagService {
       const baseQuery = this.repo
         .createQueryBuilder('entity')
         .select('DISTINCT entity.video_id', 'videoId')
-        .where('entity.user_id = :userId', { userId });
+        .where('entity.user_id = :userId', { userId })
+        .groupBy('entity.video_id');
 
-      const count = await baseQuery.getCount();
+      const count = parseInt((
+        await this.repo
+          .createQueryBuilder('entity')
+          .select('COUNT(DISTINCT entity.video_id)', 'count')
+          .where('entity.user_id = :userId', { userId: userId })
+          .getRawOne()
+      ).count);
       if (pagination) {
         baseQuery.skip(pagination.skip).take(pagination.limit);
       }

@@ -255,6 +255,14 @@ describe('Tag Integration test', () => {
     });
   });
 
+  it('Should get all videos of user', async () => {
+    await addDefault();
+    const videos = await service.getTaggedVideosOfUser('user');
+    expect(videos).toBeDefined();
+    expect(videos.datas).toHaveLength(3);
+    expect(videos.count).toBe(3);
+  });
+
   it('remove all tags from videos test', async () => {
     await addDefault();
     await service.removeAllTagsFromVideos('user', ['video_1']);
