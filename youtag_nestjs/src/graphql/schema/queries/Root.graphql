@@ -1,0 +1,16 @@
+type Query {
+    publicData: PublicQuery!
+    authenticatedData: AuthQuery!
+}
+
+type PublicQuery {
+    getOAuthLoginURL(provider: OAUTH_PROVIDER!): StringResponse!
+}
+
+type AuthQuery {
+    user: UserResponse!
+}
+
+enum OAUTH_PROVIDER {
+    GOOGLE
+}

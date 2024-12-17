@@ -6,6 +6,7 @@ import TagServiceImpl from './internal/application/TagServiceImpl';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EnvironmentConst } from '../Utils/Constants';
+import { CacheModule } from '@nestjs/cache-manager';
 
 describe('Tag Integration test', () => {
   let service: TagService;
@@ -39,6 +40,7 @@ describe('Tag Integration test', () => {
         },
       ],
       imports: [
+        CacheModule.register(),
         await ConfigModule.forRoot({}),
         TypeOrmModule.forRootAsync({
           imports: [ConfigModule],
@@ -237,5 +239,54 @@ describe('Tag Integration test', () => {
       expect(result.datas).toHaveLength(3);
       expect(result.count).toBe(3);
     });
+
+    it('should get 1 tag with 3 in it', async () => {
+      await addDefault();
+      let result = await service.getTagsAndCountContaining('user', '3');
+      expect(result).toBeDefined();
+      expect(result.datas).toHaveLength(1);
+      expect(result.count).toBe(1);
+    });
+
+    it('should get no tags', async () => {
+      await addDefault();
+      let result = await service.getTagsAndCountContaining('user', 'ku');
+      expect(result).toBeDefined();
+      expect(result.datas).toHaveLength(0);
+      expect(result.count).toBe(0);
+    });
+  });
+
+  it('Should get all videos of user', async () => {
+    await addDefault();
+    const videos = await service.getTaggedVideosOfUser('user');
+    expect(videos).toBeDefined();
+    expect(videos.datas).toHaveLength(3);
+    expect(videos.count).toBe(3);
+  });
+
+  it('remove all tags from videos test', async () => {
+    await addDefault();
+    await service.removeAllTagsFromVideos('user', ['video_1']);
+    const data = await repo.findBy({
+      userId: 'user',
+      videoId: 'video_1',
+    });
+    expect(data).toHaveLength(0);
+  });
+
+  it('Get videos not in use test', async () => {
+    await addDefault();
+    await service.removeAllTagsFromVideos('user', ['video_1']);
+    let notUsedVideos = await service.getVideosNotInUse([
+      'video_1',
+      'video_2',
+      'video_3',
+    ]);
+    expect(notUsedVideos.length).toBe(1);
+    expect(notUsedVideos.includes('video_1')).toBe(true);
+
+    notUsedVideos = await service.getVideosNotInUse(['video_2', 'video_3']);
+    expect(notUsedVideos.length).toBe(0);
   });
 });

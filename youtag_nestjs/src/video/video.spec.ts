@@ -4,8 +4,9 @@ import VideoServiceImpl from './internal/application/VideoServiceImpl';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EnvironmentConst } from '../Utils/Constants';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { VideoEntity } from './internal/domain/Entities';
+import { CacheModule } from '@nestjs/cache-manager';
 
 describe(`Video Service Integration Test`, () => {
   let videoService: VideoService;
@@ -20,6 +21,7 @@ describe(`Video Service Integration Test`, () => {
         },
       ],
       imports: [
+        CacheModule.register(),
         await ConfigModule.forRoot(),
         TypeOrmModule.forRootAsync({
           imports: [ConfigModule],
@@ -51,7 +53,7 @@ describe(`Video Service Integration Test`, () => {
   });
 
   afterEach(async () => {
-    await repo.delete(id);
+    await repo.delete([id, 'E8zHW9nUkho', '0_utgk6tuQc']);
   });
 
   afterAll(async () => {
@@ -81,25 +83,14 @@ describe(`Video Service Integration Test`, () => {
 
   describe('Save video', () => {
     it('should save video', async () => {
-      const saved = await videoService.addVideo(id);
-      expect(saved).toBeDefined();
-      expect(saved.title).toBeDefined();
+      await videoService.addVideos([id, 'E8zHW9nUkho', '0_utgk6tuQc']);
 
-      const result = await repo.findOneBy({ id: id });
-      expect(result).toBeDefined();
-      expect(result.title).toBe(saved.title);
-    });
-
-    it('Should fail to add video', async () => {
-      await repo.save({
-        id: id,
-        title: 'RANDOM',
-        authorUrl: 'ASD',
-        thumbnailUrl: 'ASD',
-        author: 'ASD',
+      const result = await repo.findBy({
+        id: In([id, 'E8zHW9nUkho', '0_utgk6tuQc']),
       });
-      const saved = await videoService.addVideo(id);
-      expect(saved).toBeNull();
+      expect(result).toBeDefined();
+      expect(result).toHaveLength(3);
+      console.log(`Found video : ${JSON.stringify(result)}`);
     });
   });
 
@@ -111,7 +102,7 @@ describe(`Video Service Integration Test`, () => {
       thumbnailUrl: 'ASD',
       author: 'ASD',
     });
-    await videoService.removeVideo(id);
+    await videoService.removeVideos([id]);
     const found = await repo.findOneBy({ id: id });
     expect(found).toBeNull();
   });

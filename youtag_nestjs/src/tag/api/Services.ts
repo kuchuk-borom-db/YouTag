@@ -25,6 +25,11 @@ export abstract class TagService {
     tags: string[],
   ): Promise<void>;
 
+  abstract removeAllTagsFromVideos(
+    userId: string,
+    videoId: string[],
+  ): Promise<void>;
+
   /**
    * Get combined tags of the videos and total count
    * @param userId
@@ -95,4 +100,11 @@ export abstract class TagService {
       limit: number;
     },
   ): Promise<DataAndTotalCount<string> | null>;
+
+  /**
+   * Check if videos are being used by any user
+   * @param videoIds video ids to check
+   * @return {string[]} list of videos that are not being used
+   */
+  abstract getVideosNotInUse(videoIds: string[]): Promise<string[]>;
 }

@@ -3,16 +3,23 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EnvironmentConst } from './Utils/Constants';
 import { VideoModule } from './video/video.module';
 import { TagModule } from './tag/tag.module';
-import { AggregatorModule } from './aggregator/aggregator.module';
+import { GraphqlModule } from './graphql/graphql.module';
+import { CommanderModule } from './commander/commander.module';
+import * as path from 'node:path';
+import * as process from 'node:process';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 1000,
+    }),
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
@@ -36,16 +43,21 @@ import { AggregatorModule } from './aggregator/aggregator.module';
         };
       },
     }),
-    // GraphQLModule.forRoot<ApolloDriverConfig>({
-    //   driver: ApolloDriver,
-    //   autoSchemaFile: true,
-    //   playground: false, // Disable default playground
-    //   plugins: [ApolloServerPluginLandingPageLocalDefault()], // Use Apollo Sandbox
-    // }),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      typePaths: ['./**/*.graphql'],
+      definitions: {
+        path: path.join(process.cwd(), 'src/graphql.ts'),
+        outputAs: 'class',
+      },
+      playground: false, // Disable default playground
+      plugins: [ApolloServerPluginLandingPageLocalDefault()], // Use Apollo Sandbox
+    }),
     UserModule,
     VideoModule,
     TagModule,
-    AggregatorModule,
+    GraphqlModule,
+    CommanderModule,
   ],
 })
 export class AppModule {}
