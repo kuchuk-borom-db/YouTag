@@ -1,9 +1,9 @@
 import { VideoDTO } from './DTOs';
 
 export abstract class VideoService {
-  abstract addVideo(videoId: string): Promise<VideoDTO>;
+  abstract addVideos(videoIds: string[]): Promise<void>;
 
-  abstract removeVideo(videoId: string): Promise<void>;
+  abstract removeVideos(videoIds: string[]): Promise<void>;
 
   abstract getVideoById(id: string): Promise<VideoDTO | null>;
 }

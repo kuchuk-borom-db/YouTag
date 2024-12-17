@@ -17,43 +17,39 @@ export default class VideoServiceImpl extends VideoService {
     'https://noembed.com/embed?url=https://www.youtube.com/watch?v=';
   private log = new Logger(VideoServiceImpl.name);
 
-  async addVideo(videoId: string): Promise<VideoDTO> {
+  async addVideos(videoIds: string[]): Promise<void> {
     try {
-      this.log.debug(`Adding new video to database ${videoId}`);
-      //Check if video is already saved
-      const existingVideo = await this.getVideoById(videoId);
-      if (existingVideo) {
-        this.log.error(`Video ${videoId} already saved`);
-        return null;
+      this.log.debug(`Adding new videos to database ${videoIds}`);
+      //TODO Any way to skip iterating and add in bulk while getting info? Maybe updating info only when we need to get the video?
+      for (const videoId of videoIds) {
+        //Check if video is already saved
+        const existingVideo = await this.getVideoById(videoId);
+        if (existingVideo) {
+          this.log.error(`Video ${videoId} already saved`);
+          continue;
+        }
+        //Get video info and save it
+        const vidInfo = await this.getVideoInfo(videoId);
+        if (!vidInfo) {
+          this.log.error(`Failed to get video info ${videoId}`);
+          continue;
+        }
+        //Save video
+        await this.repo.save({
+          author: vidInfo.channel,
+          authorUrl: vidInfo.channelUrl,
+          title: vidInfo.title,
+          thumbnailUrl: vidInfo.thumbnailUrl,
+          id: videoId,
+        });
       }
-      //Get video info and save it
-      const vidInfo = await this.getVideoInfo(videoId);
-      if (!vidInfo) {
-        this.log.error(`Failed to get video info ${videoId}`);
-        return null;
-      }
-      //Save video
-      const saved = await this.repo.save({
-        author: vidInfo.channel,
-        authorUrl: vidInfo.channelUrl,
-        title: vidInfo.title,
-        thumbnailUrl: vidInfo.thumbnailUrl,
-        id: videoId,
-      });
-      return {
-        author: saved.author,
-        authorUrl: saved.authorUrl,
-        videoId: saved.id,
-        title: saved.title,
-        thumbnailUrl: saved.thumbnailUrl,
-      };
     } catch (err) {
-      this.log.error(`Error at addVideo ${err}`);
+      this.log.error(`Error at addVideos ${err}`);
       return null;
     }
   }
 
-  async removeVideo(videoId: string): Promise<void> {
+  async removeVideos(videoId: string[]): Promise<void> {
     this.log.debug(`Remove video ${videoId}`);
     await this.repo.delete(videoId);
   }

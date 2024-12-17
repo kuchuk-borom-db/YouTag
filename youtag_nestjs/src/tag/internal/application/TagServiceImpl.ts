@@ -58,6 +58,28 @@ export default class TagServiceImpl extends TagService {
     }
   }
 
+  async removeAllTagsFromVideos(
+    userId: string,
+    videoId: string[],
+  ): Promise<void> {
+    try {
+      this.log.debug(
+        `Removing all tags from videos ${videoId} of user ${userId}`,
+      );
+
+      const result = await this.repo
+        .createQueryBuilder('entity')
+        .delete()
+        .where('entity.user_id = :id', { id: userId })
+        .andWhere('entity.video_id IN (:...vids)', { vids: videoId })
+        .execute();
+
+      this.log.debug(`Removed ${result.affected} tag entries`);
+    } catch (error) {
+      this.log.error(`Error removing tags from videos: ${error}`);
+    }
+  }
+
   async getTagsAndCountOfVideo(
     userId: string,
     videoId: string[],
@@ -335,6 +357,22 @@ export default class TagServiceImpl extends TagService {
         error,
       );
       return null;
+    }
+  }
+
+  async getVideosNotInUse(videoIds: string[]): Promise<string[]> {
+    try {
+      this.log.debug(`Getting videos not in use from list ${videoIds}`);
+      const rawVideos = await this.repo
+        .createQueryBuilder('entity')
+        .select('DISTINCT entity.video_id', 'videoId')
+        .where('entity.video_id = :videoIds', { videoIds: videoIds })
+        .getRawMany();
+      const foundVideos: string[] = rawVideos.map((r) => r.videoId);
+      return videoIds.filter((v) => !foundVideos.includes(v));
+    } catch (error) {
+      this.log.error(`Error getting videos not in use ${error}`);
+      return [];
     }
   }
 }

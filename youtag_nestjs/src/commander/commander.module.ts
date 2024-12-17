@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
-import { AuthCommander, TagCommander, VideoCommander } from './api/Services';
+import { AuthCommander, OperationCommander } from './api/Services';
 import { AuthCommanderImpl } from './internal/application/AuthCommanderImpl';
 import { UserModule } from '../user/user.module';
-import { TagCommanderImpl } from './internal/application/TagCommanderImpl';
-import { VideoCommanderImpl } from './internal/application/VideoCommanderImpl';
+import { OperationCommanderImpl } from './internal/application/OperationCommanderImpl';
+import { TagModule } from '../tag/tag.module';
+import { VideoModule } from '../video/video.module';
 
 @Module({
-  exports: [AuthCommander, TagCommander, VideoCommander],
-  imports: [UserModule],
+  exports: [AuthCommander, OperationCommander],
+  imports: [UserModule, TagModule, VideoModule],
   providers: [
     {
       provide: AuthCommander,
@@ -15,12 +16,8 @@ import { VideoCommanderImpl } from './internal/application/VideoCommanderImpl';
     },
 
     {
-      provide: TagCommander,
-      useClass: TagCommanderImpl,
-    },
-    {
-      provide: VideoCommander,
-      useClass: VideoCommanderImpl,
+      provide: OperationCommander,
+      useClass: OperationCommanderImpl,
     },
   ],
 })

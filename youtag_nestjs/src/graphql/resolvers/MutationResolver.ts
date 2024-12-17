@@ -1,4 +1,10 @@
-import { Args, Mutation, ResolveField, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Context,
+  Mutation,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
 import {
   AddTagsToVideosInput,
   AuthMutation,
@@ -11,11 +17,11 @@ import {
 } from '../../graphql';
 import {
   AuthCommander,
-  TagCommander,
-  VideoCommander,
+  OperationCommander,
 } from '../../commander/api/Services';
 import { Logger, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../internal/infrastructure/AuthGuard';
+import { UserDTO } from '../../user/api/DTOs';
 
 @Resolver()
 export class MutationResolver {
@@ -65,22 +71,31 @@ export class PublicMutationResolver {
 
 @Resolver(() => AuthMutation)
 export class AuthMutationResolver {
-  constructor(
-    private readonly tagVideoCommander: TagCommander,
-    videoCommander: VideoCommander,
-  ) {}
+  constructor(private readonly opCom: OperationCommander) {}
 
   private log = new Logger(AuthMutationResolver.name);
 
   @ResolveField(() => NoDataResponse)
   async addTagsToVideos(
     @Args('input') input: AddTagsToVideosInput,
+    @Context() context: any,
   ): Promise<NoDataResponse> {
-    this.log.debug(`AddTagsToVideos ${JSON.stringify(input)}`);
-    return {
-      message: 'Added tags to videos',
-      success: true,
-    };
+    try {
+      const user: UserDTO = context.req.user as UserDTO;
+      this.log.debug(
+        `AddTagsToVideos ${JSON.stringify(input)} for user ${user.id}`,
+      );
+      return {
+        message: 'Added tags to videos',
+        success: true,
+      };
+    } catch (error) {
+      this.log.error('Error at addTagsToVideos', error);
+      return {
+        message: error,
+        success: false,
+      };
+    }
   }
 
   @ResolveField(() => NoDataResponse)

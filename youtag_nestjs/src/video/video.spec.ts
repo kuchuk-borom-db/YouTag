@@ -111,7 +111,7 @@ describe(`Video Service Integration Test`, () => {
       thumbnailUrl: 'ASD',
       author: 'ASD',
     });
-    await videoService.removeVideo(id);
+    await videoService.removeVideos(id);
     const found = await repo.findOneBy({ id: id });
     expect(found).toBeNull();
   });
