@@ -1,4 +1,4 @@
-import { Args, Query, ResolveProperty, Resolver } from '@nestjs/graphql';
+import { Args, Query, ResolveField, ResolveProperty, Resolver } from '@nestjs/graphql';
 import {
   AuthQuery,
   OAUTH_PROVIDER,
@@ -30,7 +30,7 @@ export class QueryResolver {
 export class PublicQueryResolver {
   constructor(private readonly authCommander: AuthCommander) {}
 
-  @ResolveProperty(() => StringResponse)
+  @ResolveField(() => StringResponse)
   async getOAuthLoginURL(
     @Args() provider: OAUTH_PROVIDER,
   ): Promise<StringResponse> {
@@ -52,7 +52,7 @@ export class PublicQueryResolver {
 export class AuthQueryResolver {
   constructor(private readonly authCommander: AuthCommander) {}
 
-  @ResolveProperty(() => UserResponse)
+  @ResolveField(() => UserResponse)
   async user(): Promise<UserResponse> {
     return {
       success: true,
@@ -65,7 +65,7 @@ export class AuthQueryResolver {
     };
   }
 
-  @ResolveProperty(() => TagsResponse)
+  @ResolveField(() => TagsResponse)
   async tags(): Promise<TagsResponse> {
     return {
       success: true,
@@ -73,7 +73,7 @@ export class AuthQueryResolver {
     };
   }
 
-  @ResolveProperty(() => VideosResponse)
+  @ResolveField(() => VideosResponse)
   async videos(): Promise<VideosResponse> {
     return {
       success: true,

@@ -1,9 +1,13 @@
-import { Args, Parent, ResolveField, ResolveProperty, Resolver } from '@nestjs/graphql';
+import { Args, Parent, ResolveField, Resolver } from '@nestjs/graphql';
 import { Tag, User, Video } from '../../graphql';
 
 @Resolver()
 export class GenericResolver {
-  private generateMockData(parentType: any, type: 'tags' | 'videos', args?: any): any[] {
+  private generateMockData(
+    parentType: any,
+    type: 'tags' | 'videos',
+    args?: any,
+  ): any[] {
     const items: any[] = [];
     const parentIdentifier = parentType.name || parentType.title || 'Unknown';
 
@@ -30,7 +34,7 @@ export class GenericResolver {
     parent: User | Video | Tag,
     skip?: number,
     limit?: number,
-    contains?: string
+    contains?: string,
   ): Tag[] {
     return this.generateMockData(parent, 'tags');
   }
@@ -40,7 +44,7 @@ export class GenericResolver {
     parent: User | Tag | Video,
     skip?: number,
     limit?: number,
-    contains?: string
+    contains?: string,
   ): Video[] {
     return this.generateMockData(parent, 'videos');
   }
@@ -49,7 +53,7 @@ export class GenericResolver {
 // Separate resolvers for each type
 @Resolver(User)
 export class UserResolver extends GenericResolver {
-  @ResolveProperty(() => [Tag])
+  @ResolveField(() => [Tag])
   async tags(
     @Parent() parent: User,
     @Args('skip', { nullable: true }) skip?: number,
@@ -59,7 +63,7 @@ export class UserResolver extends GenericResolver {
     return this.resolveGenericTags(parent, skip, limit, contains);
   }
 
-  @ResolveProperty(() => [Video])
+  @ResolveField(() => [Video])
   async videos(
     @Parent() parent: User,
     @Args('skip', { nullable: true }) skip?: number,
@@ -72,7 +76,7 @@ export class UserResolver extends GenericResolver {
 
 @Resolver(Tag)
 export class TagResolver extends GenericResolver {
-  @ResolveProperty(() => [Video])
+  @ResolveField(() => [Video])
   async videosWithTag(
     @Parent() parent: Tag,
     @Args('skip', { nullable: true }) skip?: number,
@@ -84,7 +88,7 @@ export class TagResolver extends GenericResolver {
 
 @Resolver(Video)
 export class VideoResolver extends GenericResolver {
-  @ResolveProperty(() => [Tag])
+  @ResolveField(() => [Tag])
   async associatedTags(
     @Parent() parent: Video,
     @Args('skip', { nullable: true }) skip?: number,

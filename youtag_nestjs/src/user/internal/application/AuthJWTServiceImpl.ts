@@ -44,8 +44,8 @@ export class AuthJwtServiceImpl implements AuthJwtService {
         secret: this.env.get<string>(EnvironmentConst.JWT.Secret),
         algorithms: ['HS256'],
       });
-      this.log.debug(`JWT token verified successfully for user ${decoded.sub}`);
-      return decoded.sub; // Return userId from the subject
+      this.log.debug(`JWT token verified successfully for user ${decoded.subject}`);
+      return decoded.subject; // Return userId from the subject
     } catch (error) {
       this.log.error(`JWT token verification failed: ${error.message}`);
       return null;

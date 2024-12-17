@@ -171,8 +171,9 @@ describe(`${AuthService.name}`, () => {
   });
 
   it('Should get user info', async () => {
-    const code = '4/0AanRRrtaIf6PCt3JMdSH-RzigZnhCiuypT3Joht5fJyeEkBR7btV2JX6bVR7UdmJUm71xA\n';
+    const code = '4/0AanRRrvL-YkB3_eI4bA2rfjRUoqOyJJVv7glXD-GQpuOHiKI3glLTHG38cpxvVbX17ipnw\n';
     const userInfo = await authService.getOAuthUserInfo(code);
+    console.log(userInfo);
     expect(userInfo).toBeDefined();
   });
 });

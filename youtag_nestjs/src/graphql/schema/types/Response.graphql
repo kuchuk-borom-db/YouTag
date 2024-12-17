@@ -2,6 +2,10 @@ interface ResponseModel {
     success: Boolean!
     message: String
 }
+type NoDataResponse implements ResponseModel{
+    message: String
+    success: Boolean!
+}
 type StringResponse implements ResponseModel {
     data: String!
     message: String

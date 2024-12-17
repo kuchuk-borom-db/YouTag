@@ -11,6 +11,11 @@ import {
   UserResolver,
   VideoResolver,
 } from './resolvers/TypeResolver';
+import {
+  AuthMutationResolver,
+  MutationResolver,
+  PublicMutationResolver,
+} from './resolvers/MutationResolver';
 
 //TODO Dynamic imports of resolver using default exports
 @Module({
@@ -18,7 +23,12 @@ import {
     QueryResolver,
     PublicQueryResolver,
     AuthQueryResolver,
-    TagResolver,UserResolver,VideoResolver
+    MutationResolver,
+    PublicMutationResolver,
+    AuthMutationResolver,
+    TagResolver,
+    UserResolver,
+    VideoResolver,
   ],
   imports: [CommanderModule],
 })

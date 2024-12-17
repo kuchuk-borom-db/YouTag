@@ -42,9 +42,9 @@ export class PublicMutation {
 }
 
 export class AuthMutation {
-    addTagsToVideos?: ResponseModel;
-    removeTagsFromVideos?: ResponseModel;
-    removeVideos?: ResponseModel;
+    addTagsToVideos?: NoDataResponse;
+    removeTagsFromVideos?: NoDataResponse;
+    removeVideos?: NoDataResponse;
 }
 
 export abstract class IQuery {
@@ -61,6 +61,11 @@ export class AuthQuery {
     user: UserResponse;
     tags?: TagsResponse;
     videos?: VideosResponse;
+}
+
+export class NoDataResponse implements ResponseModel {
+    message?: Nullable<string>;
+    success: boolean;
 }
 
 export class StringResponse implements ResponseModel {

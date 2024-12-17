@@ -11,9 +11,9 @@ type PublicMutation {
 }
 
 type AuthMutation {
-    addTagsToVideos(input: AddTagsToVideosInput!): ResponseModel!
-    removeTagsFromVideos(input: RemoveTagsFromVideosInput!): ResponseModel!
-    removeVideos(input: RemoveVideosInput!): ResponseModel!
+    addTagsToVideos(input: AddTagsToVideosInput!): NoDataResponse!
+    removeTagsFromVideos(input: RemoveTagsFromVideosInput!): NoDataResponse!
+    removeVideos(input: RemoveVideosInput!): NoDataResponse!
 }
 
 # Input Types
