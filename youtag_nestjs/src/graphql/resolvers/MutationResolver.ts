@@ -101,20 +101,50 @@ export class AuthMutationResolver {
   @ResolveField(() => NoDataResponse)
   async removeTagsFromVideos(
     @Args() input: RemoveTagsFromVideosInput,
+    @Context() context: any,
   ): Promise<NoDataResponse> {
-    return {
-      message: 'WIP',
-      success: true,
-    };
+    try {
+      const user: UserDTO = context.req.user;
+      this.log.debug(
+        `Removing tags from videos ${JSON.stringify(input)} for user ${user.id}`,
+      );
+      await this.opCom.removeTagsFromVideos(
+        input.tagNames,
+        input.videoIds,
+        user.id,
+      );
+      return {
+        success: true,
+      };
+    } catch (error) {
+      this.log.error('Error at removeTagsFromVideos', error);
+      return {
+        success: false,
+        message: error,
+      };
+    }
   }
 
   @ResolveField(() => NoDataResponse)
   async removeVideos(
     @Args() input: RemoveVideosInput,
+    @Context() context: any,
   ): Promise<NoDataResponse> {
-    return {
-      message: 'WIP',
-      success: true,
-    };
+    try {
+      const user = context.req.user as UserDTO;
+      this.log.debug(
+        `Removing videos ${JSON.stringify(input)} of user ${user.id}`,
+      );
+      await this.opCom.removeVideos(input.videoIds, user.id);
+      return {
+        success: true,
+      };
+    } catch (error) {
+      this.log.error('Error at removeVideos', error);
+      return {
+        success: false,
+        message: error,
+      };
+    }
   }
 }
