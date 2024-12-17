@@ -4,7 +4,7 @@ import VideoServiceImpl from './internal/application/VideoServiceImpl';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EnvironmentConst } from '../Utils/Constants';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { VideoEntity } from './internal/domain/Entities';
 
 describe(`Video Service Integration Test`, () => {
@@ -51,7 +51,7 @@ describe(`Video Service Integration Test`, () => {
   });
 
   afterEach(async () => {
-    await repo.delete(id);
+    await repo.delete([id, 'E8zHW9nUkho', '0_utgk6tuQc']);
   });
 
   afterAll(async () => {
@@ -81,10 +81,13 @@ describe(`Video Service Integration Test`, () => {
 
   describe('Save video', () => {
     it('should save video', async () => {
-      await videoService.addVideos([id]);
+      await videoService.addVideos([id, 'E8zHW9nUkho', '0_utgk6tuQc']);
 
-      const result = await repo.findOneBy({ id: id });
+      const result = await repo.findBy({
+        id: In([id, 'E8zHW9nUkho', '0_utgk6tuQc']),
+      });
       expect(result).toBeDefined();
+      expect(result).toHaveLength(3);
       console.log(`Found video : ${JSON.stringify(result)}`);
     });
   });
