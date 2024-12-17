@@ -67,12 +67,10 @@ export default class TagServiceImpl extends TagService {
         `Removing all tags from videos ${videoId} of user ${userId}`,
       );
 
-      const result = await this.repo
-        .createQueryBuilder('entity')
-        .delete()
-        .where('entity.user_id = :id', { id: userId })
-        .andWhere('entity.video_id IN (:...vids)', { vids: videoId })
-        .execute();
+      const result = await this.repo.delete({
+        videoId: In(videoId),
+        userId: userId,
+      });
 
       this.log.debug(`Removed ${result.affected} tag entries`);
     } catch (error) {
@@ -366,7 +364,7 @@ export default class TagServiceImpl extends TagService {
       const rawVideos = await this.repo
         .createQueryBuilder('entity')
         .select('DISTINCT entity.video_id', 'videoId')
-        .where('entity.video_id = :videoIds', { videoIds: videoIds })
+        .where('entity.video_id IN (:...videoIds)', { videoIds: videoIds })
         .getRawMany();
       const foundVideos: string[] = rawVideos.map((r) => r.videoId);
       return videoIds.filter((v) => !foundVideos.includes(v));

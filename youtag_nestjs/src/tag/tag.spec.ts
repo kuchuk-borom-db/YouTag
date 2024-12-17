@@ -254,4 +254,29 @@ describe('Tag Integration test', () => {
       expect(result.count).toBe(0);
     });
   });
+
+  it('remove all tags from videos test', async () => {
+    await addDefault();
+    await service.removeAllTagsFromVideos('user', ['video_1']);
+    const data = await repo.findBy({
+      userId: 'user',
+      videoId: 'video_1',
+    });
+    expect(data).toHaveLength(0);
+  });
+
+  it('Get videos not in use test', async () => {
+    await addDefault();
+    await service.removeAllTagsFromVideos('user', ['video_1']);
+    let notUsedVideos = await service.getVideosNotInUse([
+      'video_1',
+      'video_2',
+      'video_3',
+    ]);
+    expect(notUsedVideos.length).toBe(1);
+    expect(notUsedVideos.includes('video_1')).toBe(true);
+
+    notUsedVideos = await service.getVideosNotInUse(['video_2', 'video_3']);
+    expect(notUsedVideos.length).toBe(0);
+  });
 });
