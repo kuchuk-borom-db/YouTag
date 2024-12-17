@@ -45,4 +45,5 @@ export abstract class OperationCommander {
    * @param userId
    */
   abstract removeVideos(videoIds: string[], userId: string): Promise<void>;
+
 }

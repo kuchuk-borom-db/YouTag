@@ -17,7 +17,8 @@ export default class VideoServiceImpl extends VideoService {
     'https://noembed.com/embed?url=https://www.youtube.com/watch?v=';
   private log = new Logger(VideoServiceImpl.name);
 
-  async addVideos(videoIds: string[]): Promise<void> {
+  async addVideos(videoIds: string[]): Promise<string[]> {
+    const failed: string[] = [];
     try {
       this.log.debug(`Adding new videos to database ${videoIds}`);
       //TODO Any way to skip iterating and add in bulk while getting info? Maybe updating info only when we need to get the video?
@@ -25,13 +26,14 @@ export default class VideoServiceImpl extends VideoService {
         //Check if video is already saved
         const existingVideo = await this.getVideoById(videoId);
         if (existingVideo) {
-          this.log.error(`Video ${videoId} already saved`);
+          this.log.warn(`Video ${videoId} already saved. Skipping`);
           continue;
         }
         //Get video info and save it
         const vidInfo = await this.getVideoInfo(videoId);
-        if (!vidInfo) {
+        if (!vidInfo || vidInfo.title === undefined || vidInfo.title === null) {
           this.log.error(`Failed to get video info ${videoId}`);
+          failed.push(videoId);
           continue;
         }
         //Save video
@@ -45,12 +47,16 @@ export default class VideoServiceImpl extends VideoService {
       }
     } catch (err) {
       this.log.error(`Error at addVideos ${err}`);
-      return null;
     }
+    return failed;
   }
 
   async removeVideos(videoId: string[]): Promise<void> {
     this.log.debug(`Remove video ${videoId}`);
+    if (videoId.length <= 0) {
+      this.log.debug(`Video is empty`);
+      return;
+    }
     await this.repo.delete(videoId);
   }
 

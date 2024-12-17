@@ -29,9 +29,12 @@ export class OperationCommanderImpl extends OperationCommander {
       `Adding tags ${tags} to videos ${videos} for user ${userId}`,
     );
     this.log.debug('Adding videos to database');
-    await this.videoService.addVideos(videos);
+    const failedToAdd = await this.videoService.addVideos(videos);
+    this.log.debug(`Failed to save video = ${JSON.stringify(failedToAdd)}`);
+    //Filter out the videos that failed to get added
+    const validVideos = videos.filter((value) => !failedToAdd.includes(value));
     this.log.debug('Videos added to database\nAdding tags to database');
-    await this.tagService.addTagsToVideos(userId, videos, tags);
+    await this.tagService.addTagsToVideos(userId, validVideos, tags);
   }
 
   /**

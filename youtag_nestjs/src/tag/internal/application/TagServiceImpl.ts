@@ -47,6 +47,9 @@ export default class TagServiceImpl extends TagService {
     tags: string[],
   ): Promise<void> {
     try {
+      this.log.debug(
+        `Removing tags ${tags} from videos ${videoId} of user ${userId}`,
+      );
       await this.repo.delete({
         tag: In(tags),
         videoId: In(videoId),
@@ -292,13 +295,15 @@ export default class TagServiceImpl extends TagService {
         .where('entity.user_id = :userId', { userId })
         .groupBy('entity.video_id');
 
-      const count = parseInt((
-        await this.repo
-          .createQueryBuilder('entity')
-          .select('COUNT(DISTINCT entity.video_id)', 'count')
-          .where('entity.user_id = :userId', { userId: userId })
-          .getRawOne()
-      ).count);
+      const count = parseInt(
+        (
+          await this.repo
+            .createQueryBuilder('entity')
+            .select('COUNT(DISTINCT entity.video_id)', 'count')
+            .where('entity.user_id = :userId', { userId: userId })
+            .getRawOne()
+        ).count,
+      );
       if (pagination) {
         baseQuery.skip(pagination.skip).take(pagination.limit);
       }

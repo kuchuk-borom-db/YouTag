@@ -9,8 +9,6 @@ type PublicQuery {
 
 type AuthQuery {
     user: UserResponse!
-    tags(skip: Int, limit: Int, contains: String): TagsResponse!
-    videos(skip: Int, limit: Int, tags: [String]): VideosResponse!
 }
 
 enum OAUTH_PROVIDER {

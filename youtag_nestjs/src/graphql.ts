@@ -59,8 +59,6 @@ export class PublicQuery {
 
 export class AuthQuery {
     user: UserResponse;
-    tags?: TagsResponse;
-    videos?: VideosResponse;
 }
 
 export class NoDataResponse implements ResponseModel {

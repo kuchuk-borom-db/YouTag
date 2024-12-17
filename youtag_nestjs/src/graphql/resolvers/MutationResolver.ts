@@ -85,6 +85,7 @@ export class AuthMutationResolver {
       this.log.debug(
         `AddTagsToVideos ${JSON.stringify(input)} for user ${user.id}`,
       );
+      await this.opCom.addTagsToVideos(input.tagNames, input.videoIds, user.id);
       return {
         message: 'Added tags to videos',
         success: true,
@@ -100,7 +101,7 @@ export class AuthMutationResolver {
 
   @ResolveField(() => NoDataResponse)
   async removeTagsFromVideos(
-    @Args() input: RemoveTagsFromVideosInput,
+    @Args('input') input: RemoveTagsFromVideosInput,
     @Context() context: any,
   ): Promise<NoDataResponse> {
     try {
@@ -108,11 +109,9 @@ export class AuthMutationResolver {
       this.log.debug(
         `Removing tags from videos ${JSON.stringify(input)} for user ${user.id}`,
       );
-      await this.opCom.removeTagsFromVideos(
-        input.tagNames,
-        input.videoIds,
-        user.id,
-      );
+      const tags = input.tagNames;
+      const videos = input.videoIds;
+      await this.opCom.removeTagsFromVideos(tags, videos, user.id);
       return {
         success: true,
       };
@@ -127,7 +126,7 @@ export class AuthMutationResolver {
 
   @ResolveField(() => NoDataResponse)
   async removeVideos(
-    @Args() input: RemoveVideosInput,
+    @Args('input') input: RemoveVideosInput,
     @Context() context: any,
   ): Promise<NoDataResponse> {
     try {
