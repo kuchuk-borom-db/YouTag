@@ -143,4 +143,22 @@ export class OperationCommanderImpl extends OperationCommander {
     }
     return data;
   }
+
+  async getVideosWithTags(
+    id: string,
+    limit: number,
+    skip: number,
+    tag: string,
+  ): Promise<VideoDTO[]> {
+    this.log.debug(`get videos with tags for user ${id}`);
+    const data = await this.tagService.getVideoIdsAndCountWithTags(id, [tag], {
+      skip: skip,
+      limit: limit,
+    });
+    return await Promise.all(
+      data.datas.map(async (value) => {
+        return await this.videoService.getVideoById(value);
+      }),
+    );
+  }
 }

@@ -75,4 +75,11 @@ export abstract class OperationCommander {
     limit: number,
     contains?: string,
   ): Promise<DataAndTotalCount<string>>;
+
+  abstract getVideosWithTags(
+    id: string,
+    limit: number,
+    skip: number,
+    tag: string,
+  ): Promise<VideoDTO[]>;
 }

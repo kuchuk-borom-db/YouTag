@@ -6,7 +6,7 @@ import {
   PublicQueryResolver,
   QueryResolver,
 } from './resolvers/QueryResolver';
-import { UserTypeResolver } from './resolvers/TypeResolver';
+import { TagTypeResolver, UserTypeResolver } from './resolvers/TypeResolver';
 import {
   AuthMutationResolver,
   MutationResolver,
@@ -23,6 +23,7 @@ import {
     PublicMutationResolver,
     AuthMutationResolver,
     UserTypeResolver,
+    TagTypeResolver,
   ],
   imports: [CommanderModule],
 })
