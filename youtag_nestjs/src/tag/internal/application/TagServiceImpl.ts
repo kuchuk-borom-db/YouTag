@@ -36,9 +36,9 @@ export default class TagServiceImpl extends TagService {
         this.log.debug(`Cache hit for key: ${cacheKey}`);
         return cachedResult;
       }
-
       // If not in cache, fetch and store
       const result = await fetchMethod();
+      this.log.debug(`Got result from db ${result}`);
 
       if (result !== null) {
         await this.cache.set(cacheKey, result, ttl);
@@ -371,7 +371,7 @@ export default class TagServiceImpl extends TagService {
     const cacheKey = this.generateCacheKey(
       'user-tagged-videos',
       userId,
-      pagination ? `${pagination.skip}-${pagination.limit}` : 'no-pagination'
+      pagination ? `${pagination.skip}-${pagination.limit}` : 'no-pagination',
     );
 
     return this.cachableMethod(cacheKey, async () => {
@@ -417,7 +417,7 @@ export default class TagServiceImpl extends TagService {
       'tags-containing',
       userId,
       containing,
-      pagination ? `${pagination.skip}-${pagination.limit}` : 'no-pagination'
+      pagination ? `${pagination.skip}-${pagination.limit}` : 'no-pagination',
     );
 
     return this.cachableMethod(cacheKey, async () => {
@@ -468,24 +468,28 @@ export default class TagServiceImpl extends TagService {
   async getVideosNotInUse(videoIds: string[]): Promise<string[]> {
     const cacheKey = this.generateCacheKey(
       'videos-not-in-use',
-      videoIds.sort().join('-')
+      videoIds.sort().join('-'),
     );
 
-    return this.cachableMethod(cacheKey, async () => {
-      try {
-        this.log.debug(`Getting videos not in use from list ${videoIds}`);
-        const rawVideos = await this.repo
-          .createQueryBuilder('entity')
-          .select('DISTINCT entity.video_id', 'videoId')
-          .where('entity.video_id IN (:...videoIds)', { videoIds: videoIds })
-          .getRawMany();
+    return this.cachableMethod(
+      cacheKey,
+      async () => {
+        try {
+          this.log.debug(`Getting videos not in use from list ${videoIds}`);
+          const rawVideos = await this.repo
+            .createQueryBuilder('entity')
+            .select('DISTINCT entity.video_id', 'videoId')
+            .where('entity.video_id IN (:...videoIds)', { videoIds: videoIds })
+            .getRawMany();
 
-        const foundVideos: string[] = rawVideos.map((r) => r.videoId);
-        return videoIds.filter((v) => !foundVideos.includes(v));
-      } catch (error) {
-        this.log.error(`Error getting videos not in use ${error}`);
-        return [];
-      }
-    }, 60 * 60); // 1 hour cache for this method as it's less likely to change frequently
+          const foundVideos: string[] = rawVideos.map((r) => r.videoId);
+          return videoIds.filter((v) => !foundVideos.includes(v));
+        } catch (error) {
+          this.log.error(`Error getting videos not in use ${error}`);
+          return [];
+        }
+      },
+      60 * 60,
+    ); // 1 hour cache for this method as it's less likely to change frequently
   }
 }

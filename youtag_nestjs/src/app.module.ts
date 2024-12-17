@@ -12,9 +12,14 @@ import { GraphqlModule } from './graphql/graphql.module';
 import { CommanderModule } from './commander/commander.module';
 import * as path from 'node:path';
 import * as process from 'node:process';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 1000,
+    }),
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
