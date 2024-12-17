@@ -6,7 +6,11 @@ import {
   PublicQueryResolver,
   QueryResolver,
 } from './resolvers/QueryResolver';
-import { TagTypeResolver, UserTypeResolver } from './resolvers/TypeResolver';
+import {
+  TagTypeResolver,
+  UserTypeResolver,
+  VideoTypeResolver,
+} from './resolvers/TypeResolver';
 import {
   AuthMutationResolver,
   MutationResolver,
@@ -24,7 +28,9 @@ import {
     AuthMutationResolver,
     UserTypeResolver,
     TagTypeResolver,
+    VideoTypeResolver,
   ],
   imports: [CommanderModule],
 })
 export class GraphqlModule {}
+//TODO Use Type responses with count value

@@ -4,6 +4,7 @@ import { OperationCommander } from '../../commander/api/Services';
 import { Logger } from '@nestjs/common';
 import { UserDTO } from '../../user/api/DTOs';
 import { VideoDTO } from '../../video/api/DTOs';
+import { DataAndTotalCount } from '../../Utils/Models';
 
 @Resolver(() => User)
 export class UserTypeResolver {
@@ -105,5 +106,40 @@ export class TagTypeResolver {
       this.log.error(`Error at videos with tags ${error}`);
       return [];
     }
+  }
+}
+
+@Resolver(() => Video)
+export class VideoTypeResolver {
+  constructor(private readonly opCom: OperationCommander) {}
+
+  private log = new Logger(VideoTypeResolver.name);
+
+  @ResolveField()
+  async associatedTags(
+    @Context() context: any,
+    @Args('skip') skip: number,
+    @Args('limit') limit: number,
+    @Parent() parent: Video,
+  ): Promise<Tag[]> {
+    const user = context.req.user as UserDTO;
+    this.log.debug(
+      `Associated tag for user ${user.id} with skip ${skip} limit ${limit}`,
+    );
+    const tags: DataAndTotalCount<string> = await this.opCom.getTagsOfVideo(
+      user.id,
+      skip,
+      limit,
+      parent.id,
+    );
+    if (!tags) {
+      this.log.error('Got null for tags');
+      return [];
+    }
+    return tags.datas.map((value) => {
+      const tag = new Tag();
+      tag.name = value;
+      return tag;
+    });
   }
 }

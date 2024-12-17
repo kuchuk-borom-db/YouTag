@@ -161,4 +161,22 @@ export class OperationCommanderImpl extends OperationCommander {
       }),
     );
   }
+
+  async getTagsOfVideo(
+    userId: string,
+    skip: number,
+    limit: number,
+    videoId: string,
+  ): Promise<DataAndTotalCount<string>> {
+    this.log.debug(`Get tags of video ${videoId} of user ${userId}`);
+    try {
+      return await this.tagService.getTagsAndCountOfVideo(userId, [videoId], {
+        skip: skip,
+        limit: limit,
+      });
+    } catch (err) {
+      this.log.error('Error at getTagsOfVideo', err);
+      return null;
+    }
+  }
 }
