@@ -3,9 +3,10 @@ import { TagEntity } from './internal/domain/Entities';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TagService } from './api/Services';
 import TagServiceImpl from './internal/application/TagServiceImpl';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TagEntity])],
+  imports: [TypeOrmModule.forFeature([TagEntity]), CacheModule],
   providers: [
     {
       provide: TagService,

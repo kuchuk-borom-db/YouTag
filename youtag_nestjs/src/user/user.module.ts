@@ -7,6 +7,7 @@ import { AuthJwtServiceImpl } from './internal/application/AuthJWTServiceImpl';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './internal/domain/Entities';
 import UserServiceImpl from './internal/application/UserServiceImpl';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   providers: [
@@ -23,7 +24,7 @@ import UserServiceImpl from './internal/application/UserServiceImpl';
       useClass: UserServiceImpl,
     },
   ],
-  imports: [JwtModule, TypeOrmModule.forFeature([UserEntity])],
+  imports: [JwtModule, TypeOrmModule.forFeature([UserEntity]), CacheModule],
   exports: [AuthJwtService, AuthService, UserService],
 })
 export class UserModule {}
