@@ -63,3 +63,5 @@ import {CacheModule} from '@nestjs/cache-manager';
 })
 export class AppModule {
 }
+
+//TODO Use environment variables for many configuration

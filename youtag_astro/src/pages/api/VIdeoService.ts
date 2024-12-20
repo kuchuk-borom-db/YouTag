@@ -11,7 +11,8 @@ interface VideoInfoDTO {
 interface VideoDTO {
     id: string
     title: string
-    description: string
+    author: string
+    authorUrl: string
     thumbnail: string
     updated: any
 }
@@ -40,25 +41,56 @@ export async function saveVideo(videoId: string): Promise<boolean> {
 
 
 export async function getAllVideos(skip: number, limit: number, token: string): Promise<Video[] | null> {
-
-    const url = `${SERVER_URI}/authenticated/video/?skip=${parseInt(String(skip))}&limit=${parseInt(String(limit))}`;
+    const url = `${SERVER_URI}/graphql`;
     const response = await fetch(url, {
-        headers: new Headers({
+        method: 'POST',
+        headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
-        }),
+        },
+        body: JSON.stringify({
+            query: `
+                query getAllVideosOfUserWithPagination {
+                    authenticatedData {
+                        user {
+                            data {
+                                videos(skip: ${skip}, limit: ${limit}, contains: []) {
+                                    author
+                                    authorUrl
+                                    id
+                                    thumbnail
+                                    title
+                                    associatedTags(skip: 0, limit: 10) {
+                                        name
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            `
+        })
     });
 
     if (!response.ok) {
-        console.error("Response did not return 200 status")
+        console.error("Response did not return 200 status");
         console.error(JSON.stringify(response));
-        return null
+        return null;
     }
 
-    const responseJson = await response.json();
-    const data: VideoInfoDTO[] = responseJson['data']
-    return parseVideosFromData(data)
+    const jsonBody = await response.json();
+    const videos = jsonBody.data?.authenticatedData?.user?.data?.videos;
 
+    if (!videos) return null;
+
+    return videos.map(video => ({
+        videoId: video.id,
+        title: video.title,
+        thumbnailUrl: video.thumbnail,
+        author: video.author,
+        authorUrl: video.authorUrl,
+        tags: video.associatedTags.map(tag => tag.name)
+    }));
 }
 
 export async function getVideosWithTags(tags: string[], skip: number, limit: number, token: string): Promise<Video[] | null> {
@@ -87,7 +119,7 @@ export async function getVideosCountOfUser(token: string): Promise<number | null
         method: "GET",
         headers: {"content-type": "application/json", "Authorization": `Bearer ${token}`},
     });
-    if(!response.ok){
+    if (!response.ok) {
         return null;
     }
     const json = await response.json();
@@ -121,7 +153,8 @@ function parseVideosFromData(data: VideoInfoDTO[]): Video[] {
             videoId: video.videoDTO.id,
             title: video.videoDTO.title,
             thumbnailUrl: video.videoDTO.thumbnail,
-            description: video.videoDTO.description,
+            author: video.videoDTO.author,
+            authorUrl: video.videoDTO.authorUrl,
             tags: video.tags
         })
     })
@@ -130,4 +163,4 @@ function parseVideosFromData(data: VideoInfoDTO[]): Video[] {
 
 
 //TODO Combine tags from option for adding videos to skip having to add tags manually one by one. This will introduce search feature for video with suggestions
-export  const prerender = false
+export const prerender = false

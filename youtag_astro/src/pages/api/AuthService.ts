@@ -2,19 +2,60 @@ import {SERVER_URI} from "../../utils/Constants.ts";
 import type User from "../../models/User.ts";
 
 export async function getGoogleLoginUrl(): Promise<string | null> {
-    const url: string = `${SERVER_URI}/public/auth/login/google`;
-    const response = await fetch(url);
-    if (response.status != 200)
+    const url: string = `${SERVER_URI}/graphql`;
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            query: `
+                query GetOAuthLoginURL {
+                    publicData {
+                        getOAuthLoginURL(provider: GOOGLE) {
+                            data
+                        }
+                    }
+                }
+            `
+        })
+    });
+
+    if (!response.ok) {
         return null;
+    }
+
     const jsonBody = await response.json();
-    return jsonBody['data'];
+    console.log(`RESPONSE = ${JSON.stringify(jsonBody)}`)
+    return jsonBody.data?.publicData?.getOAuthLoginURL?.data || null;
 }
 
-export async function exchangeCodeForToken(code: string, state: string): Promise<string | null> {
-    const url = `${SERVER_URI}/public/auth/redirect/google?code=${code}&state=${state}`;
-    const response = await fetch(url);
+export async function exchangeCodeForToken(code: string): Promise<string | null> {
+    const url = `${SERVER_URI}/graphql`;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            query: `
+                mutation ExchangeOAuthTokenForAccessToken {
+                    public {
+                        exchangeOAuthTokenForAccessToken(token: "${code}", provider: GOOGLE) {
+                            data
+                        }
+                    }
+                }
+            `
+        })
+    });
+
+    if (!response.ok) {
+        return null;
+    }
+
     const jsonBody = await response.json();
-    return jsonBody['data'];
+    return jsonBody.data?.public?.exchangeOAuthTokenForAccessToken?.data || null;
 }
 
 export async function getUserInfo(token: string): Promise<User | null> {
@@ -44,4 +85,4 @@ function parseJsonDataToUser(jsonData: any): User | null {
     }
 }
 
-export  const prerender = false
+export const prerender = false
