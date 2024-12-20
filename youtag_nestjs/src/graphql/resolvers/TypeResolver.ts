@@ -106,12 +106,12 @@ export class VideoTypeResolver {
         @Parent() parent: Video,
     ): Promise<Tag[]> {
         const user = context.req.user as UserDTO;
-        const tags = await this.dataLoader.tagsByVideoLoader.load({
-            userId: user.id,
-            videoId: parent.id,
+        const tags = await this.dataLoader.loadTagsForVideo(
+            user.id,
+            parent.id,
             skip,
-            limit,
-        });
+            limit
+        );
 
         return tags.map((value) => ({name: value}));
     }
