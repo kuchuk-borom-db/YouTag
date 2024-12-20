@@ -68,7 +68,7 @@ export class UserTypeResolver {
     });
   }
 }
-
+//TODO data loader for videos resolver
 @Resolver(() => Tag)
 export class TagTypeResolver {
   constructor(private readonly opCom: OperationCommander) {}
@@ -108,7 +108,7 @@ export class TagTypeResolver {
     }
   }
 }
-
+//TODO Data loader for tags
 @Resolver(() => Video)
 export class VideoTypeResolver {
   constructor(private readonly opCom: OperationCommander) {}

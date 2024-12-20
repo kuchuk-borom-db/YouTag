@@ -1,9 +1,11 @@
-import { VideoDTO } from './DTOs';
+import {VideoDTO} from './DTOs';
 
 export abstract class VideoService {
-  abstract addVideos(videoIds: string[]): Promise<string[]>;
+    abstract addVideos(videoIds: string[]): Promise<string[]>;
 
-  abstract removeVideos(videoIds: string[]): Promise<void>;
+    abstract removeVideos(videoIds: string[]): Promise<void>;
 
-  abstract getVideoById(id: string): Promise<VideoDTO | null>;
+    abstract getVideoById(id: string): Promise<VideoDTO | null>;
+
+    abstract getVideosByIds(ids: string[]): Promise<VideoDTO[]>;
 }

@@ -18,7 +18,7 @@ import { CacheModule } from '@nestjs/cache-manager';
   imports: [
     CacheModule.register({
       isGlobal: true,
-      ttl: 1000,
+      ttl: 60000, //60 sec
     }),
     ConfigModule.forRoot({
       envFilePath: '.env',

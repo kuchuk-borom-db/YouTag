@@ -27,7 +27,6 @@ export default class TagServiceImpl extends TagService {
   private async cachableMethod<T>(
     cacheKey: string,
     fetchMethod: () => Promise<T>,
-    ttl: number = 60 * 5, // Default 5 minutes
   ): Promise<T | null> {
     try {
       // Try to get from cache first
@@ -41,7 +40,7 @@ export default class TagServiceImpl extends TagService {
       this.log.debug(`Got result from db ${result}`);
 
       if (result !== null) {
-        await this.cache.set(cacheKey, result, ttl);
+        await this.cache.set(cacheKey, result);
       }
 
       return result;
@@ -489,7 +488,6 @@ export default class TagServiceImpl extends TagService {
           return [];
         }
       },
-      60 * 60,
-    ); // 1 hour cache for this method as it's less likely to change frequently
+    );
   }
 }
