@@ -25,5 +25,4 @@ import {DataLoaderService} from "./internal/application/DataLoaderService";
 export class GraphqlModule {
 }
 
-//TODO Use Type responses with count value
 //TODO Optimise data loader service. It is not working for tag resolver as of now

@@ -2,14 +2,14 @@ type User {
     name: String!
     email: String!
     thumbnail: String!
-    tags(skip: Int!, limit: Int!, contains: String): [Tag!] #contains = containing keyword
-    videos(skip: Int!, limit: Int!, contains: [String!]!): [Video!] #contains = contains tags
+    tags(skip: Int!, limit: Int!, contains: String): TagsResponse! #contains = containing keyword
+    videos(skip: Int!, limit: Int!, contains: [String!]!): VideosResponse! #contains = contains tags
 
 }
 
 type Tag {
     name: String!
-    videosWithTag(skip: Int!, limit: Int!): [Video!]
+    videosWithTag(skip: Int!, limit: Int!): VideosResponse!
 }
 
 type Video {
@@ -18,5 +18,5 @@ type Video {
     author: String!
     authorUrl: String!
     thumbnail: String!
-    associatedTags(skip: Int!, limit: Int!): [Tag!]
+    associatedTags(skip: Int!, limit: Int!): TagsResponse!
 }

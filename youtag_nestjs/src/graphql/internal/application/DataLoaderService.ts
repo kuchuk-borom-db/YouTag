@@ -2,6 +2,7 @@ import * as DataLoader from 'dataloader';
 import {Injectable, Logger, Scope} from '@nestjs/common';
 import {VideoDTO} from "../../../video/api/DTOs";
 import {OperationCommander} from "../../../commander/api/Services";
+import {DataAndTotalCount} from "../../../Utils/Models";
 
 @Injectable({scope: Scope.REQUEST})
 export class DataLoaderService {
@@ -9,42 +10,40 @@ export class DataLoaderService {
 
     public readonly videosByUserLoader: DataLoader<
         { userId: string; skip: number; limit: number; contains: string[] },
-        VideoDTO[]
+        DataAndTotalCount<VideoDTO>
     >;
 
     public readonly tagsByUserLoader: DataLoader<
         { userId: string; skip: number; limit: number; contains?: string },
-        string[]
+        DataAndTotalCount<string>
     >;
 
     public readonly videosByTagLoader: DataLoader<
         { userId: string; tagName: string; skip: number; limit: number },
-        VideoDTO[]
+        DataAndTotalCount<VideoDTO>
     >;
 
     public readonly tagsByVideosLoader: DataLoader<
         { userId: string; videoIds: string[]; skip: number; limit: number },
-        Map<string, string[]>
+        Map<string, DataAndTotalCount<string>>
     >;
 
     constructor(private readonly opCom: OperationCommander) {
 
         this.videosByUserLoader = new DataLoader(async (keys) => {
-            const results = await Promise.all(
+            return await Promise.all(
                 keys.map(({userId, skip, limit, contains}) =>
                     this.opCom.getVideosOfUser(skip, limit, contains, userId)
                 )
             );
-            return results.map((r) => r.datas);
         });
 
         this.tagsByUserLoader = new DataLoader(async (keys) => {
-            const results = await Promise.all(
+            return await Promise.all(
                 keys.map(({userId, skip, limit, contains}) =>
                     this.opCom.getTagsOfUser(userId, skip, limit, contains)
                 )
             );
-            return results.map((r) => r.datas);
         });
 
         this.videosByTagLoader = new DataLoader(async (keys) => {
@@ -72,16 +71,16 @@ export class DataLoaderService {
                 );
 
                 // Create a Map to store results for each video
-                const videoTagsMap = new Map<string, string[]>();
+                const videoTagsMap = new Map<string, DataAndTotalCount<string>>();
 
                 // Process the results and organize them by videoId
                 // You'll need to modify this based on how your tagService returns the data
                 allVideoIds.forEach(videoId => {
-                    videoTagsMap.set(videoId, result.datas);
+                    videoTagsMap.set(videoId, result);
                 });
 
                 // Return results in the same order as the keys
-                return keys.map(key => videoTagsMap);
+                return keys.map(() => videoTagsMap);
             } catch (error) {
                 this.logger.error('Error batch loading tags for videos', error);
                 return keys.map(() => new Map());
@@ -94,14 +93,14 @@ export class DataLoaderService {
         videoId: string,
         skip: number,
         limit: number
-    ): Promise<string[]> {
+    ): Promise<DataAndTotalCount<string>> {
         const result = await this.tagsByVideosLoader.load({
             userId,
             videoIds: [videoId],
             skip,
             limit,
         });
-        return result.get(videoId) || [];
+        return result.get(videoId) || {datas: [], count: 0};
     }
 
 

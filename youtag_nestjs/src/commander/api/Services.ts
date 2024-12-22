@@ -81,7 +81,7 @@ export abstract class OperationCommander {
         limit: number,
         skip: number,
         tag: string,
-    ): Promise<VideoDTO[]>;
+    ): Promise<DataAndTotalCount<VideoDTO>> ;
 
     abstract getTagsOfVideo(
         id: string,

@@ -1,4 +1,3 @@
-
 /*
  * -------------------------------------------------------
  * THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
@@ -6,6 +5,7 @@
  */
 
 /* tslint:disable */
+
 /* eslint-disable */
 
 export enum OAUTH_PROVIDER {
@@ -82,12 +82,14 @@ export class TagsResponse implements ResponseModel {
     message?: Nullable<string>;
     success: boolean;
     data?: Nullable<Nullable<Tag>[]>;
+    count: number;
 }
 
 export class VideosResponse implements ResponseModel {
     message?: Nullable<string>;
     success: boolean;
     data?: Nullable<Nullable<Video>[]>;
+    count: number;
 }
 
 export class User {

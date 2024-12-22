@@ -148,17 +148,21 @@ export class OperationCommanderImpl extends OperationCommander {
         limit: number,
         skip: number,
         tag: string,
-    ): Promise<VideoDTO[]> {
+    ): Promise<DataAndTotalCount<VideoDTO>> {
         this.log.debug(`get videos with tags for user ${id}`);
         const data = await this.tagService.getVideoIdsAndCountWithTags(id, [tag], {
             skip: skip,
             limit: limit,
         });
-        return await Promise.all(
+        const videos = await Promise.all(
             data.datas.map(async (value) => {
                 return await this.videoService.getVideoById(value);
             }),
         );
+        return {
+            count: data.count,
+            datas: videos
+        }
     }
 
     async getTagsOfVideo(
@@ -202,7 +206,7 @@ export class OperationCommanderImpl extends OperationCommander {
         this.log.debug(`Getting videos with tags [${tagNames.join(', ')}] for user ${userId}`);
         try {
             //returns video Ids of videos that contains all the tags
-            const videoIds : DataAndTotalCount<string> = await this.tagService.getVideoIdsAndCountWithTags(userId, tagNames, {
+            const videoIds: DataAndTotalCount<string> = await this.tagService.getVideoIdsAndCountWithTags(userId, tagNames, {
                 skip: skip,
                 limit: limit
             })
