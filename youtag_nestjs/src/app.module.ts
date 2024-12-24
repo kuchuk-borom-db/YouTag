@@ -55,8 +55,6 @@ import {EventEmitterModule} from "@nestjs/event-emitter";
             plugins: [ApolloServerPluginLandingPageLocalDefault()], // Use Apollo Sandbox
             context: () => ({})
         }),
-        EventEmitterModule.forRoot({
-        }),
         UserModule,
         VideoModule,
         TagModule,

@@ -4,15 +4,14 @@ import {TagService} from '../../../tag/api/Services';
 import {OperationCommander} from '../../api/Services';
 import {DataAndTotalCount} from '../../../Utils/Models';
 import {VideoDTO} from '../../../video/api/DTOs';
-import {EventEmitter2} from "@nestjs/event-emitter";
 import {Events} from "../../../Utils/Constants";
+import {eventEmitter} from "../../../Utils/EventEmitter";
 
 @Injectable()
 export class OperationCommanderImpl extends OperationCommander {
     constructor(
         private readonly tagService: TagService,
         private readonly videoService: VideoService,
-        private event: EventEmitter2
     ) {
         super();
     }
@@ -50,7 +49,7 @@ export class OperationCommanderImpl extends OperationCommander {
             `Removing tags ${tags} from videos ${videos} of user ${userId}`,
         );
         await this.tagService.removeTagsFromVideos(userId, videos, tags);
-        this.event.emit(Events.REMOVE_UNUSED_VIDEOS, videos)
+        eventEmitter.emit(Events.REMOVE_UNUSED_VIDEOS, videos)
 
     }
 
@@ -62,7 +61,7 @@ export class OperationCommanderImpl extends OperationCommander {
     async removeVideos(videoIds: string[], userId: string): Promise<void> {
         this.log.debug(`Removing videos ${videoIds} from user ${userId}`);
         await this.tagService.removeAllTagsFromVideos(userId, videoIds);
-        this.event.emit(Events.REMOVE_UNUSED_VIDEOS, videoIds)
+        eventEmitter.emit(Events.REMOVE_UNUSED_VIDEOS, videoIds)
     }
 
     async getVideosOfUser(

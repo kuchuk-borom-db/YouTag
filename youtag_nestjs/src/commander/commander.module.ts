@@ -9,7 +9,7 @@ import {EventListener} from "./internal/application/EventListener";
 
 @Module({
     exports: [AuthCommander, OperationCommander],
-    imports: [UserModule, TagModule, VideoModule],
+    imports: [UserModule, TagModule, VideoModule,],
     providers: [
         {
             provide: AuthCommander,
