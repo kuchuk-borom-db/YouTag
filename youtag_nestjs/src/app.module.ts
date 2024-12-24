@@ -13,12 +13,13 @@ import {CommanderModule} from './commander/commander.module';
 import * as path from 'node:path';
 import * as process from 'node:process';
 import {CacheModule} from '@nestjs/cache-manager';
+import {EventEmitterModule} from "@nestjs/event-emitter";
 
 @Module({
     imports: [
         CacheModule.register({
             isGlobal: true,
-            ttl: 240000, //240 sec
+            ttl: 500000, //240 sec
         }),
         ConfigModule.forRoot({
             envFilePath: '.env',
@@ -53,6 +54,8 @@ import {CacheModule} from '@nestjs/cache-manager';
             playground: false, // Disable default playground
             plugins: [ApolloServerPluginLandingPageLocalDefault()], // Use Apollo Sandbox
             context: () => ({})
+        }),
+        EventEmitterModule.forRoot({
         }),
         UserModule,
         VideoModule,

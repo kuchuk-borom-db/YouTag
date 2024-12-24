@@ -55,6 +55,7 @@ export default class VideoServiceImpl implements VideoService {
             this.log.error(`Error at addVideos ${err}`);
         }
         return failed;
+
     }
 
     async removeVideos(videoIds: string[]): Promise<void> {
