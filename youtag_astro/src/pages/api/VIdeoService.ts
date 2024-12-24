@@ -40,7 +40,10 @@ export async function saveVideo(videoId: string): Promise<boolean> {
 }
 
 
-export async function getAllVideos(skip: number, limit: number, token: string): Promise<Video[] | null> {
+export async function getAllVideos(skip: number, limit: number, token: string): Promise<{
+    videos: Video[],
+    totalCount: number
+} | null> {
     const url = `${SERVER_URI}/graphql`;
     const response = await fetch(url, {
         method: 'POST',
@@ -50,25 +53,37 @@ export async function getAllVideos(skip: number, limit: number, token: string): 
         },
         body: JSON.stringify({
             query: `
-                query getAllVideosOfUserWithPagination {
+                query Videos($skip: Int!, $limit: Int!) {
                     authenticatedData {
                         user {
                             data {
-                                videos(skip: ${skip}, limit: ${limit}, contains: []) {
-                                    author
-                                    authorUrl
-                                    id
-                                    thumbnail
-                                    title
-                                    associatedTags(skip: 0, limit: 10) {
-                                        name
+                                videos(skip: $skip, limit: $limit, contains: []) {
+                                    count
+                                    message
+                                    success
+                                    data {
+                                        id
+                                        title
+                                        author
+                                        authorUrl
+                                        thumbnail
+                                        associatedTags(skip: 0, limit: 999) {
+                                            count
+                                            data {
+                                                name
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-            `
+            `,
+            variables: {
+                skip,
+                limit
+            }
         })
     });
 
@@ -79,18 +94,23 @@ export async function getAllVideos(skip: number, limit: number, token: string): 
     }
 
     const jsonBody = await response.json();
-    const videos = jsonBody.data?.authenticatedData?.user?.data?.videos;
+    const videosResponse = jsonBody.data?.authenticatedData?.user?.data?.videos;
 
-    if (!videos) return null;
+    if (!videosResponse || !videosResponse.data) return null;
 
-    return videos.map(video => ({
-        videoId: video.id,
-        title: video.title,
-        thumbnailUrl: video.thumbnail,
-        author: video.author,
-        authorUrl: video.authorUrl,
-        tags: video.associatedTags.map(tag => tag.name)
-    }));
+    const result = {
+        videos: videosResponse.data.map(video => ({
+            videoId: video.id,
+            title: video.title,
+            thumbnailUrl: video.thumbnail,
+            author: video.author,
+            authorUrl: video.authorUrl,
+            tags: video.associatedTags.data.map(tag => tag.name)
+        })),
+        totalCount: videosResponse.count
+    };
+    console.log(`Response to get all videos is ${JSON.stringify(result, null, 0)}`)
+    return result;
 }
 
 export async function getVideosWithTags(tags: string[], skip: number, limit: number, token: string): Promise<Video[] | null> {

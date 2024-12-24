@@ -13,7 +13,7 @@ interface VideoCardProps {
 const VideoCard: React.FC<VideoCardProps> = ({video}) => {
     const [isYouTubeModalOpen, setIsYouTubeModalOpen] = useState(false);
     const [currentTagPage, setCurrentTagPage] = useState(0);
-    const [tags, setTags] = useState(video.tags); // Local state for tags
+    const [tags, setTags] = useState(video.tags);
     const [isDeleteMode, setIsDeleteMode] = useState(false);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const tagsPerPage = 4;
@@ -26,11 +26,6 @@ const VideoCard: React.FC<VideoCardProps> = ({video}) => {
 
     // Calculate total tag pages
     const totalTagPages = Math.ceil(tags.length / tagsPerPage);
-
-    // Handle deleting a single tag
-    const handleDeleteTag = (tagToDelete: string) => {
-        setTags((prevTags) => prevTags.filter((tag) => tag !== tagToDelete));
-    };
 
     // Handle bulk tag selection in delete mode
     const handleTagSelect = (tag: string) => {
@@ -45,9 +40,16 @@ const VideoCard: React.FC<VideoCardProps> = ({video}) => {
 
     // Handle bulk tag deletion
     const handleBulkDeleteTags = async () => {
-        console.log(`Deleting tags ${selectedTags}`)
-        await deleteTagFromVideo(selectedTags, video.videoId, Cookies.get("token")!);
-        window.location.reload();
+        try {
+            await deleteTagFromVideo(selectedTags, [video.videoId], Cookies.get("token")!);
+            // Update local state after successful deletion
+            setTags(prevTags => prevTags.filter(tag => !selectedTags.includes(tag)));
+            setSelectedTags([]);
+            setIsDeleteMode(false);
+        } catch (error) {
+            console.error("Failed to delete tags:", error);
+            // You might want to show an error message to the user here
+        }
     };
 
     // Handle canceling tag deletion mode
@@ -98,10 +100,10 @@ const VideoCard: React.FC<VideoCardProps> = ({video}) => {
                     {video.title}
                 </h3>
                 <p className="text-gray-500 text-sm truncate">
-                    {video.description}
+                    {video.author}
                 </p>
 
-                {/* Tags with Delete Icon or Bulk Select */}
+                {/* Tags with Bulk Select */}
                 <div className="mt-2 flex flex-wrap gap-2">
                     {paginatedTags.map((tag, index) => (
                         <div
@@ -115,18 +117,6 @@ const VideoCard: React.FC<VideoCardProps> = ({video}) => {
                                     : 'bg-blue-100 text-blue-800'
                             }`}
                         >
-                            {!isDeleteMode && (
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDeleteTag(tag);
-                                    }}
-                                    className="text-red-500 hover:text-red-600 mr-1"
-                                    title="Delete Tag"
-                                >
-                                    <Trash2 size={12}/>
-                                </button>
-                            )}
                             <span className="text-sm">{tag}</span>
                             {isDeleteMode && selectedTags.includes(tag) && (
                                 <Check size={12} className="ml-1"/>

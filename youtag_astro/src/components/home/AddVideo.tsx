@@ -1,6 +1,6 @@
 import React, {type ChangeEvent, type KeyboardEvent, useCallback, useEffect, useRef, useState} from 'react';
 import {AlertTriangle, Check, Tag, X, Youtube} from 'lucide-react';
-import {addTagsToVideo, getAllTags, getTagCountOfUser, getTagsContainingKeyword} from "../../pages/api/TagService.ts";
+import {addTagsToVideo, getAllTags, getTagsContainingKeyword} from "../../pages/api/TagService.ts";
 
 interface TagYoutubeModalProps {
     initialTags?: string[];
@@ -73,12 +73,14 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({
 
             if (keyword.trim() === '') {
                 // If no keyword, fetch all tags
-                tagResults = await getAllTags(skip, suggestionsPerPage) || [];
-                totalCount = await getTagCountOfUser() || 0;
+                const result = await getAllTags(skip, suggestionsPerPage);
+                tagResults = result?.tags || [];
+                totalCount = result?.count || 0;
             } else {
                 // If keyword exists, use getTagsContainingKeyword
-                tagResults = await getTagsContainingKeyword(keyword, skip, suggestionsPerPage) || [];
-                totalCount = await getTagCountOfUser(keyword) || 0;
+                const result = await getTagsContainingKeyword(keyword, skip, suggestionsPerPage);
+                tagResults = result?.tags || [];
+                totalCount = result?.count || 0;
             }
 
             // Filter out tags that are already selected

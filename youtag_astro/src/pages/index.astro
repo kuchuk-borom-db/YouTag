@@ -20,11 +20,10 @@ const pageNumber = Math.max(Number(Astro.url.searchParams.get("page")) || 1, 1);
 const skip = (pageNumber - 1) * limit;
 
 // Fetch videos and count
-const videos = await getAllVideos(skip, limit, token);
-const videosCount = await getVideosCountOfUser(token);
+const videos = await getAllVideos(skip, limit, token) || {videos : [], totalCount : 0};
 
 // Fetch user info from cookies
-console.log(`Generated Page with skip ${skip} and videos count ${videosCount} and videos ${JSON.stringify(videos)}`);
+console.log(`Generated Page with skip ${skip} and videos count ${videos.totalCount} and videos ${JSON.stringify(videos)}`);
 
 const userInfo = await getUserInfo(Astro.cookies.get("token")!.value)!;
 
@@ -94,10 +93,10 @@ export const prerender = false;
     }} client:load/>
 
     <!-- Videos Section -->
-    {videos && videos.length > 0 ? (
+    {videos && videos.videos.length > 0 ? (
             <VideosList
-                    videos={videos}
-                    totalVideos={videosCount || 0}
+                    videos={videos.videos}
+                    totalVideos={videos.totalCount || 0}
                     currentPage={pageNumber}
                     videosPerPage={limit}
                     client:load

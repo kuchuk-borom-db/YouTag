@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { getAllTags, getTagCountOfUser } from "../../pages/api/TagService.ts";
+import React, {useEffect, useState} from "react";
+import {getAllTags} from "../../pages/api/TagService.ts";
 
 interface TagsProps {
     initialPage: number;
@@ -21,15 +21,17 @@ const AllTags: React.FC<TagsProps> = ({
     const fetchTags = async () => {
         try {
             setIsLoading(true);
+            const skip = (page - 1) * tagsPerPage;
+            const result = await getAllTags(skip, tagsPerPage)
+
 
             // Get total tags count
-            const tagsCount = await getTagCountOfUser();
+            const tagsCount = result?.count || 0;
             console.log(`Tags count ${tagsCount}`)
-            if (tagsCount === 0 ) {
+            if (tagsCount === 0) {
                 setError("No Tags Saved...");
                 return;
-            }
-            else if (!tagsCount){
+            } else if (!tagsCount) {
                 setError("Failed to fetch tags");
                 return;
             }
@@ -39,15 +41,14 @@ const AllTags: React.FC<TagsProps> = ({
             setTotalTagPages(calculatedTotalPages);
 
             // Calculate skip based on current page
-            const skip = (page - 1) * tagsPerPage;
 
             // Fetch tags
             const fetchedTags = await getAllTags(skip, tagsPerPage);
             console.log(`Fetched tags = ${fetchedTags}`);
-            if (!fetchedTags || fetchedTags.length < 1) {
+            if (!fetchedTags || fetchedTags.tags.length < 1) {
                 setTags([]); // Set to empty array instead of setting an error
             } else {
-                setTags(fetchedTags);
+                setTags(fetchedTags.tags);
                 setError(null); // Reset error if tags are found
             }
         } catch (err) {
@@ -117,7 +118,7 @@ const AllTags: React.FC<TagsProps> = ({
                             </button>
                         )}
 
-                        {Array.from({ length: totalTagPages }, (_, i) => i + 1).map((pageNum) => (
+                        {Array.from({length: totalTagPages}, (_, i) => i + 1).map((pageNum) => (
                             <button
                                 key={pageNum}
                                 onClick={() => setPage(pageNum)}
