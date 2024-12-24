@@ -1,11 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {ChevronLeft, ChevronRight, Tag, X} from 'lucide-react';
-import {
-    getAllTags,
-    getTagCountOfUser,
-    getTagCountOfUser as getTagCountContainingKeyword,
-    getTagsContainingKeyword
-} from "../pages/api/TagService.ts";
+import {getAllTags, getTagsContainingKeyword} from "../pages/api/TagService.ts";
 
 interface SearchComponentProps {
     initialTags: string[] | null
@@ -47,12 +42,14 @@ const SearchComponent: React.FC<SearchComponentProps> = ({initialTags}) => {
 
             if (keyword) {
                 // If there's a keyword, fetch tags containing that keyword
-                totalCount = await getTagCountContainingKeyword(keyword) || 0;
-                tags = await getTagsContainingKeyword(keyword, (currentPage - 1) * ITEMS_PER_PAGE, ITEMS_PER_PAGE) || [];
+                const result = await getTagsContainingKeyword(keyword);
+                totalCount = result?.count || 0
+                tags = result?.tags || []
             } else {
                 // If no keyword, fetch all tags
-                totalCount = await getTagCountOfUser() || 0;
-                tags = await getAllTags((currentPage - 1) * ITEMS_PER_PAGE, ITEMS_PER_PAGE) || [];
+                const result = await getAllTags((currentPage - 1) * ITEMS_PER_PAGE, ITEMS_PER_PAGE)
+                totalCount = result?.count || 0;
+                tags = result?.tags || [];
             }
 
             setTagSuggestions(tags);
