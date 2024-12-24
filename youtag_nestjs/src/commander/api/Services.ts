@@ -87,7 +87,7 @@ export abstract class OperationCommander {
         id: string,
         skip: number,
         limit: number,
-        id2: string,
+        videoId: string,
     ): Promise<DataAndTotalCount<string>>;
 
     abstract getTagsAndCountOfVideo(

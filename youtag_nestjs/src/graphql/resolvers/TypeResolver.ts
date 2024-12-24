@@ -2,11 +2,12 @@ import {Args, Context, Parent, ResolveField, Resolver} from '@nestjs/graphql';
 import {Tag, TagsResponse, User, Video, VideosResponse} from '../../graphql';
 import {Logger} from '@nestjs/common';
 import {UserDTO} from '../../user/api/DTOs';
-import {DataLoaderService} from "../internal/application/DataLoaderService";
+import {OperationCommander} from "../../commander/api/Services";
 
 @Resolver(() => User)
 export class UserTypeResolver {
-    constructor(private dataLoader: DataLoaderService) {
+
+    constructor(private commander: OperationCommander) {
     }
 
     private log = new Logger(UserTypeResolver.name);
@@ -21,12 +22,7 @@ export class UserTypeResolver {
         try {
             const user = context.req.user as UserDTO;
             this.log.debug(`Getting videos of user ${user.id}`)
-            const videos = await this.dataLoader.videosByUserLoader.load({
-                userId: user.id,
-                skip,
-                limit,
-                contains,
-            });
+            const videos = await this.commander.getVideosOfUser(skip, limit, contains, user.id);
 
             return {
                 count: videos.count,
@@ -59,12 +55,7 @@ export class UserTypeResolver {
     ): Promise<TagsResponse> {
         try {
             const user = context.req.user as UserDTO;
-            const tags = await this.dataLoader.tagsByUserLoader.load({
-                userId: user.id,
-                skip,
-                limit,
-                contains,
-            });
+            const tags = await this.commander.getTagsOfUser(user.id, skip, limit, contains);
 
             return {
                 count: tags.count, data: tags.datas.map(tag => ({name: tag})), success: true
@@ -80,7 +71,8 @@ export class UserTypeResolver {
 
 @Resolver(() => Tag)
 export class TagTypeResolver {
-    constructor(private readonly dataLoader: DataLoaderService) {
+
+    constructor(private commander: OperationCommander) {
     }
 
     private log = new Logger(TagTypeResolver.name);
@@ -94,12 +86,8 @@ export class TagTypeResolver {
     ): Promise<VideosResponse> {
         try {
             const user = context.req.user as UserDTO;
-            const videos = await this.dataLoader.videosByTagLoader.load({
-                userId: user.id,
-                tagName: parent.name,
-                skip,
-                limit,
-            });
+            const videos = await this.commander.getVideosWithTags(user.id, limit, skip, parent.name);
+
 
             const videosMap = videos.datas.map((value) => ({
                 title: value.title,
@@ -127,7 +115,7 @@ export class TagTypeResolver {
 
 @Resolver(() => Video)
 export class VideoTypeResolver {
-    constructor(private readonly dataLoader: DataLoaderService) {
+    constructor(private commander: OperationCommander) {
     }
 
     private log = new Logger(VideoTypeResolver.name);
@@ -142,12 +130,7 @@ export class VideoTypeResolver {
         try {
             this.log.debug(`Get associated tags for video ${parent.id}`)
             const user = context.req.user as UserDTO;
-            const tags = await this.dataLoader.loadTagsForVideo(
-                user.id,
-                parent.id,
-                skip,
-                limit
-            );
+            const tags = await this.commander.getTagsOfVideo(user.id, skip, limit, parent.id)
             return {
                 count: tags.count,
                 data: tags.datas.map(value => {

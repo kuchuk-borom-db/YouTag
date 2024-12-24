@@ -17,7 +17,7 @@ export const addTagsToVideo = async (videoIds: string[], tags: string[]): Promis
         return false;
     }
 
-    console.log("Adding tags to videos")
+    console.log(`Adding tags ${tags} to videos ${videoIds}`)
 
     const query = `
         mutation AddTagsToVideos {
