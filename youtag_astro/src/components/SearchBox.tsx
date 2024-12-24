@@ -7,56 +7,34 @@ interface SearchComponentProps {
 }
 
 const SearchComponent: React.FC<SearchComponentProps> = ({initialTags}) => {
-    console.log(`Initial tags = ${initialTags}`)
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState<string>('');
     const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
     const [showTagSuggestions, setShowTagSuggestions] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [isInputFocused, setIsInputFocused] = useState(false);
 
     const tagSearchInputRef = useRef<HTMLInputElement>(null);
     const tagSuggestionsRef = useRef<HTMLDivElement>(null);
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    // Pagination settings
     const ITEMS_PER_PAGE = 2;
 
-    // Initialize tags from initialTag prop
     useEffect(() => {
-        if (initialTags && Array.isArray(initialTags) && initialTags.length > 0) {
-            // Filter out any empty or null tags
-            const validTags = initialTags.filter(tag => tag && tag.trim() !== '');
-
-            if (validTags.length > 0) {
-                setTags(validTags);
-            }
+        if (initialTags?.length) {
+            setTags(initialTags.filter(tag => tag?.trim()));
         }
     }, [initialTags]);
 
-    // Fetch tags based on input
     const fetchTags = async (keyword?: string) => {
         try {
-            let tags: string[] = [];
-            let totalCount = 0;
+            const result = keyword
+                ? await getTagsContainingKeyword(keyword)
+                : await getAllTags((currentPage - 1) * ITEMS_PER_PAGE, ITEMS_PER_PAGE);
 
-            if (keyword) {
-                // If there's a keyword, fetch tags containing that keyword
-                const result = await getTagsContainingKeyword(keyword);
-                totalCount = result?.count || 0
-                tags = result?.tags || []
-            } else {
-                // If no keyword, fetch all tags
-                const result = await getAllTags((currentPage - 1) * ITEMS_PER_PAGE, ITEMS_PER_PAGE)
-                totalCount = result?.count || 0;
-                tags = result?.tags || [];
-            }
-
-            setTagSuggestions(tags);
-            setTotalPages(Math.ceil(totalCount / ITEMS_PER_PAGE));
-
-            // Always show suggestions if there are tags
-            setShowTagSuggestions(tags.length > 0);
+            setTagSuggestions(result?.tags || []);
+            setTotalPages(Math.ceil((result?.count || 0) / ITEMS_PER_PAGE));
+            setShowTagSuggestions(isInputFocused);
         } catch (error) {
             console.error('Error fetching tags:', error);
             setTagSuggestions([]);
@@ -64,48 +42,48 @@ const SearchComponent: React.FC<SearchComponentProps> = ({initialTags}) => {
         }
     };
 
-    // Initial load of tags or when input changes
     useEffect(() => {
-        // Fetch tags when there's input or on initial load
-        if (tagInput.trim()) {
+        if (isInputFocused) {
             fetchTags(tagInput.trim());
-        } else {
-            fetchTags(); // Fetch all tags
         }
-    }, [tagInput, currentPage]);
+    }, [tagInput, currentPage, isInputFocused]);
 
-    // Debounced tag search function
     const debouncedTagSearch = (value: string) => {
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
         }
-
         debounceTimerRef.current = setTimeout(() => {
-            if (value.trim()) {
+            if (isInputFocused) {
                 setCurrentPage(1);
                 fetchTags(value.trim());
-            } else {
-                fetchTags(); // Fetch all tags if input is empty
             }
         }, 300);
     };
 
-    // Handle tag input and automatic addition
     const handleTagSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         if (value.endsWith(',')) {
-            const newTag = value.slice(0, value.length - 1).trim();
+            const newTag = value.slice(0, -1).trim();
             if (newTag && !tags.includes(newTag)) {
-                setTags(prevState => {
-                    return [...prevState, newTag];
-                });
-                setTagInput('');
-                setShowTagSuggestions(false);
+                setTags(prev => [...prev, newTag]);
             }
+            setTagInput('');
+            setShowTagSuggestions(false);
         } else {
             setTagInput(value);
             debouncedTagSearch(value);
         }
+    };
+
+    const handleInputFocus = () => {
+        setIsInputFocused(true);
+        fetchTags(tagInput.trim());
+    };
+
+    const handleInputBlur = () => {
+        setIsInputFocused(false);
+        // Delay hiding suggestions to allow for clicks on suggestions
+        setTimeout(() => setShowTagSuggestions(false), 200);
     };
 
     const removeTag = (tagToRemove: string) => {
@@ -114,12 +92,10 @@ const SearchComponent: React.FC<SearchComponentProps> = ({initialTags}) => {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Searching with:', {tags});
         setShowTagSuggestions(false);
-
         const url = new URL(window.location.href);
         url.searchParams.set('tags', tags.join(","));
-        url.searchParams.set("page", "1")
+        url.searchParams.set("page", "1");
         window.location.href = url.toString();
     };
 
@@ -129,26 +105,6 @@ const SearchComponent: React.FC<SearchComponentProps> = ({initialTags}) => {
         }
         setTagInput('');
         setShowTagSuggestions(false);
-    };
-
-    const handlePrevPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage(currentPage - 1);
-        }
-    };
-
-    const handleNextPage = () => {
-        if (currentPage < totalPages) {
-            setCurrentPage(currentPage + 1);
-        }
-    };
-
-    // Focus input to show suggestions
-    const handleInputFocus = () => {
-        // Show suggestions if there are any, regardless of input
-        if (tagSuggestions.length > 0) {
-            setShowTagSuggestions(true);
-        }
     };
 
     return (
@@ -162,6 +118,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({initialTags}) => {
                             value={tagInput}
                             onChange={handleTagSearchChange}
                             onFocus={handleInputFocus}
+                            onBlur={handleInputBlur}
                             className="w-full pl-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
                         />
                         <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20}/>
@@ -187,11 +144,10 @@ const SearchComponent: React.FC<SearchComponentProps> = ({initialTags}) => {
                         </div>
                     )}
 
-                    {showTagSuggestions && (
+                    {showTagSuggestions && tagSuggestions.length > 0 && (
                         <div
                             ref={tagSuggestionsRef}
                             className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg"
-                            onClick={(e) => e.stopPropagation()}
                         >
                             <div className="flex justify-between items-center p-2 border-b">
                                 <span className="text-sm font-medium text-gray-700">
@@ -219,7 +175,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({initialTags}) => {
                             <div className="flex justify-between items-center p-2 border-t">
                                 <button
                                     type="button"
-                                    onClick={handlePrevPage}
+                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                                     className={`text-gray-500 hover:text-gray-700 focus:outline-none ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     disabled={currentPage === 1}
                                 >
@@ -230,7 +186,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({initialTags}) => {
                                 </span>
                                 <button
                                     type="button"
-                                    onClick={handleNextPage}
+                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                                     className={`text-gray-500 hover:text-gray-700 focus:outline-none ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     disabled={currentPage === totalPages}
                                 >
