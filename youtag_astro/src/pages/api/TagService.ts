@@ -1,44 +1,79 @@
 import {SERVER_URI} from "../../utils/Constants.ts";
 import Cookies from "js-cookie";
 
-export const addTagsToVideo = async (videoId: string[], tags: string[]): Promise<boolean> => {
+interface AddTagsResponse {
+    auth: {
+        addTagsToVideos: {
+            success: boolean;
+            message: string;
+        }
+    }
+}
+
+export const addTagsToVideo = async (videoIds: string[], tags: string[]): Promise<boolean> => {
     const token = Cookies.get("token");
     if (!token) {
         console.log("No Token found in cookie");
         return false;
     }
 
-    const url = `${SERVER_URI}/authenticated/tag/?videos=${videoId.join(',').trim()}&tags=${tags.join(',').trim().toLowerCase()}`;
+    console.log("Adding tags to videos")
 
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${token}`,
-        }
-    })
-
-    if (!response.ok) {
-        console.error(`Failed to add tags to video ${JSON.stringify(response)}`)
-        return false;
-    }
-    return true;
-}
-
-
-interface TagResponse {
-    authenticatedData: {
-        user: {
-            data: {
-                tags: {
-                    count: number;
-                    data: Array<{
-                        name: string;
-                    }>;
+    const query = `
+        mutation AddTagsToVideos {
+            auth {
+                addTagsToVideos(input: {
+                    tagNames: ${JSON.stringify(tags.map(tag => tag.trim().toLowerCase()))},
+                    videoIds: ${JSON.stringify(videoIds.map(id => id.trim()))}
+                }) {
+                    success
+                    message
                 }
             }
         }
+    `;
+
+    try {
+        const url = `${SERVER_URI}/graphql`;
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({query})
+        });
+
+        if (!response.ok) {
+            console.error("Failed to add tags to video", response.status);
+            return false;
+        }
+
+        const responseData = await response.json();
+
+        if (responseData.errors) {
+            console.error("GraphQL errors:", responseData.errors);
+            return false;
+        }
+
+        const result = responseData.data?.auth?.addTagsToVideos;
+        if (!result) {
+            console.error("No response data from mutation");
+            return false;
+        }
+
+        if (!result.success) {
+            console.error("Failed to add tags:", result.message);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error adding tags to video:", error);
+        return false;
     }
 }
+
 
 export async function getAllTags(
     skip: number = 0,

@@ -157,14 +157,47 @@ export async function getVideosCountWithTags(tags: string[], token: string): Pro
 }
 
 export async function deleteVideo(videoId: string, token: string): Promise<boolean> {
-    console.log(`Deleting video ${videoId}`)
-    const url = `${SERVER_URI}/authenticated/video/?videos=${videoId}`;
-    const response = await fetch(url, {
-        method: "DELETE",
-        headers: {"content-type": "application/json", "Authorization": `Bearer ${token}`},
-    })
-    return response.ok;
+    console.log(`Deleting video ${videoId}`);
+
+    const graphqlQuery = {
+        query: `
+        mutation removeVideos {
+          auth {
+            removeVideos(input: { videoIds: ["${videoId}"] }) {
+              message
+              success
+            }
+          }
+        }
+        `,
+    };
+
+    const response = await fetch(`${SERVER_URI}/graphql`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(graphqlQuery),
+    });
+
+    if (!response.ok) {
+        console.error(`Failed to delete video: ${response.statusText}`);
+        return false;
+    }
+
+    const result = await response.json();
+    const success = result?.data?.auth?.removeVideos?.success;
+
+    if (success) {
+        console.log(`Video ${videoId} deleted successfully.`);
+        return true;
+    } else {
+        console.error(`Failed to delete video: ${result?.data?.auth?.removeVideos?.message}`);
+        return false;
+    }
 }
+
 
 function parseVideosFromData(data: VideoInfoDTO[]): Video[] {
     const videos: Video[] = [];

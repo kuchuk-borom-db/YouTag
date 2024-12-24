@@ -17,7 +17,7 @@ export class OperationCommanderImpl extends OperationCommander {
     private log = new Logger(OperationCommanderImpl.name);
 
     /**
-     * Adds tags to videos. If video has not been saved in database yet, it will be saved first.
+     * Adds tags to videos. If video has not been saved in database yet, it will be saved first. Clears caches for all get operations
      * @param tags tags to add
      * @param videos videos to add the tags to
      * @param userId userID
@@ -35,7 +35,7 @@ export class OperationCommanderImpl extends OperationCommander {
         this.log.debug(`Failed to save video = ${JSON.stringify(failedToAdd)}`);
         //Filter out the videos that failed to get added
         const validVideos = videos.filter((value) => !failedToAdd.includes(value));
-        this.log.debug('Videos added to database\nAdding tags to database');
+        this.log.debug('Videos added to database. Now, Adding tags to database');
         await this.tagService.addTagsToVideos(userId, validVideos, tags);
     }
 

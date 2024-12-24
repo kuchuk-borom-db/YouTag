@@ -4,7 +4,7 @@ import {VideoDTO} from "../../../video/api/DTOs";
 import {OperationCommander} from "../../../commander/api/Services";
 import {DataAndTotalCount} from "../../../Utils/Models";
 
-@Injectable({scope: Scope.REQUEST})
+@Injectable({scope: Scope.TRANSIENT})
 export class DataLoaderService {
     private readonly logger = new Logger(DataLoaderService.name);
 
