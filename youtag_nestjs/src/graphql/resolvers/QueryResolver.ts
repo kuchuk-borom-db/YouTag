@@ -49,7 +49,6 @@ export class PublicQueryResolver {
 
 @Resolver(() => AuthQuery)
 export class AuthQueryResolver {
-  constructor(private readonly authCommander: AuthCommander) {}
 
   @ResolveField(() => UserResponse)
   async user(@Context() context: any): Promise<UserResponse> {

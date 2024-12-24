@@ -1,3 +1,4 @@
+
 /*
  * -------------------------------------------------------
  * THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
@@ -5,7 +6,6 @@
  */
 
 /* tslint:disable */
-
 /* eslint-disable */
 
 export enum OAUTH_PROVIDER {
@@ -29,6 +29,10 @@ export class RemoveVideosInput {
 export interface ResponseModel {
     success: boolean;
     message?: Nullable<string>;
+}
+
+export interface DataAndCount {
+    count: number;
 }
 
 export abstract class IMutation {
@@ -78,31 +82,31 @@ export class UserResponse implements ResponseModel {
     data?: Nullable<User>;
 }
 
-export class TagsResponse implements ResponseModel {
+export class VideosResponse implements ResponseModel, DataAndCount {
+    count: number;
     message?: Nullable<string>;
     success: boolean;
-    data?: Nullable<Nullable<Tag>[]>;
-    count: number;
+    data: Video[];
 }
 
-export class VideosResponse implements ResponseModel {
-    message?: Nullable<string>;
+export class TagsResponse implements ResponseModel, DataAndCount {
     success: boolean;
-    data?: Nullable<Nullable<Video>[]>;
+    message?: Nullable<string>;
     count: number;
+    data: Tag[];
 }
 
 export class User {
     name: string;
     email: string;
     thumbnail: string;
-    tags?: Nullable<Tag[]>;
-    videos?: Nullable<Video[]>;
+    tags?: TagsResponse;
+    videos?: VideosResponse;
 }
 
 export class Tag {
     name: string;
-    videosWithTag?: Nullable<Video[]>;
+    videosWithTag?: VideosResponse;
 }
 
 export class Video {
@@ -111,7 +115,7 @@ export class Video {
     author: string;
     authorUrl: string;
     thumbnail: string;
-    associatedTags?: Nullable<Tag[]>;
+    associatedTags?: TagsResponse;
 }
 
 type Nullable<T> = T | null;

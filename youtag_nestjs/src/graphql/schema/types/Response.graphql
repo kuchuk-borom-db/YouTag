@@ -2,13 +2,16 @@ interface ResponseModel {
     success: Boolean!
     message: String
 }
+
 interface DataAndCount {
-    count : Int!
+    count: Int!
 }
-type NoDataResponse implements ResponseModel{
+
+type NoDataResponse implements ResponseModel {
     message: String
     success: Boolean!
 }
+
 type StringResponse implements ResponseModel {
     data: String!
     message: String
@@ -21,16 +24,16 @@ type UserResponse implements ResponseModel {
     data: User
 }
 
-type VideosResponse implements ResponseModel,DataAndCount{
-    count : Int!
+type VideosResponse implements ResponseModel & DataAndCount {
+    count: Int!
     message: String
     success: Boolean!
     data: [Video!]!
 }
 
-type TagsResponse implements DataAndCount,ResponseModel{
+type TagsResponse implements ResponseModel & DataAndCount {
     success: Boolean!
     message: String
-    count : Int!
-    data : [Tag!]!
+    count: Int!
+    data: [Tag!]!
 }
