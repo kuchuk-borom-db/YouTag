@@ -39,6 +39,7 @@ export class OperationCommanderImpl extends OperationCommander {
         const validVideos = videos.filter((value) => !failedToAdd.includes(value));
         this.log.debug('Videos added to database. Now, Adding tags to database');
         await this.tagService.addTagsToVideos(userId, validVideos, tags);
+        //TODO clear tag service cache of the user-video combo
     }
 
     /**
@@ -50,7 +51,7 @@ export class OperationCommanderImpl extends OperationCommander {
         );
         await this.tagService.removeTagsFromVideos(userId, videos, tags);
         eventEmitter.emit(Events.REMOVE_UNUSED_VIDEOS, videos)
-
+        //TODO clear tag service cache of the user-video combo
     }
 
     /**
@@ -62,6 +63,7 @@ export class OperationCommanderImpl extends OperationCommander {
         this.log.debug(`Removing videos ${videoIds} from user ${userId}`);
         await this.tagService.removeAllTagsFromVideos(userId, videoIds);
         eventEmitter.emit(Events.REMOVE_UNUSED_VIDEOS, videoIds)
+        //TODO clear tag service cache of the user-video combo
     }
 
     async getVideosOfUser(
@@ -171,39 +173,8 @@ export class OperationCommanderImpl extends OperationCommander {
         }
     }
 
-    async getTagsAndCountOfVideo(
-        userId: string,
-        videoIds: string[],
-        options: { skip: number; limit: number }
-    ): Promise<DataAndTotalCount<string>> {
-        this.log.debug(`Get tags for videos ${videoIds.join(', ')} of user ${userId}`);
-        try {
-            return await this.tagService.getTagsAndCountOfVideo(userId, videoIds, options);
-        } catch (err) {
-            this.log.error('Error at getTagsOfVideo', err);
-            return null;
-        }
-    }
 
-    async getVideosWithMultipleTags(
-        userId: string,
-        tagNames: string[],
-        limit: number,
-        skip: number
-    ): Promise<VideoDTO[]> {
-        this.log.debug(`Getting videos with tags [${tagNames.join(', ')}] for user ${userId}`);
-        try {
-            //returns video Ids of videos that contains all the tags
-            const videoIds: DataAndTotalCount<string> = await this.tagService.getVideoIdsAndCountWithTags(userId, tagNames, {
-                skip: skip,
-                limit: limit
-            })
-            return await this.videoService.getVideosByIds(videoIds.datas);
-        } catch (error) {
-            this.log.error('Error getting videos with multiple tags', error);
-            return []
-        }
-    }
+
 
 }
 

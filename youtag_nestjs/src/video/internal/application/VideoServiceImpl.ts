@@ -6,6 +6,7 @@ import {In, Repository} from 'typeorm';
 import {VideoDTO} from 'src/video/api/DTOs';
 import {VideoInfoModel} from '../domain/Models';
 
+
 export default class VideoServiceImpl implements VideoService {
     constructor(
         @InjectRepository(VideoEntity) private repo: Repository<VideoEntity>,
@@ -54,6 +55,7 @@ export default class VideoServiceImpl implements VideoService {
         } catch (err) {
             this.log.error(`Error at addVideos ${err}`);
         }
+
         return failed;
 
     }
