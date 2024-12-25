@@ -7,6 +7,7 @@ import {VideoDTO} from '../../../video/api/DTOs';
 import {Events} from "../../../Utils/Constants";
 import {eventEmitter} from "../../../Utils/EventEmitter";
 
+
 @Injectable()
 export class OperationCommanderImpl extends OperationCommander {
     constructor(
@@ -29,6 +30,7 @@ export class OperationCommanderImpl extends OperationCommander {
         videos: string[],
         userId: string,
     ): Promise<void> {
+
         this.log.debug(
             `Adding tags ${tags} to videos ${videos} for user ${userId}`,
         );
@@ -39,7 +41,8 @@ export class OperationCommanderImpl extends OperationCommander {
         const validVideos = videos.filter((value) => !failedToAdd.includes(value));
         this.log.debug('Videos added to database. Now, Adding tags to database');
         await this.tagService.addTagsToVideos(userId, validVideos, tags);
-        //TODO clear tag service cache of the user-video combo
+        //TODO When tags are added to video we need to clear cache of the user-videos combo in tag-service
+        await this.tagService.invalidateUserVideoCache(userId, videos);
     }
 
     /**
@@ -51,7 +54,8 @@ export class OperationCommanderImpl extends OperationCommander {
         );
         await this.tagService.removeTagsFromVideos(userId, videos, tags);
         eventEmitter.emit(Events.REMOVE_UNUSED_VIDEOS, videos)
-        //TODO clear tag service cache of the user-video combo
+        //TODO When tags are removed from video we need to clear cache of the user-videos combo in tag-service
+        await this.tagService.invalidateUserVideoCache(userId, videos);
     }
 
     /**
@@ -63,7 +67,10 @@ export class OperationCommanderImpl extends OperationCommander {
         this.log.debug(`Removing videos ${videoIds} from user ${userId}`);
         await this.tagService.removeAllTagsFromVideos(userId, videoIds);
         eventEmitter.emit(Events.REMOVE_UNUSED_VIDEOS, videoIds)
-        //TODO clear tag service cache of the user-video combo
+        //TODO When videos are removed we need to invalidate user-video combo in tag-service
+        await this.tagService.invalidateUserVideoCache(userId, videoIds);
+        //TODO When videos are removed we need to invalidate video cache in video-service
+        await this.videoService.invalidateVideosCache(videoIds);
     }
 
     async getVideosOfUser(
@@ -172,8 +179,6 @@ export class OperationCommanderImpl extends OperationCommander {
             return null;
         }
     }
-
-
 
 
 }

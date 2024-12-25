@@ -8,4 +8,6 @@ export abstract class VideoService {
     abstract getVideoById(id: string): Promise<VideoDTO | null>;
 
     abstract getVideosByIds(ids: string[]): Promise<VideoDTO[]>;
+
+    abstract invalidateVideosCache(videoIds: string[]): Promise<void>;
 }

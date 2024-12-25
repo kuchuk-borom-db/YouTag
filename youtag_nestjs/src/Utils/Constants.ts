@@ -22,5 +22,5 @@ export namespace EnvironmentConst {
 }
 export namespace Events {
     export const REMOVE_UNUSED_VIDEOS = "remove_unused_videos"
-    export const NEW_VIDEOS_ADDED = "new_videos_added"
+    export const ADDED_TAGS_TO_VIDEOS = "added_tags_to_videos";
 }
