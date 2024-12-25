@@ -59,15 +59,58 @@ export async function exchangeCodeForToken(code: string): Promise<string | null>
 }
 
 export async function getUserInfo(token: string): Promise<User | null> {
-    const url = `${SERVER_URI}/authenticated/auth/user`;
-    const response = await fetch(url, {
-        headers: {Authorization: `Bearer ${token}`},
-    })
-    if (response.status != 200) return null;
-    const jsonBody = await response.json();
-    return parseJsonDataToUser(jsonBody['data']);
-}
+    const query = `
+        query {
+            authenticatedData {
+                user {
+                    success
+                    message
+                    data {
+                        email
+                        name
+                        thumbnail
+                    }
+                }
+            }
+        }
+    `;
 
+    const response = await fetch(`${SERVER_URI}/graphql`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+            query
+        })
+    });
+
+    if (!response.ok) {
+        console.error(`Response error getUserInfo ${JSON.stringify(response)}`);
+        return null;
+    }
+
+    const responseJson = await response.json();
+
+    if (responseJson.errors) {
+        console.error('GraphQL Errors: getUserInfo', responseJson.errors);
+        return null;
+    }
+
+    const userData = responseJson.data?.authenticatedData?.user;
+
+    if (!userData?.success || !userData?.data) {
+        console.error('User data fetch failed:', userData?.message);
+        return null;
+    }
+
+    return {
+        name: userData.data.name,
+        email: userData.data.email,
+        thumbnailUrl: userData.data.thumbnail
+    };
+}
 
 export async function deleteProfile(token: string): Promise<void> {
     const url = `${SERVER_URI}/authenticated/auth/user`;
@@ -77,12 +120,5 @@ export async function deleteProfile(token: string): Promise<void> {
     })
 }
 
-function parseJsonDataToUser(jsonData: any): User | null {
-    return {
-        email: jsonData['email'],
-        name: jsonData['name'],
-        thumbnailUrl: jsonData['pic'],
-    }
-}
 
 export const prerender = false

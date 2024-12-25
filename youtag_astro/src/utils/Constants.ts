@@ -1,2 +1,3 @@
-export const SERVER_URI = "http://127.0.0.1:3000"
+export const SERVER_URI = import.meta.env.PUBLIC_SERVER;
+console.log(`Server url = ${SERVER_URI}`)
 export const prerender = false;

@@ -24,7 +24,11 @@ export const NavBar: React.FC<Prop> = ({user}) => {
     return (
         <nav className="flex items-center justify-between p-4 bg-white border-b border-gray-200" style={{boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'}}>
             <div className="flex items-center space-x-4">
-                <img src="/youtag.png" alt="Logo" className="h-8 w-auto" />
+
+                <a href="/">
+                    <img src="/youtag.png" alt="Logo" className="h-8 w-auto"/>
+
+                </a>
                 <button className="text-gray-600 hover:text-gray-800" onClick={handleAboutClick}>
                     About
                 </button>

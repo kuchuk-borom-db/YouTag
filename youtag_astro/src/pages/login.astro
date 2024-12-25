@@ -1,19 +1,20 @@
 ---
 import LoginLayout from '../layouts/LoginLayout.astro';
-import youtagLogo from "../../public/youtag.png"
 import {Image} from 'astro:assets';
+
+const slogan = import.meta.env.PUBLIC_SLOGAN;
 ---
 
 <LoginLayout title="YouTag by Kuchuk Borom Debbarma" description="Sign in to YouTag app">
     <div class="login-wrapper">
         <div class="logo-section">
             <Image
-                    src={youtagLogo}
+                    src="/youtag.png"
                     width={72}
                     height={72}
-                    alt="YouTube Logo"
+                    alt="YouTag Logo"
             />
-            <p class="slogan">Organise and search videos effortlessly</p>
+            <p class="slogan">{slogan}</p>
         </div>
 
         <div class="login-section" id="googleLoginBtn">

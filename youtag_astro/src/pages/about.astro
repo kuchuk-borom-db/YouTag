@@ -3,18 +3,22 @@ import { Github, Youtube, Linkedin, Instagram, Mail } from 'lucide-react';
 
 const developerName = 'Kuchuk Borom Debbarma';
 const developerProfilePic = '/kuku.png';
-const developerGithub = import.meta.env.GITHUB;
+const developerGithub = import.meta.env.PUBLIC_GITHUB;
 const developerYoutube = {
-    music: import.meta.env.YOUTUBE_MUSIC,
-    coding: import.meta.env.YOUTUBE_CODE,
+    music: import.meta.env.PUBLIC_YOUTUBE_MUSIC,
+    coding: import.meta.env.PUBLIC_YOUTUBE_CODE,
 };
-const developerLinkedin = import.meta.env.LINKEDIN;
-const developerInstagram = import.meta.env.INSTAGRAM;
-const developerEmail = import.meta.env.EMAIL;
+const developerLinkedin = import.meta.env.PUBLIC_LINKEDIN;
+const developerInstagram = import.meta.env.PUBLIC_INSTAGRAM;
+const developerEmail = import.meta.env.PUBLIC_EMAIL;
 
 export const prerender = false;
 ---
+<head>
+    <title>About Kuchuk Borom Debbarma</title>
+    <link rel="icon" href="/youtag.png" type="image/x-icon"/>
 
+</head>
 <div class="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center p-4">
     <div class="bg-white/80 backdrop-blur-md shadow-2xl rounded-2xl p-8 max-w-md w-full transform transition-all hover:scale-105 duration-300">
         <div class="flex flex-col items-center">
@@ -27,9 +31,10 @@ export const prerender = false;
                 {developerName}
             </h1>
             <p class="text-gray-600 text-center mb-6 leading-relaxed">
-                I am a backend developer (hence the "charming" UI), obsessed with making distributed systems scale like a dream. <br>
+                I am a backend developer (hence the "charming" UI), with interest in distributed systems and game development. <br>
                 When I’m not buried in code, you’ll catch me jamming on my guitar, playing games, or going for rides to clear my head. <br>
-                Oh, and I make music too... because why not?
+                Oh, and I make music too... because why not? <br>
+                <b>Check my social handles below out to explore more!</b>
             </p>
 
             <div class="flex space-x-6 mb-6">
@@ -108,3 +113,5 @@ export const prerender = false;
         50% { transform: translateY(-10px); }
     }
 </style>
+
+<!--TODO Links from env-->

@@ -1,5 +1,5 @@
 ---
-import {getAllVideos, getVideosCountOfUser, getVideosCountWithTags, getVideosWithTags} from "./api/VIdeoService";
+import {getAllVideos, getVideosWithTags} from "./api/VIdeoService";
 
 export const prerender = false;
 
@@ -29,12 +29,14 @@ let videos: Video[];
 let videosCount: number;
 if (tagsList.length <= 0) {
     console.log(`No tags`);
-    videos = await getAllVideos(skip, limit, token) || [];
-    videosCount = await getVideosCountOfUser(token) || 0;
+    const result = await getAllVideos(skip, limit, token);
+    videos = result?.videos || [];
+    videosCount = result?.totalCount || 0;
 } else {
     console.log(`Tags = ${tagsList}`);
-    videos = await getVideosWithTags(tagsList, skip, limit, token) || [];
-    videosCount = await getVideosCountWithTags(tagsList, token) || 0;
+    const result = await getVideosWithTags(tagsList, skip, limit, token)
+    videos = result.videos || [];
+    videosCount = result.totalCount || 0;
 }
 
 console.log(`Videos = ${videos.toString()}`);

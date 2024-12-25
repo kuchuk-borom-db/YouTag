@@ -3,7 +3,7 @@ import Navbar from "../components/Navbar";
 import Tags from "../components/home/AllTags";
 import CreateContentButton from "../components/home/createContentButton";
 import VideosList from "../components/VideosList";
-import {getAllVideos, getVideosCountOfUser} from "./api/VIdeoService";
+import {getAllVideos} from "./api/VIdeoService";
 import {getUserInfo} from "./api/AuthService";
 
 // Get token from cookies
@@ -20,7 +20,7 @@ const pageNumber = Math.max(Number(Astro.url.searchParams.get("page")) || 1, 1);
 const skip = (pageNumber - 1) * limit;
 
 // Fetch videos and count
-const videos = await getAllVideos(skip, limit, token) || {videos : [], totalCount : 0};
+const videos = await getAllVideos(skip, limit, token) || {videos: [], totalCount: 0};
 
 // Fetch user info from cookies
 console.log(`Generated Page with skip ${skip} and videos count ${videos.totalCount} and videos ${JSON.stringify(videos)}`);

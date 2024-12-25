@@ -8,15 +8,18 @@ if (!user) {
     Astro.redirect("/login");
 }
 ---
+<head>
+    <link rel="icon" href="/youtag.png" type="image/x-icon"/>
+<title>YOUTAG Profile</title>
+</head>
 <Navbar user={user!} client:load/>
-<div class="flex flex-col items-center justify-center h-screen bg-black/70 ">
-    <div class="bg-black/70  shadow-lg rounded-lg p-8 w-full max-w-sm">
+<div class="flex flex-col items-center justify-center h-screen bg-black/70">
+    <div class="bg-black/70 shadow-lg rounded-lg p-8 w-full max-w-sm">
         <div class="flex flex-col items-center">
             <img src={user ? user.thumbnailUrl : ""} alt={user? user.name:"Invalid User"} class="w-32 h-32 rounded-full mb-4"/>
             <h2 class="text-2xl font-bold mb-2">{user? user.name:"Invalid User"}</h2>
             <p class="text-gray-100 mb-6">{user? user.name:"Invalid Email"}</p>
 
-            <!-- Button container for better spacing -->
             <div class="flex flex-col space-y-4 w-full">
                 <button id="logout-btn"
                         class="bg-blue-400 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded w-full">
@@ -32,33 +35,34 @@ if (!user) {
         </div>
     </div>
 
-    <!-- Confirmation Modal -->
-    <div id="confirmation-modal"
+    <!-- Old Modal (hidden but kept for reference) -->
+    <div id="confirmation-modal" class="hidden"></div>
+
+    <!-- New Joke Modal -->
+    <div id="joke-modal"
          class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-80 text-center">
-            <h3 class="text-lg font-semibold mb-4">Are you sure you want to delete your account?</h3>
-            <div class="flex justify-around">
-                <button class="bg-gray-300 text-gray-700 py-2 px-4 rounded"
-                        id="cancel-btn">
-                    Cancel
-                </button>
-                <button class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded" id="confirm-delete-btn">
-                    Confirm Delete
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96 text-center transform transition-all duration-300">
+            <div class="space-y-4">
+                <div class="text-2xl font-bold text-red-500 animate-bounce">🤪 Womp Womp! 🤪</div>
+                <p class="text-lg font-semibold mb-4">Nice try, but you're stuck with us forever!</p>
+                <div class="text-gray-600 italic">"You can check out any time you like,<br>But you can never leave!"</div>
+                <div class="text-4xl mb-4">🎸</div>
+                <button id="sad-ok-btn"
+                        class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-6 rounded-full transform transition-all duration-300 hover:scale-105">
+                    *sad ok*
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Client-side script to handle modal visibility -->
-<!-- Client-side script to handle modal visibility -->
 <script>
     const deleteAccountBtn = document.getElementById("delete-account-btn");
-    const confirmationModal = document.getElementById("confirmation-modal");
-    const cancelBtn = document.getElementById("cancel-btn");
-    const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
+    const jokeModal = document.getElementById("joke-modal");
+    const sadOkBtn = document.getElementById("sad-ok-btn");
     const logoutBtn = document.getElementById("logout-btn");
 
+    // Logout functionality
     logoutBtn!.addEventListener("click", async () => {
         const astroResp = await fetch("/api/cookie", {
             method: "DELETE",
@@ -73,38 +77,42 @@ if (!user) {
         window.location.reload();
     });
 
-    // Show confirmation modal
+    // Show joke modal with a slight delay for dramatic effect
     deleteAccountBtn!.addEventListener("click", () => {
-        confirmationModal!.classList.remove("hidden");
+        setTimeout(() => {
+            jokeModal!.classList.remove("hidden");
+            const modalContent = jokeModal!.querySelector("div");
+            modalContent!.classList.add("scale-110");
+            setTimeout(() => modalContent!.classList.remove("scale-110"), 200);
+        }, 300);
     });
 
-    // Hide confirmation modal
-    cancelBtn!.addEventListener("click", () => {
-        confirmationModal!.classList.add("hidden");
+    // Hide joke modal with a fun bounce effect
+    sadOkBtn!.addEventListener("click", () => {
+        const modalContent = jokeModal!.querySelector("div");
+        modalContent!.classList.add("scale-95");
+        setTimeout(() => {
+            jokeModal!.classList.add("hidden");
+            modalContent!.classList.remove("scale-95");
+        }, 200);
     });
 
-    // Confirm account deletion
-    confirmDeleteBtn!.addEventListener("click", async () => {
-        try {
-            const deleteResp = await fetch('/api/delete-account', {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',  // Send cookies with the request
-            });
+    // Easter egg: Play sound after 3 rapid clicks on delete button
+    let clickCount = 0;
+    let lastClickTime = 0;
 
-            if (deleteResp.ok) {
-                alert('Your account has been deleted.');
-                window.location.href = "/login"; // Redirect to login after deletion
-            } else {
-                alert('Failed to delete account.');
+    deleteAccountBtn!.addEventListener("click", () => {
+        const currentTime = new Date().getTime();
+        if (currentTime - lastClickTime < 500) {
+            clickCount++;
+            if (clickCount >= 3) {
+                const audio = new Audio("https://www.soundjay.com/misc/sounds/fail-trombone-01.mp3");
+                audio.play().catch(e => console.log("Auto-play prevented"));
+                clickCount = 0;
             }
-
-        } catch (error) {
-            console.error('Error during account deletion:', error);
-            alert('An error occurred.');
+        } else {
+            clickCount = 1;
         }
-
-        confirmationModal!.classList.add("hidden"); // Hide the modal after confirmation
+        lastClickTime = currentTime;
     });
 </script>
-
