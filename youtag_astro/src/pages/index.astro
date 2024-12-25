@@ -13,7 +13,7 @@ if (!token) {
 }
 
 // Get `limit` and `page` from query parameters
-const limit = 2// Ensure limit > 0
+const limit = 4// Ensure limit > 0
 const pageNumber = Math.max(Number(Astro.url.searchParams.get("page")) || 1, 1); // Ensure page > 0
 
 // Calculate `skip` for pagination
@@ -89,7 +89,7 @@ export const prerender = false;
 
 <main>
     <!-- Tags Section -->
-    <Tags initialPage={1} tagsPerPage={3} onTagClick={() => {
+    <Tags initialPage={1} tagsPerPage={4} onTagClick={() => {
     }} client:load/>
 
     <!-- Videos Section -->

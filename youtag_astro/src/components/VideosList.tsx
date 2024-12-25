@@ -20,8 +20,8 @@ const VideoList: React.FC<Props> = ({
     const totalPages = Math.ceil(totalVideos / videosPerPage);
 
     return (
-        <div className="p-4 min-h-svh bg-gray-950"> {/* Make sure it extends to full height and has a background */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <div className="p-4 min-h-screen bg-gray-950"> {/* Ensure full height and background */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3"> {/* Adjust grid for responsiveness */}
                 {videos.length > 0 ? (
                     videos.map((video) => (
                         <VideoCard key={video.videoId} video={video}/>
