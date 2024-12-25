@@ -108,5 +108,5 @@ export abstract class TagService {
      */
     abstract getVideosNotInUse(videoIds: string[]): Promise<string[]>;
 
-    abstract invalidateUserVideoCache(userId: string, videos: string[]): Promise<null>;
+    abstract invalidateUserVideoCache(userId: string, videos: string[]): Promise<void>;
 }

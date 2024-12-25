@@ -7,6 +7,11 @@ import {In, Repository} from 'typeorm';
 
 @Injectable()
 export default class TagServiceImpl extends TagService {
+
+    invalidateUserVideoCache(userId: string, videos: string[]): Promise<void> {
+        return;
+    }
+
     constructor(
         @InjectRepository(TagEntity) private repo: Repository<TagEntity>,
     ) {
