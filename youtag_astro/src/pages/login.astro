@@ -26,38 +26,42 @@ const slogan = import.meta.env.PUBLIC_SLOGAN;
         <!-- Loading Section -->
         <div id="loadingSection" class="loading-section" style="display: none;">
             <div class="loading-bar"></div>
-            <p class="loading-text">Please wait while we log you in. If the server is starting up due to inactivity, it may take a few seconds. The process will be faster once the server is active.</p>
+            <p class="loading-text">Logging in, please wait. If the server was shut down due to inactivity, it may take 20-60 seconds to start, but it will be super fast once it's on.</p>
         </div>
     </div>
 
     <script>
         import { getGoogleLoginUrl } from "./api/AuthService";
 
-        document.getElementById("googleLoginBtn")?.addEventListener('click', async () => {
-            try {
-                console.log("Login button pressed", "debug", "LOGIN");
+        const googleLoginBtn = document.getElementById("googleLoginBtn");
 
-                // Show loading section
-                document.getElementById("loadingSection")?.style.display = "block";
+        if (googleLoginBtn) {
+            googleLoginBtn.addEventListener('click', async () => {
+                try {
+                    console.log("Login button pressed", "debug", "LOGIN");
 
-                const url = await getGoogleLoginUrl();
+                    // Show loading section
+                    document.getElementById("loadingSection")!.style.display = "block";
 
-                if (url) {
-                    // Redirect to the obtained URL
-                    window.location.href = url;
-                } else {
+                    const url = await getGoogleLoginUrl();
+
+                    if (url) {
+                        // Redirect to the obtained URL
+                        window.location.href = url;
+                    } else {
+                        // Hide loading section and show error
+                        document.getElementById("loadingSection")!.style.display = "none";
+                        console.error("No login URL received");
+                        alert("Unable to initiate Google login. Please try again.");
+                    }
+                } catch (error) {
+                    console.error("Google login error:", error);
                     // Hide loading section and show error
-                    document.getElementById("loadingSection")?.style.display = "none";
-                    console.error("No login URL received");
-                    alert("Unable to initiate Google login. Please try again.");
+                    document.getElementById("loadingSection")!.style.display = "none";
+                    alert("An error occurred during login. Please try again.");
                 }
-            } catch (error) {
-                console.error("Google login error:", error);
-                // Hide loading section and show error
-                document.getElementById("loadingSection")?.style.display = "none";
-                alert("An error occurred during login. Please try again.");
-            }
-        });
+            });
+        }
     </script>
 
     <style>
@@ -129,42 +133,48 @@ const slogan = import.meta.env.PUBLIC_SLOGAN;
             font-weight: 500;
         }
 
-        /* Loading Bar Styles */
         .loading-section {
             margin-top: 20px;
-            text-align: center;
         }
 
         .loading-bar {
             width: 100%;
             height: 4px;
-            background-color: #e0e0e0;
-            position: relative;
+            background-color: #f3f3f3;
+            border-radius: 2px;
             margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .loading-bar::after {
+        .loading-bar::before {
             content: '';
             position: absolute;
             width: 0;
             height: 100%;
-            background-color: #4caf50;
-            animation: load 5s infinite;
-        }
-
-        @keyframes load {
-            0% { width: 0%; }
-            50% { width: 50%; }
-            100% { width: 100%; }
+            background-color: #ff0000;
+            animation: loadingAnimation 3s infinite;
         }
 
         .loading-text {
+            color: #606060;
             font-size: 0.9rem;
-            color: #4caf50;
-            font-weight: 500;
             margin-top: 10px;
-            max-width: 80%;
-            margin: 0 auto;
+        }
+
+        @keyframes loadingAnimation {
+            0% {
+                left: -100%;
+                width: 0;
+            }
+            50% {
+                left: 0;
+                width: 100%;
+            }
+            100% {
+                left: 100%;
+                width: 0;
+            }
         }
 
         @media (max-width: 480px) {
@@ -182,11 +192,6 @@ const slogan = import.meta.env.PUBLIC_SLOGAN;
 
             .logo-section h1 {
                 font-size: 1.25rem;
-            }
-
-            .loading-text {
-                font-size: 0.8rem;
-                max-width: 90%;
             }
         }
     </style>
