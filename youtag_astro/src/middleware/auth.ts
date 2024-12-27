@@ -19,7 +19,12 @@ export const auth = defineMiddleware(async (context, next) => {
 
         if (!token) {
             console.log(`[${logLabel}] No token provided. Redirecting to login page.`);
-            const response = context.redirect(`/login`);
+            const response = new Response(null, {
+                status: 302,
+                headers: {
+                    Location: "/login",
+                },
+            });
             console.log(`[${logLabel}] Redirecting to ${response.url}`);
             return response;
         }

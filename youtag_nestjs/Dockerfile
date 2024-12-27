@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine as build
+FROM node:18-alpine AS build
 
 # Add necessary build tools for native dependencies
 RUN apk add --no-cache python3 make g++
@@ -21,24 +21,19 @@ RUN npm run build
 # Production stage
 FROM node:18-alpine
 
-# Add a non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nestjs -u 1001
-
 WORKDIR /app
 
+# Do not switch to a non-root user (default is root)
+
 # Copy only necessary files from build stage
-COPY --chown=nestjs:nodejs package*.json ./
+COPY package*.json ./
 
 # Install only production dependencies
-RUN npm ci --only=production && \
-    npm cache clean --force
+ENV NODE_ENV=production
+RUN npm ci && npm cache clean --force
 
 # Copy built application
-COPY --chown=nestjs:nodejs --from=build /app/dist ./dist
-
-# Switch to non-root user
-USER nestjs
+COPY --from=build /app/dist ./dist
 
 # Expose the port your app runs on
 EXPOSE 3000
