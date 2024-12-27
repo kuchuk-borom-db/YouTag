@@ -1,3 +1,5 @@
+Quick command to build the image and push it
+
 docker build -t youtag_nestjs .
 
 
@@ -21,3 +23,12 @@ docker run -d ^
 -e CORS_ORIGINS=http://localhost:3000,http://localhost:4321 ^
 -p 4321:4321 ^
 kuchukboromdebbarma/youtag_nestjs:latest
+
+
+
+
+
+
+Accounts used = kuchukboromdebbarma@outlook.com or else github
+
+Used technologies, tool and services = NestJS, GraphQL, Apollo, Astro, Java Spring Boot, Postgresql, Render, Vercel, Google Cloud Platform, OAuth2,
