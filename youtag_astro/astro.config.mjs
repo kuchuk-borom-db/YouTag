@@ -10,7 +10,7 @@ import vercel from "@astrojs/vercel";
 
 export default defineConfig({
     //Prerender every page as static site by default
-    output: "static",
+    output: "server",
 
     integrations: [tailwind(), react()],
 
