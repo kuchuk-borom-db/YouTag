@@ -98,7 +98,7 @@
         }
 
         updateStatus("EXCHANGING");
-        const token = await import('./api/AuthService.ts').then(({exchangeCodeForToken}) => exchangeCodeForToken(code, state));
+        const token = await import('./api/AuthService.ts').then(({exchangeCodeForToken}) => exchangeCodeForToken(code));
         if (!token) {
             updateStatus("FAILED");
             return;
