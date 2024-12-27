@@ -1,118 +1,118 @@
----
-import Navbar from "../components/Navbar";
-import Tags from "../components/home/AllTags";
-import CreateContentButton from "../components/home/createContentButton";
-import VideosList from "../components/VideosList";
-import {getAllVideos} from "./api/VIdeoService";
-import {getUserInfo} from "./api/AuthService";
+    ---
+    import Navbar from "../components/Navbar";
+    import Tags from "../components/home/AllTags";
+    import CreateContentButton from "../components/home/createContentButton";
+    import VideosList from "../components/VideosList";
+    import {getAllVideos} from "./api/VIdeoService";
+    import {getUserInfo} from "./api/AuthService";
 
-// Get token from cookies
-const token = Astro.cookies.get("token")?.value;
-if (!token) {
-    throw new Error("Authentication token is missing.");
-}
+    // Get token from cookies
+    const token = Astro.cookies.get("token")?.value;
+    if (!token) {
+        throw new Error("Authentication token is missing.");
+    }
 
-// Get `limit` and `page` from query parameters
-const limit = 6// Ensure limit > 0
-const pageNumber = Math.max(Number(Astro.url.searchParams.get("page")) || 1, 1); // Ensure page > 0
-
-
-// Calculate `skip` for pagination
-const skip = (pageNumber - 1) * limit;
-
-// Fetch videos and count
-const videos = await getAllVideos(skip, limit, token) || {videos: [], totalCount: 0};
-
-// Fetch user info from cookies
-console.log(`Generated Page with skip ${skip} and videos count ${videos.totalCount} and videos ${JSON.stringify(videos)}`);
-
-const userInfo = await getUserInfo(Astro.cookies.get("token")!.value)!;
-
-export const prerender = false;
+    // Get `limit` and `page` from query parameters
+    const limit = 6// Ensure limit > 0
+    const pageNumber = Math.max(Number(Astro.url.searchParams.get("page")) || 1, 1); // Ensure page > 0
 
 
-// Define the page change function
----
+    // Calculate `skip` for pagination
+    const skip = (pageNumber - 1) * limit;
 
-<html lang="en">
-<head>
-    <link rel="icon" href="/youtag.png" type="image/x-icon"/>
+    // Fetch videos and count
+    const videos = await getAllVideos(skip, limit, token) || {videos: [], totalCount: 0};
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YOUTAG by Kuchuk Borom Debbarma</title>
-    <style>
-        body {
-            background-color: #0f0f0f;
-            color: white;
-            font-family: 'Arial', sans-serif;
-        }
+    // Fetch user info from cookies
+    console.log(`Generated Page with skip ${skip} and videos count ${videos.totalCount} and videos ${JSON.stringify(videos)}`);
 
-        .error-message {
-            text-align: center;
-            margin-top: 2rem;
-            padding: 1.5rem;
-            background-color: #333;
-            color: #ff0000;
-            border: 1px solid #ff0000;
-            border-radius: 8px;
-        }
+    const userInfo = await getUserInfo(Astro.cookies.get("token")!.value)!;
 
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 2rem;
-            gap: 0.5rem;
-        }
+    export const prerender = false;
 
-        .pagination-btn {
-            background-color: #333;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
 
-        .pagination-btn:hover {
-            background-color: #555;
-        }
+    // Define the page change function
+    ---
 
-        .pagination-btn.active {
-            background-color: #ff0000;
-        }
-    </style>
-</head>
-<body>
-<Navbar user={userInfo!} client:load/>
+    <html lang="en">
+    <head>
+        <link rel="icon" href="/youtag.png" type="image/x-icon"/>
 
-<main>
-    <!-- Tags Section -->
-    <Tags initialPage={1} tagsPerPage={4} onTagClick={() => {
-        const url = new URL(window.location.href);
-        console.log("GGEZ")
-        window.location.href="/search?"
-    }} client:load/>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>YOUTAG by Kuchuk Borom Debbarma</title>
+        <style>
+            body {
+                background-color: #0f0f0f;
+                color: white;
+                font-family: 'Arial', sans-serif;
+            }
 
-    <!-- Videos Section -->
-    {videos && videos.videos.length > 0 ? (
-            <VideosList
-                    videos={videos.videos}
-                    totalVideos={videos.totalCount || 0}
-                    currentPage={pageNumber}
-                    videosPerPage={limit}
-                    client:load
-            />
-    ) : (
-            <div class="error-message">
-                <p>No videos found for this page. Try navigating to a different page or uploading content.</p>
-            </div>
-    )}
+            .error-message {
+                text-align: center;
+                margin-top: 2rem;
+                padding: 1.5rem;
+                background-color: #333;
+                color: #ff0000;
+                border: 1px solid #ff0000;
+                border-radius: 8px;
+            }
 
-    <!-- Create Content Button -->
-    <CreateContentButton client:load/>
-</main>
-</body>
-</html>
+            .pagination {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-top: 2rem;
+                gap: 0.5rem;
+            }
+
+            .pagination-btn {
+                background-color: #333;
+                color: white;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+
+            .pagination-btn:hover {
+                background-color: #555;
+            }
+
+            .pagination-btn.active {
+                background-color: #ff0000;
+            }
+        </style>
+    </head>
+    <body>
+    <Navbar user={userInfo!} client:load/>
+
+    <main>
+        <!-- Tags Section -->
+        <Tags initialPage={1} tagsPerPage={4} onTagClick={() => {
+            const url = new URL(window.location.href);
+            console.log("GGEZ")
+            window.location.href="/search?"
+        }} client:load/>
+
+        <!-- Videos Section -->
+        {videos && videos.videos.length > 0 ? (
+                <VideosList
+                        videos={videos.videos}
+                        totalVideos={videos.totalCount || 0}
+                        currentPage={pageNumber}
+                        videosPerPage={limit}
+                        client:load
+                />
+        ) : (
+                <div class="error-message">
+                    <p>No videos found for this page. Try navigating to a different page or uploading content.</p>
+                </div>
+        )}
+
+        <!-- Create Content Button -->
+        <CreateContentButton client:load/>
+    </main>
+    </body>
+    </html>
