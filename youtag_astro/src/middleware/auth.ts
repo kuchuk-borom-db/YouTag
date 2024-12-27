@@ -1,28 +1,39 @@
-import { defineMiddleware } from "astro/middleware";
+import {defineMiddleware} from "astro/middleware";
 
-const logLabel = "Middleware-Auth"
+const logLabel = "Middleware-Auth";
+
 export const auth = defineMiddleware(async (context, next) => {
     const pathName = context.url.pathname;
-    console.log(`Current page = ${pathName}`)
-    console.log(`Current full path = ${context.url}`)
+    console.log(`[${logLabel}] Current page = ${pathName}`);
+    console.log(`[${logLabel}] Current full path = ${context.url}`);
+    console.log(`[${logLabel}] Auth middleware triggered on path name ${pathName}`);
 
-    console.log(`Auth middleware triggered on path name ${pathName}`)
     if (!isAuthPath(pathName)) {
-        console.log(`Hit a public route ${pathName}`);
+        console.log(`[${logLabel}] Hit a public route: ${pathName}`);
         return next();
     }
 
-    console.log(`Cookies : ${JSON.stringify(context.cookies)}`)
-    const token = context.cookies.get("token")?.value
-    if (token == undefined) {
-        console.log(`No token provided. Redirecting to login page`)
-        // Add the current URL as a redirect parameter
-        const returnUrl = encodeURIComponent(context.url.pathname + context.url.search)
-        const response = context.redirect(`/login?redirect=${returnUrl}`)
-        console.log(`Redirecting to ${response.url}`)
+    try {
+        console.log(`[${logLabel}] Cookies: ${JSON.stringify(context.cookies)}`);
+        const token = context.cookies.get("token")?.value;
+
+        if (!token) {
+            console.log(`[${logLabel}] No token provided. Redirecting to login page.`);
+            const response = context.redirect(`/login`);
+            console.log(`[${logLabel}] Redirecting to ${response.url}`);
+            return response;
+        }
+
+        // Further token validation logic can go here, if needed.
+
+        return next();
+    } catch (error) {
+        console.error(`[${logLabel}] Error occurred: ${error}`);
+        console.log(`[${logLabel}] Redirecting to login page due to an error.`);
+        const response = context.redirect(`/login`);
+        console.log(`[${logLabel}] Redirecting to ${response.url}`);
         return response;
     }
-    return next()
 });
 
 function isAuthPath(pathName: string): boolean {
