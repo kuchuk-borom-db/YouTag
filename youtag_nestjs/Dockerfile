@@ -1,17 +1,18 @@
 # Dockerfile
-FROM node:18-alpine
-
+FROM node:18-alpine as build
 WORKDIR /app
 
-COPY . .
-
+COPY package*.json .
 RUN npm install
+COPY . .
+RUN npm run build
 
-# Expose application port
-EXPOSE 3000
-
-# Start the application
-CMD ["npm", "run", "start"]
+FROM node:18-alpine
+WORKDIR /app
+COPY package.json .
+RUN npm install --only=production
+COPY --from=build /app/dist ./dist
+CMD npm run start:prod
 
 
 

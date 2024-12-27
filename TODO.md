@@ -1,8 +1,23 @@
-1. Front end is not showing updated info such as added videos but works when doing it from graphql playground. When I restart server it shows up. Pretty sure it has to do something with backend.
-2. Same goes for deleting tags. It's deleted and frontend updates it but when I refresh the page it shows old info with the tag I deleted.
+docker build -t youtag_nestjs .
 
 
-Task :-
-1. Remove data loaders and ensure that things are working well with barebone pure database calls.
-2. Once determined that it works. Implement caching at service level with event listeners for invalidating caches
-3. Once it works with that too, implement data loader
+docker tag youtag_nestjs kuchukboromdebbarma/youtag_nestjs:latest
+
+docker push kuchukboromdebbarma/youtag_nestjs:latest
+
+
+docker run -d ^
+-e NOTE="Use these values are for testing only. They will be invalidated, don't worry" ^
+-e OAUTH_GOOGLE_ID=604887776464-ll6h84c7ctu89i694e8jrurf6jv8dmb7.apps.googleusercontent.com ^
+-e OAUTH_GOOGLE_SECRET=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 ^
+-e OAUTH_GOOGLE_REDIRECT_URI=http://localhost:4321/redirect ^
+-e OAUTH_GOOGLE_SCOPES=email,profile ^
+-e JWT_SECRET=thisIsABIGASSSecret ^
+-e JWT_EXPIRY=1y ^
+-e DB_HOST=ep-orange-surf-a1pq1ti6.ap-southeast-1.aws.neon.tech ^
+-e DB_USERNAME=youtag ^
+-e DB_PWD=KzdI3qbx1sAB ^
+-e DB_NAME=youtag ^
+-e CORS_ORIGINS=http://localhost:3000,http://localhost:4321 ^
+-p 4321:4321 ^
+kuchukboromdebbarma/youtag_nestjs:latest
