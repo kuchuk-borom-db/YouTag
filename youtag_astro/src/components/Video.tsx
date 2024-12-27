@@ -27,14 +27,17 @@ const VideoCard: React.FC<VideoCardProps> = ({video}) => {
     // Calculate total tag pages
     const totalTagPages = Math.ceil(tags.length / tagsPerPage);
 
-    // Handle bulk tag selection in delete mode
-    const handleTagSelect = (tag: string) => {
+    // Handle tag click based on mode
+    const handleTagClick = (tag: string, e: React.MouseEvent) => {
         if (isDeleteMode) {
+            e.preventDefault();
             setSelectedTags(prev =>
                 prev.includes(tag)
                     ? prev.filter(t => t !== tag)
                     : [...prev, tag]
             );
+        } else {
+            window.location.href = `/search?tags=${tag}`;
         }
     };
 
@@ -103,16 +106,13 @@ const VideoCard: React.FC<VideoCardProps> = ({video}) => {
                     <p className="text-gray-500 text-sm truncate">
                         {video.author}
                     </p>
-
                 </a>
                 {/* Tags with Bulk Select */}
                 <div className="mt-2 flex flex-wrap gap-2">
                     {paginatedTags.map((tag, index) => (
                         <div
                             key={index}
-                            onClick={() => {
-                                window.location.href = `/search?tags=${tag}`
-                            }}
+                            onClick={(e) => handleTagClick(tag, e)}
                             className={`flex items-center gap-1 px-2 py-1 rounded cursor-pointer ${
                                 isDeleteMode
                                     ? (selectedTags.includes(tag)
