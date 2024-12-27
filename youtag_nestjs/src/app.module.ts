@@ -45,7 +45,7 @@ import {CacheModule} from '@nestjs/cache-manager';
         }),
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
-            typePaths: ['**.graphql'],
+            typePaths: ['./**/*.graphql'],
             definitions: {
                 path: path.join(process.cwd(), 'src/graphql.ts'),
                 outputAs: 'class',

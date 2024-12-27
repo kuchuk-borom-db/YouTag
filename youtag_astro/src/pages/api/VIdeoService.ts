@@ -1,78 +1,60 @@
 import type Video from "../../models/Video.ts";
-import {SERVER_URI} from "../../utils/Constants.ts";
+import { SERVER_URI } from "../../utils/Constants.ts";
 
 export async function getAllVideos(skip: number, limit: number, token: string): Promise<{
     videos: Video[],
     totalCount: number
 } | null> {
-    // Get the server URI from environment variables
-    const serverUri = import.meta.env.PUBLIC_SERVER_URI || 'http://localhost:3000';
-    const url = `${serverUri}/graphql`;
+    const url = `${SERVER_URI}/graphql`;
 
-    // Add retry logic and timeout
-    const fetchWithRetry = async (attempt = 1, maxAttempts = 3) => {
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    query: `
-                    query Videos($skip: Int!, $limit: Int!) {
-                        authenticatedData {
-                            user {
-                                data {
-                                    videos(skip: $skip, limit: $limit, contains: []) {
-                                        count
-                                        message
-                                        success
-                                        data {
-                                            id
-                                            title
-                                            author
-                                            authorUrl
-                                            thumbnail
-                                            associatedTags(skip: 0, limit: 999) {
-                                                count
-                                                data {
-                                                    name
-                                                }
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                query: `
+                query Videos($skip: Int!, $limit: Int!) {
+                    authenticatedData {
+                        user {
+                            data {
+                                videos(skip: $skip, limit: $limit, contains: []) {
+                                    count
+                                    message
+                                    success
+                                    data {
+                                        id
+                                        title
+                                        author
+                                        authorUrl
+                                        thumbnail
+                                        associatedTags(skip: 0, limit: 999) {
+                                            count
+                                            data {
+                                                name
                                             }
                                         }
                                     }
                                 }
                             }
                         }
-                    }`,
-                    variables: { skip, limit }
-                }),
-                // Add timeout
-                signal: AbortSignal.timeout(5000)
+                    }
+                }`,
+                variables: { skip, limit }
+            }),
+            signal: AbortSignal.timeout(5000)
+        });
+
+        if (!response.ok) {
+            console.error("Failed request:", {
+                status: response.status,
+                statusText: response.statusText
             });
-
-            if (!response.ok) {
-                console.error(`Failed request (attempt ${attempt}):`, {
-                    status: response.status,
-                    statusText: response.statusText
-                });
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            return response;
-        } catch (error) {
-            if (attempt < maxAttempts) {
-                console.log(`Retrying request (attempt ${attempt + 1})...`);
-                await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-                return fetchWithRetry(attempt + 1, maxAttempts);
-            }
-            throw error;
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    };
 
-    try {
-        const response = await fetchWithRetry();
         const jsonBody = await response.json();
         const videosResponse = jsonBody.data?.authenticatedData?.user?.data?.videos;
 
@@ -102,9 +84,9 @@ export async function getAllVideos(skip: number, limit: number, token: string): 
 
         return result;
     } catch (e) {
-        console.error(`Error at getAllVideos:`, {
+        console.error("Error at getAllVideos:", {
             error: e,
-            serverUri,
+            SERVER_URI,
             environment: process.env.NODE_ENV
         });
         return {
@@ -161,14 +143,14 @@ export async function getVideosWithTags(tags: string[], skip: number, limit: num
 
     if (!response.ok) {
         console.error(`Response error getVideosWithTags ${JSON.stringify(response)}`);
-        return {videos: [], totalCount: 0};
+        return { videos: [], totalCount: 0 };
     }
 
     const responseJson = await response.json();
 
     if (responseJson.errors) {
         console.error('GraphQL Errors: getVideosWithTags', responseJson.errors);
-        return {videos: [], totalCount: 0};
+        return { videos: [], totalCount: 0 };
     }
 
     const videosData = responseJson.data?.authenticatedData?.user?.data?.videos;
@@ -244,6 +226,5 @@ export async function deleteVideo(videoId: string, token: string): Promise<boole
     }
 }
 
-
 //TODO Combine tags from option for adding videos to skip having to add tags manually one by one. This will introduce search feature for video with suggestions
-export const prerender = false
+export const prerender = false;
