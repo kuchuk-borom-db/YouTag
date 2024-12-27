@@ -3,7 +3,6 @@ import {defineMiddleware} from "astro/middleware";
 const logLabel = "Middleware-Auth";
 
 export const auth = defineMiddleware(async (context, next) => {
-    return next();
     const pathName = context.url.pathname;
     console.log(`[${logLabel}] Current page = ${pathName}`);
     console.log(`[${logLabel}] Current full path = ${context.url}`);
