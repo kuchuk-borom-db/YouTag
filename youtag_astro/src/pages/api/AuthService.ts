@@ -58,7 +58,6 @@ export async function exchangeCodeForToken(code: string): Promise<string | null>
     return jsonBody.data?.public?.exchangeOAuthTokenForAccessToken?.data || null;
 }
 
-
 export async function getUserInfo(token: string): Promise<User | null> {
     const serverUri = `${SERVER_URI}/graphql`
 
@@ -78,39 +77,24 @@ export async function getUserInfo(token: string): Promise<User | null> {
         }
     `;
 
-    const fetchWithRetry = async (attempt = 1, maxAttempts = 3) => {
-        try {
-            const response = await fetch(`${serverUri}/graphql`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ query }),
-                signal: AbortSignal.timeout(5000) // 5 second timeout
-            });
-
-            if (!response.ok) {
-                console.error(`getUserInfo failed (attempt ${attempt}):`, {
-                    status: response.status,
-                    statusText: response.statusText
-                });
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            return response;
-        } catch (error) {
-            if (attempt < maxAttempts) {
-                console.log(`Retrying getUserInfo (attempt ${attempt + 1})...`);
-                await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-                return fetchWithRetry(attempt + 1, maxAttempts);
-            }
-            throw error;
-        }
-    };
-
     try {
-        const response = await fetchWithRetry();
+        const response = await fetch(serverUri, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ query })
+        });
+
+        if (!response.ok) {
+            console.error('getUserInfo failed:', {
+                status: response.status,
+                statusText: response.statusText
+            });
+            return null;
+        }
+
         const responseJson = await response.json();
 
         if (responseJson.errors) {
@@ -143,13 +127,13 @@ export async function getUserInfo(token: string): Promise<User | null> {
         return null;
     }
 }
+
 export async function deleteProfile(token: string): Promise<void> {
     const url = `${SERVER_URI}/authenticated/auth/user`;
     await fetch(url, {
         headers: {Authorization: `Bearer ${token}`},
         method: "DELETE",
-    })
+    });
 }
 
-
-export const prerender = false
+export const prerender = false;
