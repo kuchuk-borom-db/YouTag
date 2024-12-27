@@ -17,7 +17,7 @@ if (!token) {
 }
 
 // Get `Tags`, `limit` and `page` from query parameters
-const limit = 2;
+const limit = 6;
 const pageNumber = Math.max(Number(Astro.url.searchParams.get("page")) || 1, 1); // Ensure page > 0
 const tagsRaw: string = Astro.url.searchParams.get("tags") || "";
 const tagsList = tagsRaw.trim().toLowerCase().split(",").filter(value => value.length > 0) || [];

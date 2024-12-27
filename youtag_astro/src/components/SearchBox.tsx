@@ -14,7 +14,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({initialTags}) => {
     const [totalPages, setTotalPages] = useState(1);
 
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const ITEMS_PER_PAGE = 2;
+    const ITEMS_PER_PAGE = 6;
 
     useEffect(() => {
         if (initialTags?.length) {

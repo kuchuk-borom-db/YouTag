@@ -1,26 +1,88 @@
 import {DataAndTotalCount} from 'src/Utils/Models';
 import {TagService} from '../../api/Services';
-import {Injectable, Logger} from '@nestjs/common';
+import {Inject, Injectable, Logger} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {TagEntity} from '../domain/Entities';
 import {In, Repository} from 'typeorm';
+import {CACHE_MANAGER} from "@nestjs/cache-manager";
+import {Cache} from "cache-manager";
 
 @Injectable()
 export default class TagServiceImpl extends TagService {
-
-    invalidateUserVideoCache(userId: string, videos: string[]): Promise<void> {
-        return;
-    }
+    private readonly CACHE_PREFIX = 'tag_service:';
+    private log = new Logger(TagServiceImpl.name);
 
     constructor(
+        @Inject(CACHE_MANAGER) private readonly cache: Cache,
         @InjectRepository(TagEntity) private repo: Repository<TagEntity>,
     ) {
         super();
     }
 
-    private log = new Logger(TagServiceImpl.name);
+    // Cache key generators
+    private generateTagsOfVideoKey(userId: string, videoIds: string[]): string {
+        return `${this.CACHE_PREFIX}tags_of_video:${userId}:${videoIds.sort().join(',')}`;
+    }
 
+    private generateUserTagsKey(userId: string): string {
+        return `${this.CACHE_PREFIX}user_tags:${userId}`;
+    }
 
+    private generateVideosByTagsKey(userId: string, tags: string[]): string {
+        return `${this.CACHE_PREFIX}videos_by_tags:${userId}:${tags.sort().join(',')}`;
+    }
+
+    private generateTaggedVideosKey(userId: string): string {
+        return `${this.CACHE_PREFIX}tagged_videos:${userId}`;
+    }
+
+    private generateTagsContainingKey(userId: string, containing: string): string {
+        return `${this.CACHE_PREFIX}tags_containing:${userId}:${containing}`;
+    }
+
+    // Cache invalidation
+    async invalidateUserVideoCache(userId: string, videos: string[]): Promise<void> {
+        try {
+            const keys = await this.cache.store.keys(`${this.CACHE_PREFIX}*`);
+            const keysToDelete: string[] = [];
+
+            for (const key of keys) {
+                // Check if key contains userId
+                if (key.includes(userId)) {
+                    // For keys containing specific video IDs, check if they contain any of the videos
+                    if (videos.some(video => key.includes(video))) {
+                        keysToDelete.push(key);
+                    }
+                    // Also invalidate user-wide caches
+                    if (key.includes('user_tags') ||
+                        key.includes('tagged_videos') ||
+                        key.includes('tags_containing')) {
+                        keysToDelete.push(key);
+                    }
+                }
+            }
+
+            await Promise.all(keysToDelete.map(key => this.cache.del(key)));
+            this.log.debug(`Invalidated ${keysToDelete.length} cache keys for user ${userId}`);
+        } catch (error) {
+            this.log.error(`Error invalidating cache: ${error}`);
+        }
+    }
+
+    // Helper method for pagination
+    private applyPagination<T>(data: DataAndTotalCount<T> | null, pagination?: {
+        skip: number;
+        limit: number
+    }): DataAndTotalCount<T> | null {
+        if (!data || !pagination) return data;
+
+        return {
+            datas: data.datas.slice(pagination.skip, pagination.skip + pagination.limit),
+            count: data.count
+        };
+    }
+
+    // Implementation methods
     async addTagsToVideos(
         userId: string,
         videoIds: string[],
@@ -31,7 +93,6 @@ export default class TagServiceImpl extends TagService {
                 `Adding tags ${tags} to videos ${videoIds} for user ${userId}`,
             );
 
-            // Create values for bulk insert
             const values = videoIds.flatMap(videoId =>
                 tags.map(tag => ({
                     userId,
@@ -45,9 +106,10 @@ export default class TagServiceImpl extends TagService {
                 .insert()
                 .into(TagEntity)
                 .values(values)
-                .orIgnore() // This adds ON CONFLICT DO NOTHING
+                .orIgnore()
                 .execute();
 
+            await this.invalidateUserVideoCache(userId, videoIds);
         } catch (error) {
             this.log.error(`Error while adding tags to videos: ${error}`);
         }
@@ -67,9 +129,9 @@ export default class TagServiceImpl extends TagService {
                 videoId: In(videoId),
                 userId: userId,
             });
+            await this.invalidateUserVideoCache(userId, videoId);
         } catch (err) {
             this.log.error('Error while removing tags', err);
-            return;
         }
     }
 
@@ -88,6 +150,7 @@ export default class TagServiceImpl extends TagService {
             });
 
             this.log.debug(`Removed ${result.affected} tag entries`);
+            await this.invalidateUserVideoCache(userId, videoId);
         } catch (error) {
             this.log.error(`Error removing tags from videos: ${error}`);
         }
@@ -98,41 +161,59 @@ export default class TagServiceImpl extends TagService {
         videoId: string[],
         pagination?: { skip: number; limit: number },
     ): Promise<DataAndTotalCount<string> | null> {
+        const cacheKey = this.generateTagsOfVideoKey(userId, videoId);
 
+        try {
+            // Try to get from cache
+            const cached = await this.cache.get<DataAndTotalCount<string>>(cacheKey);
+            if (cached) {
+                this.log.debug(`Cache hit for ${cacheKey}`);
+                return this.applyPagination(cached, pagination);
+            }
 
-        this.log.debug(
-            `Get tags and tag counts of video ${videoId} of user ${userId}`,
-        );
-        const baseQuery = this.repo
-            .createQueryBuilder('entity')
-            .select('DISTINCT entity.tag ', 'tag')
-            .where('entity.user_id = :user', {user: userId})
-            .andWhere('entity.video_id IN (:...videos)', {videos: videoId})
-            .printSql();
+            this.log.debug(
+                `Get tags and tag counts of video ${videoId} of user ${userId}`,
+            );
 
-        const countResult = await baseQuery
-            .clone()
-            .select('COUNT(DISTINCT entity.tag)', 'count')
-            .getRawOne();
-        const count = countResult.count;
+            const baseQuery = this.repo
+                .createQueryBuilder('entity')
+                .select('DISTINCT entity.tag ', 'tag')
+                .where('entity.user_id = :user', {user: userId})
+                .andWhere('entity.video_id IN (:...videos)', {videos: videoId});
 
-        if (pagination) {
-            baseQuery.skip(pagination.skip).take(pagination.limit);
+            const countResult = await baseQuery
+                .clone()
+                .select('COUNT(DISTINCT entity.tag)', 'count')
+                .getRawOne();
+
+            const result = await baseQuery.getRawMany();
+            const data = {
+                datas: result.map((r: any) => r.tag),
+                count: Number(countResult.count),
+            };
+
+            await this.cache.set(cacheKey, data);
+            return this.applyPagination(data, pagination);
+        } catch (error) {
+            this.log.error(`Error in getTagsAndCountOfVideo: ${error}`);
+            return null;
         }
-        const result: any = await baseQuery.getRawMany();
-        return {
-            datas: result.map((r: any) => r.tag),
-            count: Number(count),
-        };
     }
 
     async getTagsAndCountOfUser(
         userId: string,
         pagination?: { skip: number; limit: number },
     ): Promise<DataAndTotalCount<string> | null> {
-
+        const cacheKey = this.generateUserTagsKey(userId);
 
         try {
+            // Try to get from cache
+            const cached = await this.cache.get<DataAndTotalCount<string>>(cacheKey);
+            if (cached) {
+                this.log.debug(`Cache hit for ${cacheKey}`);
+                return this.applyPagination(cached, pagination);
+            }
+
             this.log.debug(`Get tags and count of user ${userId}`);
             const queryBuilder = this.repo
                 .createQueryBuilder('entity')
@@ -148,20 +229,19 @@ export default class TagServiceImpl extends TagService {
 
             let data: string[] = [];
             if (count > 0) {
-                const tagsQuery = queryBuilder.orderBy('tag', 'ASC');
-
-                if (pagination) {
-                    tagsQuery.skip(pagination.skip).take(pagination.limit);
-                }
-
-                const result = await tagsQuery.getRawMany();
+                const result = await queryBuilder
+                    .orderBy('tag', 'ASC')
+                    .getRawMany();
                 data = result.map((item) => item.tag);
             }
 
-            return {
+            const resultData = {
                 datas: data,
                 count: Number(count),
             };
+
+            await this.cache.set(cacheKey, resultData, );
+            return this.applyPagination(resultData, pagination);
         } catch (error) {
             this.log.error('Error while retrieving tags', error);
             return null;
@@ -173,71 +253,16 @@ export default class TagServiceImpl extends TagService {
         tags: string[],
         pagination?: { skip: number; limit: number },
     ): Promise<DataAndTotalCount<string> | null> {
-        /*
-      REMINDER
-      Query Strategy: Find videos with EXACTLY ALL specified tags
-
-      Sample Data Scenario:
-        video_id    tag
-      1. VID_1       TAG_1
-      2. VID_1       TAG_2
-      3. VID_1       TAG_3
-      4. VID_2       TAG_2
-      5. VID_2       TAG_3
-      6. VID_2       TAG_4
-
-      Example Scenario:
-      - Passed Tags: ['TAG_1', 'TAG_2', 'TAG_4']
-      - Expected Output: [] (empty array)
-
-
-      Conceptual Query Progression:
-
-      1. Initial Data Matching:
-         - Database finds rows where:
-           a) user_id matches
-           b) tag is IN the specified list
-
-         Original Raw Result Set:
-         video_id  tag
-         VID_1     TAG_1
-         VID_1     TAG_2
-         VID_2     TAG_2
-         VID_2     TAG_4
-
-      2. Aggregation Process (GROUP BY):
-         - Collects unique tags per video_id
-         - Prepares for tag count verification
-
-         Aggregated Intermediate State:
-         video_id  unique_tags    tag_count
-         VID_1     [TAG_1, TAG_2]   2
-         VID_2     [TAG_2, TAG_4]   2
-
-      3. Final Filtering (HAVING Clause):
-         - Checks if number of unique tags matches input tag count
-         - Filters out videos not meeting exact tag requirement
-
-         Result:
-         - No videos match (because no video has ALL 3 specified tags)
-
-
-         RAW QUERY
-         SELECT t.video_id FROM youtag.tags t
-         where t.user_id = 'user'
-         AND t.tag  IN ('tag_1', 'tag_2')
-         GROUP BY t.video_id
-         HAVING COUNT(t.tag) = 2;
-
-         We use count to count the no. of rows returned as result from the sub query
-         SELECT COUNT(sq.vide0_id) FROM (SELECT t.video_id FROM youtag.tags t
-         where t.user_id = 'user'
-         AND t.tag  IN ('tag_1', 'tag_2')
-         GROUP BY t.video_id
-         HAVING COUNT(t.tag) = 2) AS sq;
-       */
+        const cacheKey = this.generateVideosByTagsKey(userId, tags);
 
         try {
+            // Try to get from cache
+            const cached = await this.cache.get<DataAndTotalCount<string>>(cacheKey);
+            if (cached) {
+                this.log.debug(`Cache hit for ${cacheKey}`);
+                return this.applyPagination(cached, pagination);
+            }
+
             this.log.debug(
                 `Getting video Ids and counts with tags ${tags} for user ${userId}`,
             );
@@ -267,16 +292,15 @@ export default class TagServiceImpl extends TagService {
                 )
             )[0].count;
 
-            if (pagination) {
-                baseQuery.skip(pagination.skip).take(pagination.limit);
-            }
-
             const videoIds = await baseQuery.getRawMany<{ videoId: string }>();
 
-            return {
+            const resultData = {
                 datas: videoIds.map((item) => item.videoId),
                 count: parseInt(count),
             };
+
+            await this.cache.set(cacheKey, resultData, );
+            return this.applyPagination(resultData, pagination);
         } catch (error) {
             this.log.error('Error fetching video IDs with tags', error);
             return null;
@@ -287,9 +311,16 @@ export default class TagServiceImpl extends TagService {
         userId: string,
         pagination?: { skip: number; limit: number },
     ): Promise<DataAndTotalCount<string> | null> {
-
+        const cacheKey = this.generateTaggedVideosKey(userId);
 
         try {
+            // Try to get from cache
+            const cached = await this.cache.get<DataAndTotalCount<string>>(cacheKey);
+            if (cached) {
+                this.log.debug(`Cache hit for ${cacheKey}`);
+                return this.applyPagination(cached, pagination);
+            }
+
             this.log.debug(`Get taggedVideosOfUser ${userId}`);
             const baseQuery = this.repo
                 .createQueryBuilder('entity')
@@ -307,14 +338,15 @@ export default class TagServiceImpl extends TagService {
                 ).count,
             );
 
-            if (pagination) {
-                baseQuery.skip(pagination.skip).take(pagination.limit);
-            }
             const result = await baseQuery.getRawMany();
-            return {
+
+            const resultData = {
                 datas: result.map((r) => r.videoId),
                 count: count,
             };
+
+            await this.cache.set(cacheKey, resultData, );
+            return this.applyPagination(resultData, pagination);
         } catch (error) {
             this.log.error(`Error at Get Tagged videos of user ${userId} ${error}`);
             return null;
@@ -326,8 +358,16 @@ export default class TagServiceImpl extends TagService {
         containing: string,
         pagination?: { skip: number; limit: number },
     ): Promise<DataAndTotalCount<string> | null> {
+        const cacheKey = this.generateTagsContainingKey(userId, containing);
 
         try {
+            // Try to get from cache
+            const cached = await this.cache.get<DataAndTotalCount<string>>(cacheKey);
+            if (cached) {
+                this.log.debug(`Cache hit for ${cacheKey}`);
+                return this.applyPagination(cached, pagination);
+            }
+
             this.log.debug(
                 `Get tags and count containing ${containing} of user ${userId}`,
             );
@@ -351,19 +391,18 @@ export default class TagServiceImpl extends TagService {
                 ).tag,
             );
 
-            if (pagination) {
-                baseQuery.skip(pagination.skip).take(pagination.limit);
-            }
-
             const result = await baseQuery.getRawMany();
 
-            return {
+            const resultData = {
                 datas: result.map((r) => r.tag),
                 count: count,
             };
+
+            await this.cache.set(cacheKey, resultData,);
+            return this.applyPagination(resultData, pagination);
         } catch (error) {
             this.log.error(
-                `Error in get tags and count containing ${containing} of user ${userId} and pagination ${pagination}`,
+                `Error in get tags and count containing ${containing} of user ${userId}`,
                 error,
             );
             return null;
@@ -371,7 +410,6 @@ export default class TagServiceImpl extends TagService {
     }
 
     async getVideosNotInUse(videoIds: string[]): Promise<string[]> {
-        // If no videoIds provided, return empty array to avoid SQL syntax error
         if (!videoIds || videoIds.length === 0) {
             return [];
         }
@@ -391,6 +429,10 @@ export default class TagServiceImpl extends TagService {
                 error,
                 videoIds
             });
+            return [];
         }
     }
+
+
+
 }

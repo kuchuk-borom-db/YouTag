@@ -13,8 +13,9 @@ if (!token) {
 }
 
 // Get `limit` and `page` from query parameters
-const limit = 4// Ensure limit > 0
+const limit = 6// Ensure limit > 0
 const pageNumber = Math.max(Number(Astro.url.searchParams.get("page")) || 1, 1); // Ensure page > 0
+
 
 // Calculate `skip` for pagination
 const skip = (pageNumber - 1) * limit;
@@ -90,6 +91,9 @@ export const prerender = false;
 <main>
     <!-- Tags Section -->
     <Tags initialPage={1} tagsPerPage={4} onTagClick={() => {
+        const url = new URL(window.location.href);
+        console.log("GGEZ")
+        window.location.href="/search?"
     }} client:load/>
 
     <!-- Videos Section -->

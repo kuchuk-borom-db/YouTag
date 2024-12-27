@@ -99,7 +99,9 @@ const AllTags: React.FC<TagsProps> = ({
                                     key={index}
                                     className="bg-gray-700 text-white py-2 px-4 rounded-full text-center cursor-pointer
                                     hover:bg-gray-600 transition duration-300 ease-in-out transform hover:scale-105"
-                                    onClick={() => onTagClick && onTagClick(tag)}
+                                    onClick={() => {
+                                    window.location.href=`/search?tags=${tag}`
+                                    }}
                                 >
                                     {tag}
                                 </div>

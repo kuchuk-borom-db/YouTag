@@ -1,12 +1,11 @@
-import {Injectable, Logger} from '@nestjs/common';
-import {VideoService} from '../../../video/api/Services';
-import {TagService} from '../../../tag/api/Services';
-import {OperationCommander} from '../../api/Services';
-import {DataAndTotalCount} from '../../../Utils/Models';
-import {VideoDTO} from '../../../video/api/DTOs';
-import {Events} from "../../../Utils/Constants";
-import {eventEmitter} from "../../../Utils/EventEmitter";
-
+import { Injectable, Logger } from '@nestjs/common';
+import { VideoService } from '../../../video/api/Services';
+import { TagService } from '../../../tag/api/Services';
+import { OperationCommander } from '../../api/Services';
+import { DataAndTotalCount } from '../../../Utils/Models';
+import { VideoDTO } from '../../../video/api/DTOs';
+import { Events } from '../../../Utils/Constants';
+import { eventEmitter } from '../../../Utils/EventEmitter';
 
 @Injectable()
 export class OperationCommanderImpl extends OperationCommander {
@@ -19,57 +18,39 @@ export class OperationCommanderImpl extends OperationCommander {
 
     private log = new Logger(OperationCommanderImpl.name);
 
-    /**
-     * Adds tags to videos. If video has not been saved in database yet, it will be saved first. Clears caches for all get operations
-     * @param tags tags to add
-     * @param videos videos to add the tags to
-     * @param userId userID
-     */
     async addTagsToVideos(
         tags: string[],
         videos: string[],
         userId: string,
     ): Promise<void> {
-
         this.log.debug(
             `Adding tags ${tags} to videos ${videos} for user ${userId}`,
         );
         this.log.debug('Adding videos to database');
         const failedToAdd = await this.videoService.addVideos(videos);
         this.log.debug(`Failed to save video = ${JSON.stringify(failedToAdd)}`);
-        //Filter out the videos that failed to get added
+
         const validVideos = videos.filter((value) => !failedToAdd.includes(value));
         this.log.debug('Videos added to database. Now, Adding tags to database');
         await this.tagService.addTagsToVideos(userId, validVideos, tags);
-        //TODO When tags are added to video we need to clear cache of the user-videos combo in tag-service
+
         await this.tagService.invalidateUserVideoCache(userId, videos);
     }
 
-    /**
-     * Removes tags from videos. If all tags are removed from video. The video is completely removed from database.
-     */
     async removeTagsFromVideos(tags: string[], videos: string[], userId: string) {
         this.log.debug(
             `Removing tags ${tags} from videos ${videos} of user ${userId}`,
         );
         await this.tagService.removeTagsFromVideos(userId, videos, tags);
-        eventEmitter.emit(Events.REMOVE_UNUSED_VIDEOS, videos)
-        //TODO When tags are removed from video we need to clear cache of the user-videos combo in tag-service
+        eventEmitter.emit(Events.REMOVE_UNUSED_VIDEOS, videos);
         await this.tagService.invalidateUserVideoCache(userId, videos);
     }
 
-    /**
-     * Removes video and tag entries from the video. If the video is not used by any other users too. Its removed completely
-     * @param videoIds
-     * @param userId
-     */
     async removeVideos(videoIds: string[], userId: string): Promise<void> {
         this.log.debug(`Removing videos ${videoIds} from user ${userId}`);
         await this.tagService.removeAllTagsFromVideos(userId, videoIds);
-        eventEmitter.emit(Events.REMOVE_UNUSED_VIDEOS, videoIds)
-        //TODO When videos are removed we need to invalidate user-video combo in tag-service
+        eventEmitter.emit(Events.REMOVE_UNUSED_VIDEOS, videoIds);
         await this.tagService.invalidateUserVideoCache(userId, videoIds);
-        //TODO When videos are removed we need to invalidate video cache in video-service
         await this.videoService.invalidateVideosCache(videoIds);
     }
 
@@ -82,8 +63,9 @@ export class OperationCommanderImpl extends OperationCommander {
         this.log.debug(
             `Getting videos of user skip ${skip}, limit ${limit}, containing tags ${containing}, for user ${userId}`,
         );
+
         let data: DataAndTotalCount<string>;
-        if (containing.length == 0) {
+        if (containing.length === 0) {
             this.log.debug('Getting all tagged videos of user');
             data = await this.tagService.getTaggedVideosOfUser(userId, {
                 skip: skip,
@@ -103,16 +85,16 @@ export class OperationCommanderImpl extends OperationCommander {
             );
         }
 
-        let videoInfo: DataAndTotalCount<VideoDTO>;
         const videoInfos: VideoDTO[] = await this.videoService.getVideosByIds(data.datas);
 
+        const sortedVideos = videoInfos.sort((a, b) =>
+            a.title.localeCompare(b.title),
+        );
 
-        videoInfo = {
-            datas: videoInfos,
+        return {
+            datas: sortedVideos,
             count: data.count,
         };
-
-        return videoInfo;
     }
 
     async getTagsOfUser(
@@ -137,7 +119,13 @@ export class OperationCommanderImpl extends OperationCommander {
             this.log.debug(`Getting tags of user containing ${contains} tags`);
             data = await this.tagService.getTagsAndCountContaining(userId, contains);
         }
-        return data;
+
+        const sortedTags = data.datas.sort((a, b) => a.localeCompare(b));
+
+        return {
+            datas: sortedTags,
+            count: data.count,
+        };
     }
 
     async getVideosWithTags(
@@ -151,15 +139,21 @@ export class OperationCommanderImpl extends OperationCommander {
             skip: skip,
             limit: limit,
         });
+
         const videos = await Promise.all(
             data.datas.map(async (value) => {
                 return await this.videoService.getVideoById(value);
             }),
         );
+
+        const sortedVideos = videos.sort((a, b) =>
+            a.title.localeCompare(b.title),
+        );
+
         return {
             count: data.count,
-            datas: videos
-        }
+            datas: sortedVideos,
+        };
     }
 
     async getTagsOfVideo(
@@ -179,7 +173,4 @@ export class OperationCommanderImpl extends OperationCommander {
             return null;
         }
     }
-
-
 }
-

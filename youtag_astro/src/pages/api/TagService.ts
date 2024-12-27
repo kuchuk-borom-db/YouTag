@@ -131,11 +131,11 @@ export async function getAllTags(
             return null;
         }
 
-        console.log(`All tags = ${tagsData.data.map(tag => tag.name)}`);
+        console.log(`All tags = ${tagsData.data.map((tag: any) => tag.name)}`);
 
         return {
             count: tagsData.count,
-            tags: tagsData.data.map(tag => tag.name)
+            tags: tagsData.data.map((tag: any) => tag.name)
         };
     } catch (error) {
         console.log("Error fetching tags:", error);
@@ -207,7 +207,7 @@ export async function getTagsContainingKeyword(
 
         return {
             count: tagsData.count,
-            tags: tagsData.data.map(tag => tag.name)
+            tags: tagsData.data.map((tag: any) => tag.name)
         };
     } catch (error) {
         console.error("Error fetching tags:", error);
