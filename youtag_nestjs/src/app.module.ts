@@ -30,6 +30,10 @@ import {CacheModule} from '@nestjs/cache-manager';
 
             useFactory: (env: ConfigService) => {
                 return {
+                    logging: false,
+                    migrationsRun: false,
+                    cache: true,
+                    synchronize: false,
                     type: 'postgres',
                     host: env.get<string>(EnvironmentConst.Db.Host),
                     username: env.get<string>(EnvironmentConst.Db.Username),
