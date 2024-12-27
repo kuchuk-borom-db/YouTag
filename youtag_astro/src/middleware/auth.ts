@@ -3,7 +3,6 @@ import {defineMiddleware} from "astro/middleware";
 const logLabel = "Middleware-Auth";
 
 export const auth = defineMiddleware(async (context, next) => {
-    console.log(`[${logLabel}] Path being checked: ${context.url.pathname}`);
     const pathName = context.url.pathname;
     console.log(`[${logLabel}] Current page = ${pathName}`);
     console.log(`[${logLabel}] Current full path = ${context.url}`);
@@ -17,15 +16,10 @@ export const auth = defineMiddleware(async (context, next) => {
     try {
         console.log(`[${logLabel}] Cookies: ${JSON.stringify(context.cookies)}`);
         const token = context.cookies.get("token")?.value;
-        console.log(`[${logLabel}] Cookies: ${JSON.stringify(context.cookies)}`);
+
         if (!token) {
             console.log(`[${logLabel}] No token provided. Redirecting to login page.`);
-            const response = new Response(null, {
-                status: 302,
-                headers: {
-                    Location: "/login",
-                },
-            });
+            const response = context.redirect(`/login`);
             console.log(`[${logLabel}] Redirecting to ${response.url}`);
             return response;
         }
@@ -36,12 +30,7 @@ export const auth = defineMiddleware(async (context, next) => {
     } catch (error) {
         console.error(`[${logLabel}] Error occurred: ${error}`);
         console.log(`[${logLabel}] Redirecting to login page due to an error.`);
-        const response = new Response(null, {
-            status: 302,
-            headers: {
-                Location: "/login",
-            },
-        });
+        const response = context.redirect(`/login`);
         console.log(`[${logLabel}] Redirecting to ${response.url}`);
         return response;
     }
