@@ -1,6 +1,6 @@
 ---
 import LoginLayout from '../layouts/LoginLayout.astro';
-import {Image} from 'astro:assets';
+import { Image } from 'astro:assets';
 
 const slogan = import.meta.env.PUBLIC_SLOGAN;
 ---
@@ -22,28 +22,39 @@ const slogan = import.meta.env.PUBLIC_SLOGAN;
                 <span>Login with Google</span>
             </button>
         </div>
+
+        <!-- Loading Section -->
+        <div id="loadingSection" class="loading-section" style="display: none;">
+            <div class="loading-bar"></div>
+            <p class="loading-text">Please wait while we log you in. If the server is starting up due to inactivity, it may take a few seconds. The process will be faster once the server is active.</p>
+        </div>
     </div>
 
     <script>
-        import {getGoogleLoginUrl} from "./api/AuthService";
+        import { getGoogleLoginUrl } from "./api/AuthService";
 
         document.getElementById("googleLoginBtn")?.addEventListener('click', async () => {
             try {
                 console.log("Login button pressed", "debug", "LOGIN");
+
+                // Show loading section
+                document.getElementById("loadingSection")?.style.display = "block";
+
                 const url = await getGoogleLoginUrl();
 
                 if (url) {
                     // Redirect to the obtained URL
                     window.location.href = url;
                 } else {
-                    // Handle case where no URL is returned
+                    // Hide loading section and show error
+                    document.getElementById("loadingSection")?.style.display = "none";
                     console.error("No login URL received");
-                    // Optionally show an error message to the user
                     alert("Unable to initiate Google login. Please try again.");
                 }
             } catch (error) {
                 console.error("Google login error:", error);
-                // Optionally show an error message to the user
+                // Hide loading section and show error
+                document.getElementById("loadingSection")?.style.display = "none";
                 alert("An error occurred during login. Please try again.");
             }
         });
@@ -118,6 +129,44 @@ const slogan = import.meta.env.PUBLIC_SLOGAN;
             font-weight: 500;
         }
 
+        /* Loading Bar Styles */
+        .loading-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .loading-bar {
+            width: 100%;
+            height: 4px;
+            background-color: #e0e0e0;
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .loading-bar::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 100%;
+            background-color: #4caf50;
+            animation: load 5s infinite;
+        }
+
+        @keyframes load {
+            0% { width: 0%; }
+            50% { width: 50%; }
+            100% { width: 100%; }
+        }
+
+        .loading-text {
+            font-size: 0.9rem;
+            color: #4caf50;
+            font-weight: 500;
+            margin-top: 10px;
+            max-width: 80%;
+            margin: 0 auto;
+        }
+
         @media (max-width: 480px) {
             .login-wrapper {
                 width: 95%;
@@ -133,6 +182,11 @@ const slogan = import.meta.env.PUBLIC_SLOGAN;
 
             .logo-section h1 {
                 font-size: 1.25rem;
+            }
+
+            .loading-text {
+                font-size: 0.8rem;
+                max-width: 90%;
             }
         }
     </style>
