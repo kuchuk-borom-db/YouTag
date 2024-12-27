@@ -14,37 +14,39 @@ const developerEmail = import.meta.env.PUBLIC_EMAIL;
 
 export const prerender = false;
 ---
+
 <head>
     <title>About Kuchuk Borom Debbarma</title>
     <link rel="icon" href="/youtag.png" type="image/x-icon"/>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<div class="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center p-4">
-    <div class="bg-white/80 backdrop-blur-md shadow-2xl rounded-2xl p-8 max-w-md w-full transform transition-all hover:scale-105 duration-300">
+
+<div class="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center p-2 sm:p-4">
+    <div class="bg-white/80 backdrop-blur-md shadow-2xl rounded-xl sm:rounded-2xl p-4 sm:p-8 w-full max-w-sm sm:max-w-md transform transition-all hover:scale-105 duration-300">
         <div class="flex flex-col items-center">
             <img
                     src={developerProfilePic}
                     alt={developerName}
-                    class="w-40 h-40 rounded-full border-4 border-white shadow-lg mb-6 object-cover"
+                    class="w-28 h-28 sm:w-40 sm:h-40 rounded-full border-4 border-white shadow-lg mb-4 sm:mb-6 object-cover"
             />
-            <h1 class="text-3xl font-bold text-gray-800 mb-2 text-center">
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 text-center">
                 {developerName}
             </h1>
-            <p class="text-gray-600 text-center mb-6 leading-relaxed">
+            <p class="text-sm sm:text-base text-gray-600 text-center mb-4 sm:mb-6 leading-relaxed px-2">
                 I am a backend developer (hence the "charming" UI), with interest in distributed systems and game development. <br>
-                When I’m not buried in code, you’ll catch me jamming on my guitar, playing games, or going for rides to clear my head. <br>
+                When I'm not buried in code, you'll catch me jamming on my guitar, playing games, or going for rides to clear my head. <br>
                 Oh, and I make music too... because why not? <br>
                 <b>Check my social handles below out to explore more!</b>
             </p>
 
-            <div class="flex space-x-6 mb-6">
+            <div class="flex flex-wrap justify-center gap-4 sm:gap-6 mb-4 sm:mb-6 px-2">
                 <a
                         href={developerGithub}
                         target="_blank"
                         class="group flex flex-col items-center text-gray-600 hover:text-black transition-all"
                 >
-                    <Github size={28} className="mb-1 group-hover:scale-110 transition-transform" />
-                    <span class="text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Github size={24} className="sm:h-7 sm:w-7 mb-1 group-hover:scale-110 transition-transform" />
+                    <span class="text-[10px] sm:text-xs opacity-0 group-hover:opacity-100 transition-opacity">
                         Hobby Projects
                     </span>
                 </a>
@@ -54,8 +56,8 @@ export const prerender = false;
                         target="_blank"
                         class="group flex flex-col items-center text-gray-600 hover:text-red-600 transition-all"
                 >
-                    <Youtube size={28} className="mb-1 group-hover:scale-110 transition-transform" />
-                    <span class="text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Youtube size={24} className="sm:h-7 sm:w-7 mb-1 group-hover:scale-110 transition-transform" />
+                    <span class="text-[10px] sm:text-xs opacity-0 group-hover:opacity-100 transition-opacity">
                         Musical Journey
                     </span>
                 </a>
@@ -65,8 +67,8 @@ export const prerender = false;
                         target="_blank"
                         class="group flex flex-col items-center text-gray-600 hover:text-red-600 transition-all"
                 >
-                    <Youtube size={28} className="mb-1 group-hover:scale-110 transition-transform" />
-                    <span class="text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Youtube size={24} className="sm:h-7 sm:w-7 mb-1 group-hover:scale-110 transition-transform" />
+                    <span class="text-[10px] sm:text-xs opacity-0 group-hover:opacity-100 transition-opacity">
                         Coding Adventures
                     </span>
                 </a>
@@ -76,8 +78,8 @@ export const prerender = false;
                         target="_blank"
                         class="group flex flex-col items-center text-gray-600 hover:text-pink-600 transition-all"
                 >
-                    <Instagram size={28} className="mb-1 group-hover:scale-110 transition-transform" />
-                    <span class="text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Instagram size={24} className="sm:h-7 sm:w-7 mb-1 group-hover:scale-110 transition-transform" />
+                    <span class="text-[10px] sm:text-xs opacity-0 group-hover:opacity-100 transition-opacity">
                         Personal Side
                     </span>
                 </a>
@@ -85,10 +87,10 @@ export const prerender = false;
                 <a
                         href={developerLinkedin}
                         target="_blank"
-                        class="group flex flex-col items-center text-gray-600 hover:text-pink-600 transition-all"
+                        class="group flex flex-col items-center text-gray-600 hover:text-blue-600 transition-all"
                 >
-                    <Linkedin size={28} className="mb-1 group-hover:scale-110 transition-transform" />
-                    <span class="text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Linkedin size={24} className="sm:h-7 sm:w-7 mb-1 group-hover:scale-110 transition-transform" />
+                    <span class="text-[10px] sm:text-xs opacity-0 group-hover:opacity-100 transition-opacity">
                         "Professional" Side
                     </span>
                 </a>
@@ -97,8 +99,8 @@ export const prerender = false;
                         href={`mailto:${developerEmail}`}
                         class="group flex flex-col items-center text-gray-600 hover:text-blue-600 transition-all"
                 >
-                    <Mail size={28} className="mb-1 group-hover:scale-110 transition-transform" />
-                    <span class="text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Mail size={24} className="sm:h-7 sm:w-7 mb-1 group-hover:scale-110 transition-transform" />
+                    <span class="text-[10px] sm:text-xs opacity-0 group-hover:opacity-100 transition-opacity">
                         Get in Touch
                     </span>
                 </a>
@@ -113,5 +115,3 @@ export const prerender = false;
         50% { transform: translateY(-10px); }
     }
 </style>
-
-<!--TODO Links from env-->

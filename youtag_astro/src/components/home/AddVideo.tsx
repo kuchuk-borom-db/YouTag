@@ -110,7 +110,7 @@ const TagYoutubeModal: React.FC<TagYoutubeModalProps> = ({
         // Set new timeout
         debounceTimeoutRef.current = setTimeout(() => {
             fetchTagSuggestions(inputValue, currentPage);
-        }, 1000); // 1000ms delay
+        }, 400); // 1000ms delay
 
         // Cleanup timeout on unmount or dependency change
         return () => {

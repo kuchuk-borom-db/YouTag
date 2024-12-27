@@ -44,9 +44,26 @@ console.log(`Videos = ${videos.toString()}`);
 <head>
     <title>YouTag Search</title>
     <link rel="icon" href="/youtag.png" type="image/x-icon"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<div class="bg-black/90">
-    <Navbar user={user!} client:load/>
-    <SearchBox initialTags={tagsList} client:load/>
-    <VideosList videos={videos} totalVideos={videosCount} currentPage={pageNumber} videosPerPage={limit} client:load/>
+
+<div class="min-h-screen bg-black/90 flex flex-col">
+    <div class="sticky top-0 z-50 bg-black/95">
+        <Navbar user={user!} client:load/>
+        <div class="px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-4">
+            <SearchBox initialTags={tagsList} client:load/>
+        </div>
+    </div>
+
+    <main class="flex-1 px-2 sm:px-4 md:px-6 lg:px-8 py-4">
+        <div class="max-w-7xl mx-auto">
+            <VideosList
+                    videos={videos}
+                    totalVideos={videosCount}
+                    currentPage={pageNumber}
+                    videosPerPage={limit}
+                    client:load
+            />
+        </div>
+    </main>
 </div>

@@ -10,23 +10,32 @@ if (!user) {
 ---
 <head>
     <link rel="icon" href="/youtag.png" type="image/x-icon"/>
-<title>YOUTAG Profile</title>
+    <title>YOUTAG Profile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<Navbar user={user!} client:load/>
-<div class="flex flex-col items-center justify-center h-screen bg-black/70">
-    <div class="bg-black/70 shadow-lg rounded-lg p-8 w-full max-w-sm">
-        <div class="flex flex-col items-center">
-            <img src={user ? user.thumbnailUrl : ""} alt={user? user.name:"Invalid User"} class="w-32 h-32 rounded-full mb-4"/>
-            <h2 class="text-2xl font-bold mb-2">{user? user.name:"Invalid User"}</h2>
-            <p class="text-gray-100 mb-6">{user? user.name:"Invalid Email"}</p>
 
-            <div class="flex flex-col space-y-4 w-full">
-                <button id="logout-btn"
-                        class="bg-blue-400 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded w-full">
+<Navbar user={user!} client:load/>
+
+<div class="flex flex-col items-center justify-center min-h-screen bg-black/70 px-4 py-6 sm:py-0">
+    <div class="bg-black/70 shadow-lg rounded-lg p-4 sm:p-8 w-full max-w-xs sm:max-w-sm">
+        <div class="flex flex-col items-center">
+            <img
+                    src={user ? user.thumbnailUrl : ""}
+                    alt={user? user.name:"Invalid User"}
+                    class="w-24 h-24 sm:w-32 sm:h-32 rounded-full mb-3 sm:mb-4"
+            />
+            <h2 class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 text-white">{user? user.name:"Invalid User"}</h2>
+            <p class="text-gray-300 text-sm sm:text-base mb-4 sm:mb-6">{user? user.name:"Invalid Email"}</p>
+
+            <div class="flex flex-col space-y-3 sm:space-y-4 w-full">
+                <button
+                        id="logout-btn"
+                        class="bg-blue-400 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded text-sm sm:text-base transition-colors duration-200 w-full"
+                >
                     Logout
                 </button>
                 <button
-                        class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded w-full"
+                        class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-sm sm:text-base transition-colors duration-200 w-full"
                         id="delete-account-btn"
                 >
                     Delete Account
@@ -40,15 +49,15 @@ if (!user) {
 
     <!-- New Joke Modal -->
     <div id="joke-modal"
-         class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-96 text-center transform transition-all duration-300">
-            <div class="space-y-4">
-                <div class="text-2xl font-bold text-red-500 animate-bounce">🤪 Womp Womp! 🤪</div>
-                <p class="text-lg font-semibold mb-4">Nice try, but you're stuck with us forever!</p>
-                <div class="text-gray-600 italic">"You can check out any time you like,<br>But you can never leave!"</div>
-                <div class="text-4xl mb-4">🎸</div>
+         class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50 p-4">
+        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full max-w-[280px] sm:max-w-sm text-center transform transition-all duration-300">
+            <div class="space-y-3 sm:space-y-4">
+                <div class="text-xl sm:text-2xl font-bold text-red-500 animate-bounce">🤪 Womp Womp! 🤪</div>
+                <p class="text-base sm:text-lg font-semibold mb-2 sm:mb-4">Nice try, but you're stuck with us forever!</p>
+                <div class="text-gray-600 italic text-sm sm:text-base">"You can check out any time you like,<br>But you can never leave!"</div>
+                <div class="text-3xl sm:text-4xl mb-3 sm:mb-4">🎸</div>
                 <button id="sad-ok-btn"
-                        class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-6 rounded-full transform transition-all duration-300 hover:scale-105">
+                        class="bg-blue-500 hover:bg-blue-600 text-white py-1.5 sm:py-2 px-4 sm:px-6 rounded-full transform transition-all duration-300 hover:scale-105 text-sm sm:text-base">
                     *sad ok*
                 </button>
             </div>
