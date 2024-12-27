@@ -11,10 +11,10 @@ export default defineConfig({
     output: "server",
 
     integrations: [tailwind(), react()],
-    
+
     adapter: vercel({
         isr : true,
-        edgeMiddleware : true,
+        edgeMiddleware : false, //was causing the auth middleware to not get triggered
         maxDuration : 60,
     }),
 });
