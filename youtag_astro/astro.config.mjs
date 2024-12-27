@@ -12,5 +12,9 @@ export default defineConfig({
 
     integrations: [tailwind(), react()],
 
-    adapter: vercel(),
+    adapter: vercel({
+        isr : true,
+        edgeMiddleware : true,
+        maxDuration : 60,
+    }),
 });
