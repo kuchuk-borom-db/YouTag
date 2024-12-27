@@ -1,5 +1,5 @@
 import type Video from "../../models/Video.ts";
-import { SERVER_URI } from "../../utils/Constants.ts";
+import {SERVER_URI} from "../../utils/Constants.ts";
 
 export async function getAllVideos(skip: number, limit: number, token: string): Promise<{
     videos: Video[],
@@ -42,7 +42,7 @@ export async function getAllVideos(skip: number, limit: number, token: string): 
                         }
                     }
                 }`,
-                variables: { skip, limit }
+                variables: {skip, limit}
             }),
             signal: AbortSignal.timeout(5000)
         });
@@ -52,7 +52,6 @@ export async function getAllVideos(skip: number, limit: number, token: string): 
                 status: response.status,
                 statusText: response.statusText
             });
-            throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const jsonBody = await response.json();
@@ -63,26 +62,31 @@ export async function getAllVideos(skip: number, limit: number, token: string): 
             return null;
         }
 
-        const result = {
-            videos: videosResponse.data.map((video: {
-                id: any;
-                title: any;
-                thumbnail: any;
-                author: any;
-                authorUrl: any;
-                associatedTags: { data: any[]; };
-            }) => ({
-                videoId: video.id,
-                title: video.title,
-                thumbnailUrl: video.thumbnail,
-                author: video.author,
-                authorUrl: video.authorUrl,
-                tags: video.associatedTags.data.map(tag => tag.name)
-            })),
+        const videos = videosResponse.data.map((video: {
+            id: any;
+            title: any;
+            thumbnail: any;
+            author: any;
+            authorUrl: any;
+            associatedTags: { data: any[]; };
+        }) => ({
+            videoId: video.id,
+            title: video.title,
+            thumbnailUrl: video.thumbnail,
+            author: video.author,
+            authorUrl: video.authorUrl,
+            tags: video.associatedTags.data.map(tag => tag.name)
+        }));
+
+        // Sort videos by title
+        const sortedVideos = [...videos].sort((a, b) =>
+            a.title.toLowerCase().localeCompare(b.title.toLowerCase())
+        );
+
+        return {
+            videos: sortedVideos,
             totalCount: videosResponse.count
         };
-
-        return result;
     } catch (e) {
         console.error("Error at getAllVideos:", {
             error: e,
@@ -143,14 +147,14 @@ export async function getVideosWithTags(tags: string[], skip: number, limit: num
 
     if (!response.ok) {
         console.error(`Response error getVideosWithTags ${JSON.stringify(response)}`);
-        return { videos: [], totalCount: 0 };
+        return {videos: [], totalCount: 0};
     }
 
     const responseJson = await response.json();
 
     if (responseJson.errors) {
         console.error('GraphQL Errors: getVideosWithTags', responseJson.errors);
-        return { videos: [], totalCount: 0 };
+        return {videos: [], totalCount: 0};
     }
 
     const videosData = responseJson.data?.authenticatedData?.user?.data?.videos;
@@ -178,8 +182,13 @@ export async function getVideosWithTags(tags: string[], skip: number, limit: num
         tags: video.associatedTags.data.map(tag => tag.name)
     }));
 
+    // Sort videos by title
+    const sortedVideos = [...videos].sort((a, b) =>
+        a.title.toLowerCase().localeCompare(b.title.toLowerCase())
+    );
+
     return {
-        videos,
+        videos: sortedVideos,
         totalCount: videosData.count
     };
 }
