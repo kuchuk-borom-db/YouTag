@@ -99,16 +99,20 @@ const VideoCard: React.FC<VideoCardProps> = ({video}) => {
                 <h3 className="text-lg font-bold text-gray-800 truncate">
                     {video.title}
                 </h3>
-                <p className="text-gray-500 text-sm truncate">
-                    {video.author}
-                </p>
+                <a href={`https://www.youtube.com/${video.author}`}>
+                    <p className="text-gray-500 text-sm truncate">
+                        {video.author}
+                    </p>
 
+                </a>
                 {/* Tags with Bulk Select */}
                 <div className="mt-2 flex flex-wrap gap-2">
                     {paginatedTags.map((tag, index) => (
                         <div
                             key={index}
-                            onClick={() => handleTagSelect(tag)}
+                            onClick={() => {
+                                window.location.href = `/search?tags=${tag}`
+                            }}
                             className={`flex items-center gap-1 px-2 py-1 rounded cursor-pointer ${
                                 isDeleteMode
                                     ? (selectedTags.includes(tag)
