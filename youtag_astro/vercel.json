@@ -1,14 +1,14 @@
 {
   "rewrites": [
     {
-      "source": "/api/(.*)", // Keep API routes untouched
+      "source": "/api/(.*)",
       "destination": "/api/$1"
     },
     {
-      "source": "/(.*)", // For other routes, use Astro's routing
+      "source": "/(.*)",
       "destination": "/$1"
     }
   ],
-  "cleanUrls": true, // Removes .html from URLs
-  "trailingSlash": false // Consistent trailing slash behavior
+  "cleanUrls": true,
+  "trailingSlash": false
 }
