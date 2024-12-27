@@ -9,14 +9,9 @@ import {getUserInfo} from "./api/AuthService";
 // Get token from cookies
 const token = Astro.cookies.get("token")?.value;
 if (!token) {
-    console.error("Authentication token is missing.");
-    return new Response(null, {
-        status: 302,
-        headers: {
-            Location: "/login",
-        },
-    });
+    throw new Error("Authentication token is missing.");
 }
+
 // Get `limit` and `page` from query parameters
 const limit = 6// Ensure limit > 0
 const pageNumber = Math.max(Number(Astro.url.searchParams.get("page")) || 1, 1); // Ensure page > 0
@@ -98,7 +93,7 @@ export const prerender = false;
     <Tags initialPage={1} tagsPerPage={4} onTagClick={() => {
         const url = new URL(window.location.href);
         console.log("GGEZ")
-        window.location.href = "/search?"
+        window.location.href="/search?"
     }} client:load/>
 
     <!-- Videos Section -->
