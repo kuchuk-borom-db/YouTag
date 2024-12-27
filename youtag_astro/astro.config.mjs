@@ -13,7 +13,7 @@ export default defineConfig({
     integrations: [tailwind(), react()],
 
     adapter: vercel({
-        isr : true,
+        isr : false, //causes outdated cache data to be presented
         edgeMiddleware : false, //was causing the auth middleware to not get triggered
         maxDuration : 60,
     }),
