@@ -40,30 +40,31 @@ export default class TagServiceImpl extends TagService {
         return `${this.CACHE_PREFIX}tags_containing:${userId}:${containing}`;
     }
 
-    // Cache invalidation
     async invalidateUserVideoCache(userId: string, videos: string[]): Promise<void> {
         try {
             const keys = await this.cache.store.keys(`${this.CACHE_PREFIX}*`);
-            const keysToDelete: string[] = [];
+            const keysToDelete = new Set<string>();
 
             for (const key of keys) {
-                // Check if key contains userId
                 if (key.includes(userId)) {
-                    // For keys containing specific video IDs, check if they contain any of the videos
-                    if (videos.some(video => key.includes(video))) {
-                        keysToDelete.push(key);
-                    }
-                    // Also invalidate user-wide caches
-                    if (key.includes('user_tags') ||
+                    // Split the key and check for exact video ID matches
+                    const keyParts = key.split(':');
+                    const keyVideos = keyParts[keyParts.length - 1]?.split(',') || [];
+
+                    // If the key contains any of the target videos OR
+                    // if it's one of the user-wide caches
+                    if (videos.some(video => keyVideos.includes(video)) ||
+                        key.includes('user_tags') ||
                         key.includes('tagged_videos') ||
-                        key.includes('tags_containing')) {
-                        keysToDelete.push(key);
+                        key.includes('tags_containing') ||
+                        key.includes('videos_by_tags')) {  // Added this
+                        keysToDelete.add(key);
                     }
                 }
             }
 
-            await Promise.all(keysToDelete.map(key => this.cache.del(key)));
-            this.log.debug(`Invalidated ${keysToDelete.length} cache keys for user ${userId}`);
+            await Promise.all([...keysToDelete].map(key => this.cache.del(key)));
+            this.log.debug(`Invalidated ${keysToDelete.size} cache keys for user ${userId}`);
         } catch (error) {
             this.log.error(`Error invalidating cache: ${error}`);
         }
@@ -240,7 +241,7 @@ export default class TagServiceImpl extends TagService {
                 count: Number(count),
             };
 
-            await this.cache.set(cacheKey, resultData, );
+            await this.cache.set(cacheKey, resultData,);
             return this.applyPagination(resultData, pagination);
         } catch (error) {
             this.log.error('Error while retrieving tags', error);
@@ -299,7 +300,7 @@ export default class TagServiceImpl extends TagService {
                 count: parseInt(count),
             };
 
-            await this.cache.set(cacheKey, resultData, );
+            await this.cache.set(cacheKey, resultData,);
             return this.applyPagination(resultData, pagination);
         } catch (error) {
             this.log.error('Error fetching video IDs with tags', error);
@@ -345,7 +346,7 @@ export default class TagServiceImpl extends TagService {
                 count: count,
             };
 
-            await this.cache.set(cacheKey, resultData, );
+            await this.cache.set(cacheKey, resultData,);
             return this.applyPagination(resultData, pagination);
         } catch (error) {
             this.log.error(`Error at Get Tagged videos of user ${userId} ${error}`);
@@ -432,7 +433,6 @@ export default class TagServiceImpl extends TagService {
             return [];
         }
     }
-
 
 
 }
