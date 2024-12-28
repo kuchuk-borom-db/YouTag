@@ -2,7 +2,25 @@
 
 **Organize and Access Your Favorite YouTube Videos with Ease**
 
-YouTag is a personal video library tool designed to help you save, userTag, and search YouTube videos effortlessly. By adding custom userTags to each video, you can create a personalized catalog that simplifies finding the videos you want when you need them.
+Imagine these scenarios:
+
+🎵 **Music Lover's Challenge**  
+You've saved hundreds of music videos on YouTube - Taylor Swift's pop hits, classic rock from Queen, and acoustic covers of your favorite songs. Now you want to find all of Taylor's pop ballads, but they're scattered across different playlists. Without proper organization, you'd spend time scrolling through each playlist trying to find them.
+
+💻 **Developer's Learning Path**  
+As a programmer, you've bookmarked numerous tutorial videos - Java basics, Python projects, system design interviews, and coding challenge solutions. When preparing for a system design interview, you want to quickly access all relevant videos without digging through your entire watch history.
+
+This is where YouTag comes in. Instead of endless searching, you can:
+- Tag Taylor's videos with "pop", "Taylor_Swift", "ballad"
+- Tag programming videos with "java", "system_design", "interview_prep"
+
+Then simply search using these tags to instantly find exactly what you're looking for!
+
+YouTag is a personal video library tool designed to help you save, tag, and search YouTube videos effortlessly. By adding custom tags to each video, you can create a personalized catalog that simplifies finding the videos you want when you need them.
+
+<a href="https://you-tag.vercel.app/">
+Visit (Please keep in mind that if server is shut down due to inactivity, give it around a minute to start back up.)
+</a>
 
 ## Key Features
 
@@ -13,7 +31,7 @@ YouTag is a personal video library tool designed to help you save, userTag, and 
    Just paste a YouTube link to save a video to your library, making it quick and hassle-free.
 
 3. **Tag and Organize Videos**  
-   Add custom userTags to each saved video, allowing you to categorize and label them according to your preferences. This makes searching for specific videos a breeze, even in a large collection.
+   Add custom tags to each saved video, allowing you to categorize and label them according to your preferences. This makes searching for specific videos a breeze, even in a large collection.
 
 ## Benefits
 
@@ -21,325 +39,98 @@ YouTag is a personal video library tool designed to help you save, userTag, and 
   Say goodbye to endless scrolling. YouTag's tagging system lets you sort and find your videos easily, tailored to your own organization style.
 
 - **Personalized Organization**  
-  Your userTags are unique to you, providing a flexible way to categorize videos for study, work, entertainment, and more.
+  Your tags are unique to you, providing a flexible way to categorize videos for study, work, entertainment, and more.
 
 - **Quick Access Anytime**  
   With YouTag, your favorite videos are just a search away, thanks to a fully customized tagging system.
 
 
-
-
-### API Endpoints
-
-#### Authentication Endpoints
-
-##### Public Authentication
-1. **Get Google Login URL**
-    - **Endpoint**: `GET /api/public/auth/login/google`
-    - **Description**: Generates and returns the Google OAuth authorization URL
-    - **Response**:
-      ```json
-      {
-        "data": "https://accounts.google.com/o/oauth2/v2/auth...",
-        "message": "Success"
-      }
-      ```
-
-2. **Google OAuth Redirect**
-    - **Endpoint**: `GET /api/public/auth/redirect/google`
-    - **Parameters**:
-        - `code`: OAuth authorization code
-        - `state`: OAuth state parameter
-    - **Description**: Handles Google OAuth callback, validates the code, and generates JWT token
-    - **Response**:
-      ```json
-      {
-        "data": "jwt_token_string",
-        "message": ""
-      }
-      ```
-
-##### Authenticated User Endpoints
-1. **Get User Information**
-    - **Endpoint**: `GET /api/authenticated/auth/user`
-    - **Description**: Retrieves the current authenticated user's information
-    - **Authentication**: Required (JWT Token)
-    - **Response**:
-      ```json
-      {
-        "data": {
-          "id": "user@example.com",
-          "name": "John Doe",
-          "thumbnailUrl": "https://example.com/avatar.jpg"
-        },
-        "message": ""
-      }
-      ```
-
-#### Video Endpoints
-1. **Save Video**
-    - **Endpoint**: `POST /api/authenticated/video/{videoId}`
-    - **Description**: Save a YouTube video to user's library
-    - **Authentication**: Required (JWT Token)
-    - **Possible Responses**:
-        - Success: `200 OK` with video saved message
-        - Already Saved: `409 Conflict` with existing video message
-        - Error: Appropriate error response
-
-2. **Delete Videos**
-    - **Endpoint**: `DELETE /api/authenticated/video/`
-    - **Query Parameters**:
-        - `videos`: Comma-separated list of video IDs to delete
-    - **Description**: Remove specific videos from user's library
-    - **Authentication**: Required (JWT Token)
-    - **Response**: Success message with deleted videos
-
-3. **Get Saved Videos**
-    - **Endpoint**: `GET /api/authenticated/video/`
-    - **Query Parameters**:
-        - `skip` (optional): Number of videos to skip (default: 0)
-        - `limit` (optional): Number of videos to return (default: 10)
-        - `videos` (optional): Comma-separated list of specific video IDs
-    - **Description**: Retrieve saved videos with their tags
-    - **Authentication**: Required (JWT Token)
-    - **Response**: List of videos with their information and tags
-
-#### Tag Endpoints
-1. **Add Tags to Videos**
-    - **Endpoint**: `POST /api/authenticated/tag/`
-    - **Query Parameters**:
-        - `tags`: Comma-separated list of tags
-        - `videos`: Comma-separated list of video IDs
-    - **Description**: Add tags to specific saved videos
-    - **Authentication**: Required (JWT Token)
-    - **Response**: Success message with added tags
-
-2. **Remove Tags from Videos**
-    - **Endpoint**: `DELETE /api/authenticated/tag/`
-    - **Query Parameters**:
-        - `tags` (optional): Comma-separated list of tags to remove
-        - `videos` (optional): Comma-separated list of video IDs
-    - **Description**: Remove tags from videos with multiple removal strategies
-    - **Authentication**: Required (JWT Token)
-    - **Response**: Success message with removed tags
-
-3. **Get Tags and Tagged Videos**
-    - **Endpoint**: `GET /api/authenticated/tag/`
-    - **Query Parameters**:
-        - `tags` (optional): Comma-separated list of tags
-        - `videos` (optional): Comma-separated list of video IDs
-        - `skip` (optional): Number of items to skip
-        - `limit` (optional): Number of items to return
-    - **Description**: Retrieve tags or videos based on different filtering strategies
-    - **Authentication**: Required (JWT Token)
-    - **Possible Responses**:
-        - With no parameters: Returns all user tags
-        - With tags: Returns videos with those tags
-        - With videos: Returns tags for those videos
-
-### Notes on Authentication
-- All authenticated endpoints require a valid JWT token
-- Token is obtained through the Google OAuth flow
-- Token must be sent in the Authorization header
-- Unauthenticated requests will receive a 401 Unauthorized response
-
-
-
-## Technical Doc
+## Technical Documentation
 
 ### Table of Contents
 - [Overview](#overview)
 - [Architecture](#architecture)
 - [Technology Stack](#technology-stack)
-- [Domain Driven Design](#domain-driven-design)
-- [Event Driven Architecture](#event-driven-architecture)
-- [Database Design](#database-design)
+- [Backend Design](#backend-design)
 - [Authentication & Authorization](#authentication--authorization)
+- [Frontend Design](#frontend-design)
 
 ### Overview
 YouTags is a platform that allows users to organize their YouTube videos using custom userTags. Users can authenticate with their Google account, add YouTube videos to their collection, and manage them with personalized userTags for better organization and searchability.
 
 ### Architecture
-The application follows a modular monolith architecture using Spring Modulith with clear boundaries between different domains:
-
-```
-├── auth          # Authentication and authorization
-├── userTag           # Tag management
-├── user          # User management
-├── video         # Video information
-├── user_video    # User-video relationships
-├── webscraper    # YouTube data scraping
-└── shared        # Shared components and orchestration
-```
+The application follows a modular monolith architecture with clear boundaries between modules. A special orchestrator module handles cross-module operations to ensure simplicity and ease of debugging. This approach prioritizes code clarity and maintainability while minimizing coupling between services.
 
 ### Technology Stack
+#### Frontend
+- **Framework**: Astro with ReactJS
+- **Styling**: TailwindCSS
+- **Hosting**: Vercel
 
 #### Backend
-- **Framework**: Spring Boot
+- **Frameworks**:
+   - NestJS with GraphQL (serverless deployment)
+   - Spring Boot (optional for non-serverless scenarios)
 - **Core Technologies**:
-    - Spring Web: REST API implementation
-    - Spring Modulith: Modular application architecture
-    - Spring Data JPA: Database operations
-    - Spring Security: Authentication and authorization
-- **Build Tool**: Gradle
-- **Database**: PostgreSQL
+   - GraphQL: Flexible querying and reduced over-fetching
+   - Service-Level Caching: Optimized performance
+   - Event Dispatching: Used for fire-and-forget operations like cleaning unused videos
+   - Docker: Containerization for deployments
+- **Hosting**: Render
+- **Database**: PostgreSQL hosted on Neon
 
-#### Frontend
-- **Framework**: Astro with ```ReactJS``` and ```Tailwind```
-
-### Domain Driven Design
-The project follows Domain-Driven Design principles, structured into modules using Spring Modulith to ensure a clean modular monolith architecture.
+### Backend Design
+The backend is organized into independent modules to promote clean separation of concerns.
 
 #### Module Structure
-Each business domain is organized into its own module with the following package structure:
+Each module contains the following components:
+- **API**: Public interfaces and operations exposed to other modules
+- **Internals**: Business logic and utilities exclusive to the module
 
-```
-module/
-├── api/              # Public interfaces and DTOs
-├── application/      # Business logic implementation
-├── domain/          # Domain models and entities
-└── infrastructure/  # Technical implementations (repos, configs)
-```
+Modules are designed to be pure and do not interact with other modules directly. Cross-module interactions are handled by the orchestrator module.
 
-#### Key DDD Principles Implementation
-1. **Bounded Contexts**: Each module represents a bounded context with clear boundaries
-2. **Module Independence**: No circular dependencies between modules
-3. **Pure Services**: Services don't directly depend on other module's services
-4. **Orchestration**: The `shared` module's EndpointController orchestrates cross-module operations
+#### Orchestrator Module
+The orchestrator module coordinates operations that involve multiple modules. While this centralization introduces some tight coupling, it simplifies debugging and refactoring by consolidating cross-module logic.
 
-#### Service Orchestration
-To maintain module independence while allowing complex operations that span multiple domains, we use the Orchestrator pattern:
+#### GraphQL
+- Flexible querying minimizes under-fetching and over-fetching.
+- Avoids GraphQL's N+1 problem with efficient service-level caching. Dataloaders are not used in this project (atleast for now)
 
-```java
-public class OrchestratorService {
-    /**
-     * Delete the entry from user_video table
-     * Delete tags from user_video_tag tables
-     * <p>
-     * Remove redundant tags and Remove redundant video if they are not used anymore
-     */
-    public void deleteSpecificSavedVideosOfUser(String userId, Set<String> videoIds) {
-        log.debug("Deleting Saved videos {} of user {}", videoIds, userId);
-    }
-}
-```
+#### Event Handling
+- Events are used selectively for fire-and-forget operations.
+- Example: Cleaning up unused videos after user actions.
 
-### Event Driven Architecture
-The system uses events to maintain loose coupling between modules while ensuring reliable event processing.
-
-<img src="assets/event%20sourcing.png">
-
-#### Event Processing
-- Uses Spring Modulith's event publication system
-- Events are persisted in the database to ensure delivery
-- System checks for incomplete events on startup
-- Automatic retry mechanism for failed event processing
-
-#### Event Storage
-Events are stored in the `event_publication` table:
-```sql
-create table event_publication (
-    id               uuid not null primary key,
-    completion_date  timestamp(6) with time zone,
-    event_type       text,
-    listener_id      text,
-    publication_date timestamp(6) with time zone,
-    serialized_event text
-);
-```
-
-### Database Design
-<img src="assets/er.png">
-
-#### Index Optimization
-The database schema includes carefully designed indexes for optimal query performance:
-
-##### Video-related Queries
-1. **User-Video Relationship Queries**:
-   ```sql
-   create index if not exists idx_user_video_user_video on user_video(user_id, video_id);
-   create index if not exists idx_user_video_user on user_video(user_id);
-   create index if not exists idx_user_video_video on user_video(video_id);
-   ```
-   - `idx_user_video_user_video`: Optimizes queries for specific user's specific video
-   - `idx_user_video_user`: Helps in retrieving all videos for a user
-   - `idx_user_video_video`: Assists in finding which users have a particular video
-
-##### Tag-related Queries
-1. **User Tag Queries**:
-   ```sql
-   create index if not exists idx_user_tag_user on user_tag(user_id);
-   create index if not exists idx_user_tag_user_tag on user_tag(user_id, tag);
-   create index if not exists idx_user_tag_tag on user_tag(tag);
-   ```
-   - `idx_user_tag_user`: Retrieves all tags for a specific user
-   - `idx_user_tag_user_tag`: Checks existence of a specific tag for a user
-   - `idx_user_tag_tag`: Finds users associated with a particular tag
-
-##### User-Video-Tag Queries
-1. **Tag and Video Relationship Queries**:
-   ```sql
-   create index if not exists idx_user_video_tag_user_video on user_video_tag(user_id, video_id);
-   create index if not exists idx_user_video_tag_user_video_tag on user_video_tag(user_id, video_id, tag);
-   create index if not exists idx_user_video_tag_user_tag on user_video_tag(user_id, tag);
-   ```
-   - `idx_user_video_tag_user_video`: Retrieves tags for a specific user's video
-   - `idx_user_video_tag_user_video_tag`: Checks existence of a specific tag on a user's video
-   - `idx_user_video_tag_user_tag`: Finds videos for a user with a specific tag
-
-##### Index Coverage for Common Queries
-1. Find videos by user_id: Uses `idx_user_video_user`
-2. Find tags by user_id: Uses `idx_user_tag_user`
-3. Find videos by user_id + tag: Uses `idx_user_video_tag_user_tag`
-4. Find tags for a specific user's video: Uses `idx_user_video_tag_user_video`
-5. Verify a specific tag on a user's video: Uses `idx_user_video_tag_user_video_tag`
-
-**Notes**:
-- Indexes are created with `if not exists` to prevent errors during repeated deployments
-- The indexes provide efficient lookup paths for most common database operations
-- These indexes balance read performance with minimal write overhead
+#### Caching Strategy
+- Service-level caching optimizes performance.
+- A centralized invalidate-cache mechanism ensures consistency across modules.
+- Example: Clearing tag-related cache when a video is removed.
 
 ### Authentication & Authorization
-
-#### Security Implementation
-- Spring Security for authentication and authorization framework
-- Google OAuth2 for user authentication
-- JWT tokens for session management
+- **Login**: Google OAuth2 for user authentication and fetching user information.
+- **Session Management**: JWT tokens with user ID as the subject.
+- **Request Handling**: Clients include JWT tokens as Bearer tokens in authorization headers.
 
 #### Security Configuration
-```java
-@Configuration
-public class SecurityConfig {
-    // CSRF disabled for API endpoints
-    // CORS configured with * for development
-    // JWT token validation filter
-    // Public endpoints whitelisting
-}
-```
+- Stateless API with no session management.
+- CORS setup for development (all origins allowed) and production (strict policies).
 
 #### Authentication Flow
-1. User initiates Google OAuth login
-2. Server validates OAuth response
-3. JWT token generated for authenticated user
-4. Subsequent requests use JWT token for authentication
+1. User logs in via Google OAuth.
+2. Server validates the OAuth response.
+3. JWT token is generated upon request.
+4. Subsequent requests authenticate via the JWT token.
 
-<img src="assets/google%20oauth.png">
+### Frontend Design
+The frontend is designed for modularity and efficient server communication.
 
-### Authenticated Endpoint Flow
-1. User sends a request with JWT token as authorization header
-2. Server's web filter intercepts the request and extracts the userID from the token
-3. Extracted userID is passed on to Authentication Provider which verifies the signature and sets the current user in security context
-4. Controller picks up and proceeds doing what it is supposed to do based on the request
+#### Structure
+- **Components**: Reusable UI elements
+- **Pages**: Represent application views
+- **API**: Handles server communication and SSR logic
+- **Middleware**: Includes logic for redirection and authentication checks
 
-<img src="assets/authenticated%20endpoint%20flow%20example.png">
+#### Features
+- Hosted on Vercel for seamless deployment.
+- TailwindCSS for rapid styling and consistent design.
 
-#### Security Measures
-- JWT token validation per request
-- Protected endpoints require authentication
-- CORS configuration (configurable for production)
-- No session management (stateless API)
-
-#### Development vs Production
-- Development: CORS allowed from all origins
-- Production: Strict CORS policy with specific origins, headers, and methods
 
