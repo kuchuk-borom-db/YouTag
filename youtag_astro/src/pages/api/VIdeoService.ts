@@ -134,6 +134,8 @@ export async function getVideosWithTags(tags: string[], skip: number, limit: num
         }
     `;
 
+    console.log(`Query to get videos with tag = ${query}`)
+
     const response = await fetch(`${SERVER_URI}/graphql`, {
         method: 'POST',
         headers: {
