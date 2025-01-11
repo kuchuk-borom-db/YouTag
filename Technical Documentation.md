@@ -4,3 +4,4 @@ TODO
 3. using space instead of "," to register tag in FE.
 4. for videos we can skip pressing spacebar to add it to list of there is something in input field
 5. searching tags ignore case
+6. Redo the whole thing in RUST
